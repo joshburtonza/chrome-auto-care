@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ChromeSurface } from '@/components/chrome/ChromeSurface';
+import { ChromeButton } from '@/components/chrome/ChromeButton';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Shield, Mail, Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -76,29 +77,27 @@ const StaffLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <div className="inline-flex p-4 rounded-lg bg-slate-900 border border-slate-800 mb-4">
-            <Shield className="w-10 h-10 text-blue-400" />
+          <div className="inline-flex p-4 rounded-lg chrome-surface chrome-glow mb-4">
+            <Shield className="w-10 h-10 text-warning" strokeWidth={1.4} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-100 mb-2 tracking-tight">RACE TECHNIK</h1>
-          <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">STAFF PORTAL</p>
+          <h1 className="chrome-title text-3xl mb-2">RACE TECHNIK</h1>
+          <p className="chrome-label text-warning">STAFF PORTAL</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-8">
+        <ChromeSurface className="p-8" glow>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                EMAIL ADDRESS
-              </label>
+              <div className="chrome-label mb-2">EMAIL ADDRESS</div>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.4} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full bg-background-alt border border-border rounded-lg pl-10 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-warning/50 transition-all"
                   placeholder="staff@racetechnik.com"
                   disabled={loading}
                 />
@@ -106,16 +105,14 @@ const StaffLogin = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                PASSWORD
-              </label>
+              <div className="chrome-label mb-2">PASSWORD</div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.4} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full bg-background-alt border border-border rounded-lg pl-10 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-warning/50 transition-all"
                   placeholder="••••••••"
                   disabled={loading}
                 />
@@ -123,30 +120,26 @@ const StaffLogin = () => {
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-red-950/50 border border-red-900/50">
-                <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 animate-fade-in">
+                <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" strokeWidth={1.4} />
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold" 
-              disabled={loading}
-            >
+            <ChromeButton type="submit" className="w-full" disabled={loading}>
               {loading ? 'SIGNING IN...' : 'SIGN IN'}
-            </Button>
+            </ChromeButton>
 
-            <div className="text-center text-sm text-slate-500 space-y-2 pt-4">
-              <Link to="/auth/client-login" className="block hover:text-slate-300 transition-colors">
+            <div className="text-center text-sm text-text-tertiary space-y-2 pt-4 border-t border-border/50">
+              <Link to="/auth/client-login" className="block hover:text-primary transition-colors">
                 Client Login →
               </Link>
-              <Link to="/" className="block hover:text-slate-300 transition-colors">
+              <Link to="/" className="block hover:text-primary transition-colors">
                 ← Back to home
               </Link>
             </div>
           </form>
-        </div>
+        </ChromeSurface>
       </div>
     </div>
   );

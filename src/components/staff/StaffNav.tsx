@@ -15,14 +15,14 @@ export const StaffNav = () => {
   ];
 
   return (
-    <nav className="bg-slate-900 border-b border-slate-800">
+    <nav className="bg-card/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <Link to="/staff/dashboard" className="text-sm font-bold text-slate-100 uppercase tracking-wider hover:text-slate-300 transition-colors">
-              Staff Portal
+            <Link to="/staff/dashboard" className="chrome-label text-warning hover:text-warning/80 transition-colors">
+              STAFF PORTAL
             </Link>
-            <div className="flex gap-1">
+            <div className="hidden md:flex gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
@@ -31,7 +31,7 @@ export const StaffNav = () => {
                     <Button
                       variant={isActive ? 'default' : 'ghost'}
                       size="sm"
-                      className={`gap-2 ${isActive ? 'bg-slate-700 text-slate-100 hover:bg-slate-600' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'}`}
+                      className="gap-2"
                     >
                       <Icon className="w-4 h-4" />
                       {item.label}
@@ -41,12 +41,7 @@ export const StaffNav = () => {
               })}
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={signOut} 
-            className="gap-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-          >
+          <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
             <LogOut className="w-4 h-4" />
             Logout
           </Button>
