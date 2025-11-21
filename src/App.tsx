@@ -16,6 +16,10 @@ import Garage from "./pages/Garage";
 import Store from "./pages/Store";
 import Gallery from "./pages/Gallery";
 import JobTracking from "./pages/JobTracking";
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import StaffBookings from "./pages/staff/StaffBookings";
+import StaffCustomers from "./pages/staff/StaffCustomers";
+import StaffServices from "./pages/staff/StaffServices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +92,40 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['client']}>
                   <JobTracking />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Protected staff routes */}
+            <Route
+              path="/staff/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <StaffDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/bookings"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <StaffBookings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/customers"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <StaffCustomers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/services"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <StaffServices />
                 </ProtectedRoute>
               }
             />
