@@ -1,3 +1,4 @@
+import { ClientNav } from "@/components/client/ClientNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
@@ -25,6 +26,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientNav />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">

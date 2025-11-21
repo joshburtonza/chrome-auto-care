@@ -45,52 +45,63 @@ export default function StaffDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-950">
       <StaffNav />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="chrome-heading text-4xl mb-8">STAFF DASHBOARD</h1>
+        <div className="mb-8 pb-6 border-b border-slate-800">
+          <h1 className="text-4xl font-bold text-slate-100 mb-2 tracking-tight">Staff Dashboard</h1>
+          <p className="text-slate-400">Manage bookings, customers, and services</p>
+        </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
-              <ChromeSurface key={stat.label} className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="chrome-label text-sm">{stat.label}</div>
-                  <Icon className="w-5 h-5 text-muted-foreground" />
+              <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-lg p-6 hover:border-slate-700 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</div>
+                  <Icon className="w-5 h-5 text-slate-500" />
                 </div>
-                <div className="chrome-heading text-3xl">{stat.value}</div>
-              </ChromeSurface>
+                <div className="text-3xl font-bold text-slate-100">{stat.value}</div>
+              </div>
             );
           })}
         </div>
 
         {/* Recent Bookings */}
-        <ChromeSurface className="p-6">
-          <h2 className="chrome-heading text-2xl mb-6">RECENT BOOKINGS</h2>
-          <div className="space-y-4">
-            {recentBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="font-semibold mb-1">
-                    {booking.profiles?.full_name || 'Customer'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {booking.services?.title}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
+        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-slate-800">
+            <h2 className="text-xl font-bold text-slate-100">Recent Bookings</h2>
+          </div>
+          <div className="divide-y divide-slate-800">
+            {recentBookings.length === 0 ? (
+              <div className="p-8 text-center text-slate-500">No bookings yet</div>
+            ) : (
+              recentBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="p-4 hover:bg-slate-800/50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="font-semibold text-slate-200 mb-1">
+                        {booking.profiles?.full_name || 'Customer'}
+                      </div>
+                      <div className="text-sm text-slate-400">
+                        {booking.services?.title}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
+                      </div>
+                    </div>
+                    <StatusBadge status={booking.status} />
                   </div>
                 </div>
-                <StatusBadge status={booking.status} />
-              </div>
-            ))}
+              ))
+            )}
           </div>
-        </ChromeSurface>
+        </div>
       </div>
     </div>
   );
