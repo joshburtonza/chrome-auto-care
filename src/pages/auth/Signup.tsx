@@ -159,7 +159,7 @@ const Signup = () => {
                 Already have an account?
               </p>
               <ChromeButton variant="outline" asChild>
-                <Link to="/auth/login">SIGN IN</Link>
+                <Link to="/auth/client-login">SIGN IN</Link>
               </ChromeButton>
             </div>
 

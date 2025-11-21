@@ -1,25 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { ChromeButton } from '@/components/chrome/ChromeButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Shield, Mail, Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-const Login = () => {
+const ClientLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
       setLoading(false);
@@ -45,6 +51,23 @@ const Login = () => {
         return;
       }
 
+      // Check if user is a client
+      const { data: session } = await supabase.auth.getSession();
+      if (session?.session?.user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.session.user.id)
+          .single();
+
+        if (roleData?.role === 'staff' || roleData?.role === 'admin') {
+          await supabase.auth.signOut();
+          setError('Please use the staff login portal');
+          setLoading(false);
+          return;
+        }
+      }
+
       toast.success('Welcome back!');
       navigate('/dashboard');
     } catch (err: any) {
@@ -56,7 +79,6 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex p-4 rounded-lg chrome-surface chrome-glow mb-4">
             <Shield className="w-10 h-10 text-primary" strokeWidth={1.4} />
@@ -65,7 +87,6 @@ const Login = () => {
           <p className="chrome-label text-text-tertiary">CLIENT PORTAL</p>
         </div>
 
-        {/* Login Form */}
         <ChromeSurface className="p-8" glow>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -118,8 +139,11 @@ const Login = () => {
               </ChromeButton>
             </div>
 
-            <div className="text-center">
-              <Link to="/" className="text-sm text-text-tertiary hover:text-primary transition-colors">
+            <div className="text-center text-sm text-text-tertiary space-y-2">
+              <Link to="/auth/staff-login" className="block hover:text-primary transition-colors">
+                Staff Login →
+              </Link>
+              <Link to="/" className="block hover:text-primary transition-colors">
                 ← Back to home
               </Link>
             </div>
@@ -130,4 +154,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ClientLogin;

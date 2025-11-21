@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import Login from "./pages/auth/Login";
+import ClientLogin from "./pages/auth/ClientLogin";
+import StaffLogin from "./pages/auth/StaffLogin";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/Dashboard";
 import Services from "./pages/Services";
@@ -34,7 +35,8 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/client-login" element={<ClientLogin />} />
+            <Route path="/auth/staff-login" element={<StaffLogin />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/gallery" element={<Gallery />} />
             

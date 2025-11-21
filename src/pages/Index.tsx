@@ -43,9 +43,15 @@ const Index = () => {
                 </Link>
               </ChromeButton>
               <ChromeButton variant="outline" size="lg" asChild>
-                <Link to="/auth/login">
+                <Link to="/auth/client-login">
                   <User className="mr-2 h-4 w-4" strokeWidth={1.4} />
                   Client Login
+                </Link>
+              </ChromeButton>
+              <ChromeButton variant="outline" size="lg" asChild>
+                <Link to="/auth/staff-login">
+                  <Shield className="mr-2 h-4 w-4" strokeWidth={1.4} />
+                  Staff Login
                 </Link>
               </ChromeButton>
             </div>
