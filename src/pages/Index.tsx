@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Car, Shield, Sparkles, Calendar, Store, Award } from "lucide-react";
+import { Car, Shield, Sparkles, Calendar, Store, Award, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -37,15 +37,15 @@ const Index = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
               <ChromeButton size="lg" asChild>
-                <Link to="/services">
+                <Link to="/auth/signup">
                   <Calendar className="mr-2 h-4 w-4" strokeWidth={1.4} />
-                  Book Service
+                  Get Started
                 </Link>
               </ChromeButton>
               <ChromeButton variant="outline" size="lg" asChild>
-                <Link to="/gallery">
-                  <Sparkles className="mr-2 h-4 w-4" strokeWidth={1.4} />
-                  View Gallery
+                <Link to="/auth/login">
+                  <User className="mr-2 h-4 w-4" strokeWidth={1.4} />
+                  Client Login
                 </Link>
               </ChromeButton>
             </div>
