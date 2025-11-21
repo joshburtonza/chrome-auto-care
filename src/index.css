@@ -8,89 +8,148 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Race Technik Chrome & Carbon Design System */
+    --background: 216 20% 2%;
+    --background-alt: 220 15% 3%;
+    --foreground: 0 0% 94%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Chrome surfaces with gradient capability */
+    --card: 218 18% 5%;
+    --card-foreground: 0 0% 94%;
+    --card-gradient-start: 218 18% 7%;
+    --card-gradient-end: 220 15% 3%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 218 18% 5%;
+    --popover-foreground: 0 0% 94%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Chrome accent - bright white metallic */
+    --primary: 210 100% 98%;
+    --primary-foreground: 218 18% 5%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - subtle chrome */
+    --secondary: 220 15% 12%;
+    --secondary-foreground: 0 0% 94%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted tones */
+    --muted: 220 15% 10%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - chrome white */
+    --accent: 210 100% 98%;
+    --accent-foreground: 218 18% 5%;
+    --accent-soft: 0 0% 100%;
+    --accent-dark: 225 10% 64%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Success - teal for availability */
+    --success: 165 68% 70%;
+    --success-foreground: 218 18% 5%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Warning - orange */
+    --warning: 30 100% 64%;
+    --warning-foreground: 218 18% 5%;
 
-    --radius: 0.5rem;
+    /* Destructive - red */
+    --destructive: 0 70% 67%;
+    --destructive-foreground: 0 0% 98%;
 
-    --sidebar-background: 0 0% 98%;
+    /* Border and input - subtle chrome lines */
+    --border: 220 15% 15%;
+    --input: 220 15% 12%;
+    --ring: 210 100% 98%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --radius: 0.75rem;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Chrome gradient stops */
+    --chrome-start: 0 0% 100%;
+    --chrome-mid: 0 0% 85%;
+    --chrome-end: 0 0% 70%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Text hierarchy */
+    --text-primary: 0 0% 94%;
+    --text-secondary: 0 0% 65%;
+    --text-tertiary: 0 0% 45%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Sidebar */
+    --sidebar-background: 218 18% 4%;
+    --sidebar-foreground: 0 0% 94%;
+    --sidebar-primary: 210 100% 98%;
+    --sidebar-primary-foreground: 218 18% 5%;
+    --sidebar-accent: 220 15% 12%;
+    --sidebar-accent-foreground: 0 0% 94%;
+    --sidebar-border: 220 15% 15%;
+    --sidebar-ring: 210 100% 98%;
+  }
+}
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+@layer base {
+  * {
+    @apply border-border;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  body {
+    @apply bg-background text-foreground font-light;
+    font-feature-settings: "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+  /* Chrome typography styles */
+  .chrome-label {
+    @apply text-[11px] uppercase tracking-[2px] font-light text-muted-foreground;
+  }
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+  .chrome-title {
+    @apply text-2xl font-light tracking-wide text-foreground;
+  }
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+  .chrome-heading {
+    @apply text-4xl font-light tracking-wider text-foreground;
+  }
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+  /* Chrome gradient background utilities */
+  .chrome-surface {
+    background: linear-gradient(135deg, hsl(var(--card-gradient-start)), hsl(var(--card-gradient-end)));
+    position: relative;
+  }
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+  .chrome-surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+  /* Metallic sheen effect */
+  .chrome-sheen {
+    position: relative;
+    overflow: hidden;
+  }
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+  .chrome-sheen::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    bottom: -50%;
+    left: -50%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  .chrome-sheen:hover::after {
+    transform: translateX(100%);
+  }
+
+  /* Glow effects */
+  .chrome-glow {
+    box-shadow: 0 0 20px rgba(246, 250, 255, 0.1), 0 0 40px rgba(246, 250, 255, 0.05);
+  }
+
+  .chrome-glow-strong {
+    box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
   }
 }
 
