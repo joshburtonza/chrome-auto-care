@@ -14,7 +14,12 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        navigate('/auth/login');
+        // Redirect to appropriate login based on allowed roles
+        if (allowedRoles?.includes('staff') || allowedRoles?.includes('admin')) {
+          navigate('/auth/staff-login');
+        } else {
+          navigate('/auth/client-login');
+        }
       } else if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
         // Redirect to appropriate dashboard based on role
         if (userRole === 'staff' || userRole === 'admin') {
