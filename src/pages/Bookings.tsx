@@ -1,34 +1,62 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { Car, Calendar, Clock } from "lucide-react";
+import { Car, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Bookings = () => {
-  const bookings = [
-    {
-      id: "BK001",
-      service: "Paint Protection Film",
-      vehicle: "2024 Porsche 911 GT3",
-      date: "March 10, 2025",
-      status: "limited" as const,
-      statusLabel: "In Progress",
-    },
-    {
-      id: "BK002",
-      service: "Ceramic Coating",
-      vehicle: "BMW M4 Competition",
-      date: "March 15, 2025",
-      status: "available" as const,
-      statusLabel: "Scheduled",
-    },
-    {
-      id: "BK003",
-      service: "Full Detail",
-      vehicle: "Audi RS6 Avant",
-      date: "February 28, 2025",
-      status: "unavailable" as const,
-      statusLabel: "Completed",
-    },
-  ];
+  const { user } = useAuth();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadBookings();
+    }
+  }, [user]);
+
+  const loadBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services (title),
+          vehicles (year, make, model)
+        `)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setBookings(data || []);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+      toast.error('Failed to load bookings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, 'available' | 'limited' | 'full' | 'unavailable'> = {
+      pending: 'limited',
+      confirmed: 'available',
+      in_progress: 'limited',
+      completed: 'available',
+      cancelled: 'unavailable',
+    };
+    return statusMap[status] || 'unavailable';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="chrome-label text-primary">LOADING...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,31 +66,42 @@ const Bookings = () => {
           <p className="text-text-secondary">Track all your service appointments</p>
         </div>
 
-        <div className="space-y-4">
-          {bookings.map((booking) => (
-            <ChromeSurface key={booking.id} className="p-6" glow>
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="chrome-label text-[10px] text-text-tertiary">{booking.id}</div>
-                    <StatusBadge status={booking.status}>{booking.statusLabel}</StatusBadge>
-                  </div>
-                  <h3 className="text-xl font-light text-foreground mb-1">{booking.service}</h3>
-                  <div className="flex items-center gap-4 text-sm text-text-secondary">
-                    <span className="flex items-center gap-2">
-                      <Car className="w-4 h-4" strokeWidth={1.4} />
-                      {booking.vehicle}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" strokeWidth={1.4} />
-                      {booking.date}
-                    </span>
+        {bookings.length === 0 ? (
+          <ChromeSurface className="p-12 text-center" glow>
+            <Calendar className="w-16 h-16 text-primary/30 mx-auto mb-4" strokeWidth={1.4} />
+            <h3 className="chrome-label text-foreground mb-2">NO BOOKINGS YET</h3>
+            <p className="text-text-secondary">Book your first service to get started</p>
+          </ChromeSurface>
+        ) : (
+          <div className="space-y-4">
+            {bookings.map((booking) => (
+              <ChromeSurface key={booking.id} className="p-6" glow>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <StatusBadge status={getStatusBadge(booking.status)}>
+                        {booking.status.replace('_', ' ')}
+                      </StatusBadge>
+                    </div>
+                    <h3 className="text-xl font-light text-foreground mb-1">{booking.services?.title}</h3>
+                    <div className="flex items-center gap-4 text-sm text-text-secondary">
+                      {booking.vehicles && (
+                        <span className="flex items-center gap-2">
+                          <Car className="w-4 h-4" strokeWidth={1.4} />
+                          {booking.vehicles.year} {booking.vehicles.make} {booking.vehicles.model}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" strokeWidth={1.4} />
+                        {new Date(booking.booking_date).toLocaleDateString()} {booking.booking_time}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ChromeSurface>
-          ))}
-        </div>
+              </ChromeSurface>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
