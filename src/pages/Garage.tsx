@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/client/ClientNav";
+import { AddVehicleDialog } from "@/components/garage/AddVehicleDialog";
 
 const Garage = () => {
   const { user } = useAuth();
@@ -53,10 +54,12 @@ const Garage = () => {
             <h1 className="chrome-title text-4xl mb-2">MY GARAGE</h1>
             <p className="text-text-secondary">Manage your vehicle collection</p>
           </div>
-          <ChromeButton>
-            <Plus className="mr-2 w-4 h-4" strokeWidth={1.4} />
-            Add Vehicle
-          </ChromeButton>
+          <AddVehicleDialog onVehicleAdded={loadVehicles} trigger={
+            <ChromeButton>
+              <Plus className="mr-2 w-4 h-4" strokeWidth={1.4} />
+              Add Vehicle
+            </ChromeButton>
+          } />
         </div>
 
         {vehicles.length === 0 ? (
@@ -64,10 +67,12 @@ const Garage = () => {
             <Car className="w-16 h-16 text-primary/30 mx-auto mb-4" strokeWidth={1.4} />
             <h3 className="chrome-label text-foreground mb-2">NO VEHICLES YET</h3>
             <p className="text-text-secondary mb-6">Add your first vehicle to get started</p>
-            <ChromeButton>
-              <Plus className="mr-2 w-4 h-4" strokeWidth={1.4} />
-              Add Vehicle
-            </ChromeButton>
+            <AddVehicleDialog onVehicleAdded={loadVehicles} trigger={
+              <ChromeButton>
+                <Plus className="mr-2 w-4 h-4" strokeWidth={1.4} />
+                Add Vehicle
+              </ChromeButton>
+            } />
           </ChromeSurface>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">

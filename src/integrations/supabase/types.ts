@@ -23,6 +23,8 @@ export type Database = {
           id: string
           notes: string | null
           stage: Database["public"]["Enums"]["stage_type"]
+          stage_order: number | null
+          started_at: string | null
         }
         Insert: {
           booking_id: string
@@ -32,6 +34,8 @@ export type Database = {
           id?: string
           notes?: string | null
           stage: Database["public"]["Enums"]["stage_type"]
+          stage_order?: number | null
+          started_at?: string | null
         }
         Update: {
           booking_id?: string
@@ -41,6 +45,8 @@ export type Database = {
           id?: string
           notes?: string | null
           stage?: Database["public"]["Enums"]["stage_type"]
+          stage_order?: number | null
+          started_at?: string | null
         }
         Relationships: [
           {
@@ -331,12 +337,16 @@ export type Database = {
         | "completed"
         | "cancelled"
       stage_type:
-        | "received"
-        | "inspection"
-        | "quoted"
-        | "in_progress"
-        | "quality_check"
-        | "complete"
+        | "vehicle_checkin"
+        | "stripping"
+        | "surface_prep"
+        | "paint_correction"
+        | "ppf_installation"
+        | "reassembly"
+        | "qc1"
+        | "final_detail"
+        | "qc2"
+        | "delivery_prep"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -473,12 +483,16 @@ export const Constants = {
         "cancelled",
       ],
       stage_type: [
-        "received",
-        "inspection",
-        "quoted",
-        "in_progress",
-        "quality_check",
-        "complete",
+        "vehicle_checkin",
+        "stripping",
+        "surface_prep",
+        "paint_correction",
+        "ppf_installation",
+        "reassembly",
+        "qc1",
+        "final_detail",
+        "qc2",
+        "delivery_prep",
       ],
     },
   },

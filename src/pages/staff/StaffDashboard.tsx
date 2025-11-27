@@ -3,7 +3,8 @@ import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { StatusBadge } from '@/components/chrome/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, Users, DollarSign, Clock } from 'lucide-react';
+import { Calendar, Users, Clock, AlertCircle, Activity, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function StaffDashboard() {
   const [stats, setStats] = useState({
@@ -49,10 +50,51 @@ export default function StaffDashboard() {
       <StaffNav />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <h1 className="chrome-heading text-4xl">STAFF DASHBOARD</h1>
-          </div>
-          <p className="text-text-secondary">Manage bookings, customers, and services</p>
+          <h1 className="chrome-heading text-4xl mb-2">STAFF DASHBOARD</h1>
+          <p className="text-muted-foreground">Overview of bookings and customer activity</p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <Link to="/staff/bookings">
+            <ChromeSurface className="p-6 hover:border-warning transition-colors cursor-pointer" glow>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-warning/10 rounded-lg">
+                  <AlertCircle className="w-6 h-6 text-warning" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">{stats.pendingBookings}</div>
+                  <div className="text-sm text-muted-foreground">Pending Bookings</div>
+                </div>
+              </div>
+            </ChromeSurface>
+          </Link>
+
+          <Link to="/staff/bookings">
+            <ChromeSurface className="p-6 hover:border-primary transition-colors cursor-pointer" glow>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Activity className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">{stats.activeBookings}</div>
+                  <div className="text-sm text-muted-foreground">In Progress</div>
+                </div>
+              </div>
+            </ChromeSurface>
+          </Link>
+
+          <ChromeSurface className="p-6" glow>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-success/10 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-success" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">{stats.completedBookings}</div>
+                <div className="text-sm text-muted-foreground">Completed</div>
+              </div>
+            </div>
+          </ChromeSurface>
         </div>
 
         {/* Stats Grid */}
