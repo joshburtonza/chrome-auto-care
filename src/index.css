@@ -9,17 +9,17 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Race Technik Chrome & Carbon Design System */
-    --background: 216 20% 2%;
-    --background-alt: 220 15% 3%;
+    --background: 216 20% 8%;
+    --background-alt: 220 15% 10%;
     --foreground: 0 0% 94%;
 
     /* Chrome surfaces with gradient capability */
-    --card: 218 18% 5%;
+    --card: 218 18% 12%;
     --card-foreground: 0 0% 94%;
-    --card-gradient-start: 218 18% 7%;
-    --card-gradient-end: 220 15% 3%;
+    --card-gradient-start: 218 18% 14%;
+    --card-gradient-end: 220 15% 10%;
 
-    --popover: 218 18% 5%;
+    --popover: 218 18% 12%;
     --popover-foreground: 0 0% 94%;
 
     /* Chrome accent - bright white metallic */
@@ -27,12 +27,12 @@ All colors MUST be HSL.
     --primary-foreground: 218 18% 5%;
 
     /* Secondary - subtle chrome */
-    --secondary: 220 15% 12%;
+    --secondary: 220 15% 18%;
     --secondary-foreground: 0 0% 94%;
 
     /* Muted tones */
-    --muted: 220 15% 10%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 15% 16%;
+    --muted-foreground: 0 0% 50%;
 
     /* Accent - chrome white */
     --accent: 210 100% 98%;
@@ -53,8 +53,8 @@ All colors MUST be HSL.
     --destructive-foreground: 0 0% 98%;
 
     /* Border and input - subtle chrome lines */
-    --border: 220 15% 15%;
-    --input: 220 15% 12%;
+    --border: 220 15% 20%;
+    --input: 220 15% 18%;
     --ring: 210 100% 98%;
 
     --radius: 0.75rem;
@@ -70,13 +70,13 @@ All colors MUST be HSL.
     --text-tertiary: 0 0% 45%;
 
     /* Sidebar */
-    --sidebar-background: 218 18% 4%;
+    --sidebar-background: 218 18% 10%;
     --sidebar-foreground: 0 0% 94%;
     --sidebar-primary: 210 100% 98%;
-    --sidebar-primary-foreground: 218 18% 5%;
-    --sidebar-accent: 220 15% 12%;
+    --sidebar-primary-foreground: 218 18% 12%;
+    --sidebar-accent: 220 15% 18%;
     --sidebar-accent-foreground: 0 0% 94%;
-    --sidebar-border: 220 15% 15%;
+    --sidebar-border: 220 15% 20%;
     --sidebar-ring: 210 100% 98%;
   }
 }

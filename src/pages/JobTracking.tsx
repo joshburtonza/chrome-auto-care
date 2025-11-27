@@ -1,6 +1,7 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
 import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { ClientNav } from "@/components/client/ClientNav";
 
 const JobTracking = () => {
   const jobDetails = {
@@ -71,6 +72,7 @@ const JobTracking = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientNav />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="chrome-title text-4xl mb-2">JOB TRACKING</h1>

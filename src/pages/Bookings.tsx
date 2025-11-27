@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ClientNav } from "@/components/client/ClientNav";
 
 const Bookings = () => {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ const Bookings = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientNav />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
           <h1 className="chrome-title text-4xl mb-2">MY BOOKINGS</h1>

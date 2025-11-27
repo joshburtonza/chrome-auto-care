@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ClientNav } from "@/components/client/ClientNav";
 
 const Garage = () => {
   const { user } = useAuth();
@@ -45,6 +46,7 @@ const Garage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientNav />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="flex items-center justify-between mb-8">
           <div>
