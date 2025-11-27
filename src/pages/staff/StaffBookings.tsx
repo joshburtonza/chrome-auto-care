@@ -47,6 +47,34 @@ export default function StaffBookings() {
   const handleViewBooking = async (booking: any) => {
     setSelectedBooking(booking);
     await fetchBookingStages(booking.id);
+    
+    // Auto-create stages if they don't exist
+    const { data: existingStages } = await supabase
+      .from('booking_stages')
+      .select('id')
+      .eq('booking_id', booking.id);
+    
+    if (!existingStages || existingStages.length === 0) {
+      await createDefaultStages(booking.id);
+      await fetchBookingStages(booking.id);
+    }
+  };
+
+  const createDefaultStages = async (bookingId: string) => {
+    const stages: Array<{
+      booking_id: string;
+      stage: 'received' | 'inspection' | 'quoted' | 'in_progress' | 'quality_check' | 'complete';
+      completed: boolean;
+    }> = [
+      { booking_id: bookingId, stage: 'received', completed: false },
+      { booking_id: bookingId, stage: 'inspection', completed: false },
+      { booking_id: bookingId, stage: 'quoted', completed: false },
+      { booking_id: bookingId, stage: 'in_progress', completed: false },
+      { booking_id: bookingId, stage: 'quality_check', completed: false },
+      { booking_id: bookingId, stage: 'complete', completed: false },
+    ];
+
+    await supabase.from('booking_stages').insert(stages);
   };
 
   const handleUpdateStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled') => {
@@ -64,23 +92,43 @@ export default function StaffBookings() {
     }
   };
 
-  const handleUpdateStage = async (stageId: string, completed: boolean) => {
+  const handleUpdateStage = async (stageId: string, stageName: 'received' | 'inspection' | 'quoted' | 'in_progress' | 'quality_check' | 'complete', completed: boolean) => {
     const { error } = await supabase
       .from('booking_stages')
       .update({ 
         completed,
         completed_at: completed ? new Date().toISOString() : null,
-        notes: updateNotes 
+        notes: updateNotes || undefined
       })
       .eq('id', stageId);
 
     if (!error) {
+      // Update booking current_stage
+      if (completed && selectedBooking) {
+        await supabase
+          .from('bookings')
+          .update({ current_stage: stageName })
+          .eq('id', selectedBooking.id);
+      }
+      
       toast({ title: 'Stage updated successfully' });
       if (selectedBooking) {
         await fetchBookingStages(selectedBooking.id);
       }
       setUpdateNotes('');
     }
+  };
+
+  const getStageLabel = (stage: string) => {
+    const labels: Record<string, string> = {
+      received: 'Vehicle Received',
+      inspection: 'Pre-Installation Inspection',
+      quoted: 'Quote Approved',
+      in_progress: 'Installation In Progress',
+      quality_check: 'Quality Control',
+      complete: 'Ready for Pickup'
+    };
+    return labels[stage] || stage;
   };
 
   return (
@@ -168,31 +216,36 @@ export default function StaffBookings() {
                   <div className="chrome-label mb-4">BOOKING STAGES</div>
                   <div className="space-y-3">
                     {bookingStages.map((stage) => (
-                      <div key={stage.id} className="border border-border rounded-lg p-4">
+                      <div key={stage.id} className={`border rounded-lg p-4 ${stage.completed ? 'border-success bg-success/5' : 'border-border'}`}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold">{stage.stage}</span>
+                            <span className="font-semibold">{getStageLabel(stage.stage)}</span>
                             {stage.completed && (
-                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <CheckCircle className="w-4 h-4 text-success" />
                             )}
                           </div>
                           <Button
-                            variant="outline"
+                            variant={stage.completed ? "outline" : "default"}
                             size="sm"
-                            onClick={() => handleUpdateStage(stage.id, !stage.completed)}
+                            onClick={() => handleUpdateStage(stage.id, stage.stage, !stage.completed)}
                           >
-                            {stage.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                            {stage.completed ? 'Undo' : 'Complete'}
                           </Button>
                         </div>
+                        {stage.completed_at && (
+                          <div className="text-xs text-muted-foreground mb-2">
+                            Completed: {new Date(stage.completed_at).toLocaleString()}
+                          </div>
+                        )}
                         {stage.notes && (
-                          <div className="text-sm text-muted-foreground mt-2">
+                          <div className="text-sm text-muted-foreground mt-2 p-2 bg-muted rounded">
                             {stage.notes}
                           </div>
                         )}
                         {!stage.completed && (
                           <div className="mt-3">
                             <Textarea
-                              placeholder="Add notes..."
+                              placeholder="Add completion notes..."
                               value={updateNotes}
                               onChange={(e) => setUpdateNotes(e.target.value)}
                               className="text-sm"
