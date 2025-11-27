@@ -1,4 +1,5 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
+import { ClientNav } from "@/components/client/ClientNav";
 
 const Gallery = () => {
   const showcaseItems = [
@@ -12,6 +13,7 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientNav />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-12 text-center">
           <h1 className="chrome-title text-4xl mb-2">SHOWCASE GALLERY</h1>

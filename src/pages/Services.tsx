@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { ClientNav } from "@/components/client/ClientNav";
 
 const Services = () => {
   const { user } = useAuth();
@@ -170,6 +171,7 @@ const Services = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientNav />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-12">
