@@ -58,9 +58,9 @@ const StaffLogin = () => {
           .from('user_roles')
           .select('role')
           .eq('user_id', session.session.user.id)
-          .single();
+          .in('role', ['staff', 'admin']);
 
-        if (roleData?.role !== 'staff' && roleData?.role !== 'admin') {
+        if (!roleData || roleData.length === 0) {
           await supabase.auth.signOut();
           setError('Access denied. Staff credentials required.');
           setLoading(false);
