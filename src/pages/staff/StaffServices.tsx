@@ -14,6 +14,13 @@ export default function StaffServices() {
   const [services, setServices] = useState<any[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    price_from: 0,
+    duration: '',
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,7 +52,58 @@ export default function StaffServices() {
 
   const handleEdit = (service: any) => {
     setEditingService(service);
+    setFormData({
+      title: service.title,
+      description: service.description,
+      category: service.category,
+      price_from: service.price_from,
+      duration: service.duration,
+    });
     setShowDialog(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingService(null);
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      price_from: 0,
+      duration: '',
+    });
+    setShowDialog(true);
+  };
+
+  const handleSaveService = async () => {
+    if (!formData.title || !formData.category || formData.price_from <= 0) {
+      toast({ title: 'Please fill in all required fields', variant: 'destructive' });
+      return;
+    }
+
+    if (editingService) {
+      // Update existing service
+      const { error } = await supabase
+        .from('services')
+        .update(formData)
+        .eq('id', editingService.id);
+
+      if (!error) {
+        toast({ title: 'Service updated successfully' });
+        setShowDialog(false);
+        fetchServices();
+      }
+    } else {
+      // Create new service
+      const { error } = await supabase
+        .from('services')
+        .insert([formData]);
+
+      if (!error) {
+        toast({ title: 'Service created successfully' });
+        setShowDialog(false);
+        fetchServices();
+      }
+    }
   };
 
   return (
@@ -54,7 +112,7 @@ export default function StaffServices() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="chrome-heading text-4xl">SERVICE MANAGEMENT</h1>
-          <Button onClick={() => setShowDialog(true)}>
+          <Button onClick={handleAddNew}>
             <Plus className="w-4 h-4 mr-2" />
             Add Service
           </Button>
@@ -107,23 +165,50 @@ export default function StaffServices() {
             <div className="space-y-4">
               <div>
                 <label className="chrome-label text-xs mb-2 block">TITLE</label>
-                <Input placeholder="Service title" />
+                <Input 
+                  placeholder="Service title" 
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="chrome-label text-xs mb-2 block">CATEGORY</label>
+                <Input 
+                  placeholder="e.g. Tuning, Maintenance" 
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                />
               </div>
               <div>
                 <label className="chrome-label text-xs mb-2 block">DESCRIPTION</label>
-                <Textarea placeholder="Service description" />
+                <Textarea 
+                  placeholder="Service description" 
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="chrome-label text-xs mb-2 block">PRICE FROM</label>
-                  <Input type="number" placeholder="0" />
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={formData.price_from}
+                    onChange={(e) => setFormData({ ...formData, price_from: parseFloat(e.target.value) })}
+                  />
                 </div>
                 <div>
                   <label className="chrome-label text-xs mb-2 block">DURATION</label>
-                  <Input placeholder="e.g. 2-3 hours" />
+                  <Input 
+                    placeholder="e.g. 2-3 hours" 
+                    value={formData.duration}
+                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  />
                 </div>
               </div>
-              <Button className="w-full">Save Service</Button>
+              <Button className="w-full" onClick={handleSaveService}>
+                {editingService ? 'Update Service' : 'Create Service'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
