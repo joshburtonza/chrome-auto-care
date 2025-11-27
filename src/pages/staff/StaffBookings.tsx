@@ -61,17 +61,26 @@ export default function StaffBookings() {
   };
 
   const createDefaultStages = async (bookingId: string) => {
+    // Note: Stages are now auto-created by database trigger
+    // This function is kept for backwards compatibility but stages should exist
+    type StageType = 'vehicle_checkin' | 'stripping' | 'surface_prep' | 'paint_correction' | 'ppf_installation' | 'reassembly' | 'qc1' | 'final_detail' | 'qc2' | 'delivery_prep';
+    
     const stages: Array<{
       booking_id: string;
-      stage: 'received' | 'inspection' | 'quoted' | 'in_progress' | 'quality_check' | 'complete';
+      stage: StageType;
+      stage_order: number;
       completed: boolean;
     }> = [
-      { booking_id: bookingId, stage: 'received', completed: false },
-      { booking_id: bookingId, stage: 'inspection', completed: false },
-      { booking_id: bookingId, stage: 'quoted', completed: false },
-      { booking_id: bookingId, stage: 'in_progress', completed: false },
-      { booking_id: bookingId, stage: 'quality_check', completed: false },
-      { booking_id: bookingId, stage: 'complete', completed: false },
+      { booking_id: bookingId, stage: 'vehicle_checkin' as StageType, stage_order: 1, completed: false },
+      { booking_id: bookingId, stage: 'stripping' as StageType, stage_order: 2, completed: false },
+      { booking_id: bookingId, stage: 'surface_prep' as StageType, stage_order: 3, completed: false },
+      { booking_id: bookingId, stage: 'paint_correction' as StageType, stage_order: 4, completed: false },
+      { booking_id: bookingId, stage: 'ppf_installation' as StageType, stage_order: 5, completed: false },
+      { booking_id: bookingId, stage: 'reassembly' as StageType, stage_order: 6, completed: false },
+      { booking_id: bookingId, stage: 'qc1' as StageType, stage_order: 7, completed: false },
+      { booking_id: bookingId, stage: 'final_detail' as StageType, stage_order: 8, completed: false },
+      { booking_id: bookingId, stage: 'qc2' as StageType, stage_order: 9, completed: false },
+      { booking_id: bookingId, stage: 'delivery_prep' as StageType, stage_order: 10, completed: false },
     ];
 
     await supabase.from('booking_stages').insert(stages);
@@ -92,7 +101,7 @@ export default function StaffBookings() {
     }
   };
 
-  const handleUpdateStage = async (stageId: string, stageName: 'received' | 'inspection' | 'quoted' | 'in_progress' | 'quality_check' | 'complete', completed: boolean) => {
+  const handleUpdateStage = async (stageId: string, stageName: any, completed: boolean) => {
     const { error } = await supabase
       .from('booking_stages')
       .update({ 
@@ -121,12 +130,16 @@ export default function StaffBookings() {
 
   const getStageLabel = (stage: string) => {
     const labels: Record<string, string> = {
-      received: 'Vehicle Received',
-      inspection: 'Pre-Installation Inspection',
-      quoted: 'Quote Approved',
-      in_progress: 'Installation In Progress',
-      quality_check: 'Quality Control',
-      complete: 'Ready for Pickup'
+      vehicle_checkin: 'Vehicle Check-In & Photography',
+      stripping: 'Stripping',
+      surface_prep: 'Surface Prep & Inspection',
+      paint_correction: 'Paint Correction / Buffing',
+      ppf_installation: 'PPF Installation / Ceramic Treatment',
+      reassembly: 'Reassembly',
+      qc1: 'Quality Control #1',
+      final_detail: 'Final Detail + Ceramic Finishing',
+      qc2: 'Quality Control #2',
+      delivery_prep: 'Delivery Prep + Customer Pickup'
     };
     return labels[stage] || stage;
   };

@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, Calendar, Car, Package, User, LogOut, Store } from 'lucide-react';
+import { Home, Calendar, Car, Package, User, LogOut, Store, ClipboardCheck } from 'lucide-react';
 
 export const ClientNav = () => {
   const location = useLocation();
@@ -11,6 +11,7 @@ export const ClientNav = () => {
     { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/services', label: 'Services', icon: Package },
     { path: '/bookings', label: 'Bookings', icon: Calendar },
+    { path: '/job-tracking', label: 'Job Tracking', icon: ClipboardCheck },
     { path: '/garage', label: 'Garage', icon: Car },
     { path: '/store', label: 'Store', icon: Store },
     { path: '/profile', label: 'Profile', icon: User },
