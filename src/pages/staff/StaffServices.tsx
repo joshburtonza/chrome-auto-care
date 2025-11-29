@@ -110,7 +110,7 @@ export default function StaffServices() {
 
       if (!error) {
         toast({ title: 'Service updated successfully' });
-        setShowDialog(false);
+        handleCloseDialog();
         fetchServices();
       }
     } else {
@@ -121,10 +121,22 @@ export default function StaffServices() {
 
       if (!error) {
         toast({ title: 'Service created successfully' });
-        setShowDialog(false);
+        handleCloseDialog();
         fetchServices();
       }
     }
+  };
+
+  const handleCloseDialog = () => {
+    setShowDialog(false);
+    setEditingService(null);
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      price_from: 0,
+      duration: '',
+    });
   };
 
   return (
@@ -176,7 +188,7 @@ export default function StaffServices() {
         </div>
 
         {/* Service Edit Dialog */}
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <Dialog open={showDialog} onOpenChange={(open) => !open && handleCloseDialog()}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="chrome-heading">

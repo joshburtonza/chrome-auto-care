@@ -109,6 +109,12 @@ export default function StaffCustomers() {
     }
   };
 
+  const handleCloseDialog = () => {
+    setSelectedCustomer(null);
+    setCustomerVehicles([]);
+    setCustomerBookings([]);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <StaffNav />
@@ -147,7 +153,7 @@ export default function StaffCustomers() {
         </ChromeSurface>
 
         {/* Customer Details Dialog */}
-        <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
+        <Dialog open={!!selectedCustomer} onOpenChange={(open) => !open && handleCloseDialog()}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle className="chrome-heading">CUSTOMER DETAILS</DialogTitle>
