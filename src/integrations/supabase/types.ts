@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_stage_images: {
+        Row: {
+          booking_stage_id: string
+          caption: string | null
+          created_at: string | null
+          id: string
+          image_url: string
+          updated_at: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          booking_stage_id: string
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          image_url: string
+          updated_at?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          booking_stage_id?: string
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          updated_at?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_stage_images_booking_stage_id_fkey"
+            columns: ["booking_stage_id"]
+            isOneToOne: false
+            referencedRelation: "booking_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_stages: {
         Row: {
           booking_id: string
