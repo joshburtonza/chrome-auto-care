@@ -78,44 +78,6 @@ export default function StaffBookings() {
       )
       .subscribe();
 
-    // Subscribe to booking stages changes
-    const stagesChannel = supabase
-      .channel('staff-bookings-stages-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'booking_stages'
-        },
-        () => {
-          console.log('Booking stages changed, refreshing...');
-          if (selectedBooking) {
-            fetchBookingStages(selectedBooking.id);
-          }
-        }
-      )
-      .subscribe();
-
-    // Subscribe to stage images changes
-    const imagesChannel = supabase
-      .channel('staff-bookings-images-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'booking_stage_images'
-        },
-        () => {
-          console.log('Stage images changed, refreshing...');
-          if (selectedBooking) {
-            fetchBookingStages(selectedBooking.id);
-          }
-        }
-      )
-      .subscribe();
-
     // Subscribe to profiles changes
     const profilesChannel = supabase
       .channel('staff-bookings-profiles-changes')
@@ -135,9 +97,52 @@ export default function StaffBookings() {
 
     return () => {
       supabase.removeChannel(bookingsChannel);
+      supabase.removeChannel(profilesChannel);
+    };
+  }, []);
+
+  // Separate effect for stage-specific subscriptions
+  useEffect(() => {
+    if (!selectedBooking) return;
+
+    // Subscribe to booking stages changes for the selected booking
+    const stagesChannel = supabase
+      .channel(`booking-stages-${selectedBooking.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'booking_stages',
+          filter: `booking_id=eq.${selectedBooking.id}`
+        },
+        () => {
+          console.log('Booking stages changed, refreshing...');
+          fetchBookingStages(selectedBooking.id);
+        }
+      )
+      .subscribe();
+
+    // Subscribe to stage images changes for the selected booking
+    const imagesChannel = supabase
+      .channel(`stage-images-${selectedBooking.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'booking_stage_images'
+        },
+        () => {
+          console.log('Stage images changed, refreshing...');
+          fetchBookingStages(selectedBooking.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
       supabase.removeChannel(stagesChannel);
       supabase.removeChannel(imagesChannel);
-      supabase.removeChannel(profilesChannel);
     };
   }, [selectedBooking]);
 
@@ -253,6 +258,12 @@ export default function StaffBookings() {
     setStageNotes({});
     setStageImages({});
     setUploadingImages({});
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      handleCloseDialog();
+    }
   };
 
   const handleUpdateStatus = async (bookingId: string, newStatus: BookingStatus) => {
@@ -513,7 +524,7 @@ export default function StaffBookings() {
         </div>
 
         {/* Stage Management Dialog */}
-        <Dialog open={!!selectedBooking} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <Dialog open={!!selectedBooking} onOpenChange={handleDialogOpenChange}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
