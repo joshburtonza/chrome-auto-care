@@ -189,90 +189,90 @@ export default function StaffCustomers() {
     <div className="min-h-screen bg-background">
       <StaffNav />
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-7xl">
-        <h1 className="chrome-heading text-2xl sm:text-3xl md:text-4xl mb-4 sm:mb-8">CUSTOMER MANAGEMENT</h1>
+        <h1 className="chrome-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 sm:mb-6 md:mb-8">CUSTOMER MANAGEMENT</h1>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <ChromeSurface className="p-4 sm:p-6 chrome-sheen" glow>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
+          <ChromeSurface className="p-4 sm:p-5 md:p-6 chrome-sheen" glow>
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" strokeWidth={1.4} />
+              <div className="w-10 h-10 sm:w-11 md:w-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 sm:w-5 md:w-6 text-primary" strokeWidth={1.4} />
               </div>
               <div>
-                <div className="chrome-label text-xs">TOTAL CUSTOMERS</div>
-                <div className="text-xl sm:text-2xl font-light mt-1">{stats.totalCustomers}</div>
+                <div className="chrome-label text-xs sm:text-xs md:text-sm">TOTAL CUSTOMERS</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-light mt-1">{stats.totalCustomers}</div>
               </div>
             </div>
           </ChromeSurface>
 
-          <ChromeSurface className="p-4 sm:p-6 chrome-sheen" glow>
+          <ChromeSurface className="p-4 sm:p-5 md:p-6 chrome-sheen" glow>
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Car className="w-5 h-5 sm:w-6 sm:h-6 text-primary" strokeWidth={1.4} />
+              <div className="w-10 h-10 sm:w-11 md:w-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Car className="w-5 h-5 sm:w-5 md:w-6 text-primary" strokeWidth={1.4} />
               </div>
               <div>
-                <div className="chrome-label text-xs">TOTAL VEHICLES</div>
-                <div className="text-xl sm:text-2xl font-light mt-1">{stats.totalVehicles}</div>
+                <div className="chrome-label text-xs sm:text-xs md:text-sm">TOTAL VEHICLES</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-light mt-1">{stats.totalVehicles}</div>
               </div>
             </div>
           </ChromeSurface>
 
-          <ChromeSurface className="p-4 sm:p-6 chrome-sheen" glow>
+          <ChromeSurface className="p-4 sm:p-5 md:p-6 chrome-sheen" glow>
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-primary" strokeWidth={1.4} />
+              <div className="w-10 h-10 sm:w-11 md:w-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-5 h-5 sm:w-5 md:w-6 text-primary" strokeWidth={1.4} />
               </div>
               <div>
-                <div className="chrome-label text-xs">ACTIVE BOOKINGS</div>
-                <div className="text-xl sm:text-2xl font-light mt-1">{stats.activeBookings}</div>
+                <div className="chrome-label text-xs sm:text-xs md:text-sm">ACTIVE BOOKINGS</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-light mt-1">{stats.activeBookings}</div>
               </div>
             </div>
           </ChromeSurface>
         </div>
 
         {/* Search */}
-        <ChromeSurface className="p-4 sm:p-6 mb-4 sm:mb-6">
+        <ChromeSurface className="p-4 sm:p-5 md:p-6 mb-4 sm:mb-6 md:mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" strokeWidth={1.4} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-text-tertiary" strokeWidth={1.4} />
             <Input
               type="text"
               placeholder="Search customers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-background/50 text-sm sm:text-base"
+              className="pl-10 md:pl-12 bg-background/50 text-sm sm:text-base md:text-lg"
             />
           </div>
         </ChromeSurface>
 
         {/* Customers List */}
-        <ChromeSurface className="p-4 sm:p-6">
+        <ChromeSurface className="p-4 sm:p-5 md:p-6 lg:p-8">
           {loading ? (
-            <div className="text-center py-8 sm:py-12">
-              <div className="chrome-label text-xs sm:text-sm">LOADING CUSTOMERS...</div>
+            <div className="text-center py-8 sm:py-12 md:py-16">
+              <div className="chrome-label text-xs sm:text-sm md:text-base">LOADING CUSTOMERS...</div>
             </div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="text-center py-8 sm:py-12">
-              <Package className="w-10 h-10 sm:w-12 sm:h-12 text-text-tertiary mx-auto mb-3 sm:mb-4" strokeWidth={1.4} />
-              <div className="chrome-label mb-2 text-xs sm:text-sm">NO CUSTOMERS FOUND</div>
-              <p className="text-xs sm:text-sm text-text-secondary">
+            <div className="text-center py-8 sm:py-12 md:py-16">
+              <Package className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-text-tertiary mx-auto mb-3 sm:mb-4" strokeWidth={1.4} />
+              <div className="chrome-label mb-2 text-xs sm:text-sm md:text-base">NO CUSTOMERS FOUND</div>
+              <p className="text-xs sm:text-sm md:text-base text-text-secondary">
                 {searchQuery ? 'Try adjusting your search' : 'No customers registered yet'}
               </p>
             </div>
           ) : (
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4 md:space-y-5">
               {filteredCustomers.map((customer) => (
               <div
                 key={customer.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border border-border rounded-lg hover:border-primary transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4 p-3 sm:p-4 md:p-5 border border-border rounded-lg hover:border-primary transition-colors"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold mb-1 text-sm sm:text-base truncate">
+                  <div className="font-semibold mb-1 text-sm sm:text-base md:text-lg truncate">
                     {customer.full_name || 'No Name'}
                   </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
+                  <div className="text-xs sm:text-sm md:text-base text-muted-foreground">
                     {customer.phone || 'No phone'}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                  <div className="text-xs sm:text-sm md:text-base text-muted-foreground mt-1 line-clamp-1">
                     {customer.address || 'No address'}
                   </div>
                 </div>
@@ -280,7 +280,7 @@ export default function StaffCustomers() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleViewCustomer(customer)}
-                  className="w-full sm:w-auto shrink-0"
+                  className="w-full sm:w-auto md:min-w-[140px] shrink-0 text-sm md:text-base"
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   View Details
@@ -293,42 +293,42 @@ export default function StaffCustomers() {
 
         {/* Customer Details Dialog */}
         <Dialog open={!!selectedCustomer} onOpenChange={handleDialogOpenChange}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="chrome-heading text-lg sm:text-xl">CUSTOMER DETAILS</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm">
+              <DialogTitle className="chrome-heading text-lg sm:text-xl md:text-2xl">CUSTOMER DETAILS</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm md:text-base">
                 View customer information, vehicles, and booking history
               </DialogDescription>
             </DialogHeader>
             {selectedCustomer && (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-4 sm:space-y-5 md:space-y-6">
                 <div>
-                  <div className="chrome-label mb-2 text-xs sm:text-sm">CONTACT INFORMATION</div>
-                  <div className="space-y-1">
-                    <div className="font-semibold text-sm sm:text-base">{selectedCustomer.full_name}</div>
-                    <div className="text-xs sm:text-sm text-muted-foreground">
+                  <div className="chrome-label mb-2 md:mb-3 text-xs sm:text-sm md:text-base">CONTACT INFORMATION</div>
+                  <div className="space-y-1 md:space-y-2">
+                    <div className="font-semibold text-sm sm:text-base md:text-lg">{selectedCustomer.full_name}</div>
+                    <div className="text-xs sm:text-sm md:text-base text-muted-foreground">
                       {selectedCustomer.phone}
                     </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground break-words">
+                    <div className="text-xs sm:text-sm md:text-base text-muted-foreground break-words">
                       {selectedCustomer.address}
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <div className="chrome-label mb-3 text-xs sm:text-sm">VEHICLES ({customerVehicles.length})</div>
-                  <div className="space-y-2">
+                  <div className="chrome-label mb-3 md:mb-4 text-xs sm:text-sm md:text-base">VEHICLES ({customerVehicles.length})</div>
+                  <div className="space-y-2 md:space-y-3">
                     {customerVehicles.map((vehicle) => (
                       <div
                         key={vehicle.id}
-                        className="flex items-start gap-3 p-3 border border-border rounded-lg"
+                        className="flex items-start gap-3 md:gap-4 p-3 md:p-4 border border-border rounded-lg"
                       >
-                        <Car className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <Car className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-sm sm:text-base">
+                          <div className="font-semibold text-sm sm:text-base md:text-lg">
                             {vehicle.year} {vehicle.make} {vehicle.model}
                           </div>
-                          <div className="text-xs sm:text-sm text-muted-foreground">
+                          <div className="text-xs sm:text-sm md:text-base text-muted-foreground">
                             {vehicle.color} • {vehicle.vin || 'No VIN'}
                           </div>
                         </div>
@@ -338,32 +338,32 @@ export default function StaffCustomers() {
                 </div>
 
                 <div>
-                  <div className="chrome-label mb-3 text-xs sm:text-sm">
+                  <div className="chrome-label mb-3 md:mb-4 text-xs sm:text-sm md:text-base">
                     BOOKING HISTORY ({customerBookings.length})
                   </div>
                   {customerBookings.length === 0 ? (
-                    <div className="text-center py-6 sm:py-8 text-xs sm:text-sm text-text-secondary">
+                    <div className="text-center py-6 sm:py-8 md:py-10 text-xs sm:text-sm md:text-base text-text-secondary">
                       No booking history
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-2 md:space-y-3">
                       {customerBookings.map((booking) => (
                         <div
                           key={booking.id}
-                          className="p-3 border border-border rounded-lg"
+                          className="p-3 md:p-4 border border-border rounded-lg"
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                            <span className="font-semibold text-sm sm:text-base">
+                            <span className="font-semibold text-sm sm:text-base md:text-lg">
                               {booking.services?.title}
                             </span>
                             <StatusBadge status={booking.status} />
                           </div>
-                          <div className="text-xs sm:text-sm text-text-secondary">
+                          <div className="text-xs sm:text-sm md:text-base text-text-secondary">
                             {new Date(booking.booking_date).toLocaleDateString()} at{' '}
                             {booking.booking_time}
                           </div>
                           {booking.notes && (
-                            <div className="text-xs text-text-tertiary mt-2 pt-2 border-t border-border break-words">
+                            <div className="text-xs sm:text-sm md:text-base text-text-tertiary mt-2 pt-2 border-t border-border break-words">
                               {booking.notes}
                             </div>
                           )}
