@@ -247,6 +247,14 @@ export default function StaffBookings() {
     fetchBookingStages(booking.id);
   };
 
+  const handleCloseDialog = () => {
+    setSelectedBooking(null);
+    setBookingStages([]);
+    setStageNotes({});
+    setStageImages({});
+    setUploadingImages({});
+  };
+
   const handleUpdateStatus = async (bookingId: string, newStatus: BookingStatus) => {
     try {
       const { error } = await supabase
@@ -505,7 +513,7 @@ export default function StaffBookings() {
         </div>
 
         {/* Stage Management Dialog */}
-        <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
+        <Dialog open={!!selectedBooking} onOpenChange={(open) => !open && handleCloseDialog()}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
