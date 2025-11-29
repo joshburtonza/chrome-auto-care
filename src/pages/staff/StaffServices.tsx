@@ -139,6 +139,12 @@ export default function StaffServices() {
     });
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      handleCloseDialog();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <StaffNav />
@@ -188,7 +194,7 @@ export default function StaffServices() {
         </div>
 
         {/* Service Edit Dialog */}
-        <Dialog open={showDialog} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <Dialog open={showDialog} onOpenChange={handleDialogOpenChange}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="chrome-heading">
