@@ -18,6 +18,27 @@ export default function StaffDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Subscribe to realtime bookings changes
+    const channel = supabase
+      .channel('staff-bookings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings'
+        },
+        () => {
+          // Refresh dashboard data when bookings change
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
