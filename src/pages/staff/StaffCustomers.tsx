@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Eye, Car } from 'lucide-react';
 
@@ -14,6 +14,63 @@ export default function StaffCustomers() {
 
   useEffect(() => {
     fetchCustomers();
+
+    // Subscribe to profiles changes
+    const profilesChannel = supabase
+      .channel('staff-customers-profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          console.log('Profiles changed, refreshing customers...');
+          fetchCustomers();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to vehicles changes
+    const vehiclesChannel = supabase
+      .channel('staff-customers-vehicles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vehicles'
+        },
+        () => {
+          console.log('Vehicles changed, refreshing customers...');
+          fetchCustomers();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to bookings changes
+    const bookingsChannel = supabase
+      .channel('staff-customers-bookings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings'
+        },
+        () => {
+          console.log('Bookings changed, refreshing customers...');
+          fetchCustomers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(vehiclesChannel);
+      supabase.removeChannel(bookingsChannel);
+    };
   }, []);
 
   const fetchCustomers = async () => {
@@ -94,6 +151,9 @@ export default function StaffCustomers() {
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle className="chrome-heading">CUSTOMER DETAILS</DialogTitle>
+              <DialogDescription>
+                View customer information, vehicles, and booking history
+              </DialogDescription>
             </DialogHeader>
             {selectedCustomer && (
               <div className="space-y-6">

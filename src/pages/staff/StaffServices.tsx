@@ -3,7 +3,7 @@ import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +25,27 @@ export default function StaffServices() {
 
   useEffect(() => {
     fetchServices();
+
+    // Subscribe to services changes
+    const servicesChannel = supabase
+      .channel('staff-services-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'services'
+        },
+        () => {
+          console.log('Services changed, refreshing...');
+          fetchServices();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(servicesChannel);
+    };
   }, []);
 
   const fetchServices = async () => {
@@ -161,6 +182,9 @@ export default function StaffServices() {
               <DialogTitle className="chrome-heading">
                 {editingService ? 'EDIT SERVICE' : 'ADD SERVICE'}
               </DialogTitle>
+              <DialogDescription>
+                {editingService ? 'Update service details and pricing' : 'Create a new service offering'}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
