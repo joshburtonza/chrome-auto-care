@@ -56,6 +56,27 @@ export default function StaffBookings() {
 
   useEffect(() => {
     fetchBookings();
+
+    // Subscribe to realtime bookings changes
+    const channel = supabase
+      .channel('staff-bookings-list-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings'
+        },
+        () => {
+          // Refresh bookings list when changes occur
+          fetchBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchBookings = async () => {
