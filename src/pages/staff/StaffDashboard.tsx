@@ -42,20 +42,47 @@ export default function StaffDashboard() {
   }, []);
 
   const fetchDashboardData = async () => {
-    // Fetch booking stats
-    const { data: bookings } = await supabase
-      .from('bookings')
-      .select('*, services(title), profiles(full_name)');
+    try {
+      // Fetch bookings with services
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*, services(title)')
+        .order('created_at', { ascending: false });
 
-    if (bookings) {
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        return;
+      }
+
+      if (!bookings) return;
+
+      // Fetch profiles separately
+      const userIds = [...new Set(bookings.map(b => b.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds);
+
+      // Create profiles map
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Merge profiles with bookings
+      const bookingsWithProfiles = bookings.map(booking => ({
+        ...booking,
+        profiles: profilesMap.get(booking.user_id)
+      }));
+
       setStats({
         totalBookings: bookings.length,
         pendingBookings: bookings.filter((b) => b.status === 'pending').length,
         activeBookings: bookings.filter((b) => b.status === 'in_progress').length,
         completedBookings: bookings.filter((b) => b.status === 'completed').length,
-        totalCustomers: new Set(bookings.map((b) => b.user_id)).size,
+        totalCustomers: userIds.length,
       });
-      setRecentBookings(bookings.slice(0, 10));
+      
+      setRecentBookings(bookingsWithProfiles.slice(0, 10));
+    } catch (error) {
+      console.error('Error in fetchDashboardData:', error);
     }
   };
 
