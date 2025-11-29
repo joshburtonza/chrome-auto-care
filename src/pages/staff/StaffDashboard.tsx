@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
+import { ChromeButton } from '@/components/chrome/ChromeButton';
 import { StatusBadge } from '@/components/chrome/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { Calendar, Users, Clock, AlertCircle, Activity, CheckCircle } from 'lucide-react';
@@ -163,29 +164,40 @@ export default function StaffDashboard() {
 
         {/* Recent Bookings */}
         <ChromeSurface className="p-6" glow>
-          <h2 className="chrome-heading text-2xl mb-6">RECENT BOOKINGS</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="chrome-heading text-2xl">RECENT BOOKINGS</h2>
+            <Link to="/staff/bookings">
+              <ChromeButton variant="outline" size="sm">View All</ChromeButton>
+            </Link>
+          </div>
           <div className="space-y-4">
             {recentBookings.length === 0 ? (
               <div className="text-center py-8 text-text-tertiary chrome-label">NO BOOKINGS YET</div>
             ) : (
               recentBookings.map((booking) => (
-                <div
+                <Link
                   key={booking.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-warning transition-colors chrome-sheen"
+                  to="/staff/bookings"
+                  state={{ selectedBookingId: booking.id }}
                 >
-                  <div className="flex-1">
-                    <div className="font-semibold mb-1 text-foreground">
-                      {booking.profiles?.full_name || 'Customer'}
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-warning transition-colors chrome-sheen cursor-pointer">
+                    <div className="flex-1">
+                      <div className="font-semibold mb-1 text-foreground">
+                        {booking.profiles?.full_name || 'Customer'}
+                      </div>
+                      <div className="text-sm text-text-secondary">
+                        {booking.services?.title}
+                      </div>
+                      <div className="text-xs text-text-tertiary mt-1">
+                        {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
+                      </div>
                     </div>
-                    <div className="text-sm text-text-secondary">
-                      {booking.services?.title}
-                    </div>
-                    <div className="text-xs text-text-tertiary mt-1">
-                      {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
+                    <div className="flex items-center gap-3">
+                      <StatusBadge status={booking.status} />
+                      <AlertCircle className="w-5 h-5 text-warning" />
                     </div>
                   </div>
-                  <StatusBadge status={booking.status} />
-                </div>
+                </Link>
               ))
             )}
           </div>

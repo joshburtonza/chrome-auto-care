@@ -19,6 +19,43 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       loadDashboardData();
+
+      // Subscribe to realtime updates for bookings and stages
+      const bookingsChannel = supabase
+        .channel('client-bookings-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            loadDashboardData();
+          }
+        )
+        .subscribe();
+
+      const stagesChannel = supabase
+        .channel('client-stages-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'booking_stages'
+          },
+          () => {
+            loadDashboardData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(bookingsChannel);
+        supabase.removeChannel(stagesChannel);
+      };
     }
   }, [user]);
 
