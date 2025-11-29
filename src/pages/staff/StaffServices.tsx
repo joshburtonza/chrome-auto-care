@@ -172,10 +172,10 @@ export default function StaffServices() {
                 {service.description}
               </p>
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="chrome-label text-xs">PRICE</div>
-                  <div className="font-semibold">From ${service.price_from}</div>
-                </div>
+              <div>
+                <div className="chrome-label text-xs">PRICE</div>
+                <div className="font-semibold">From R{service.price_from}</div>
+              </div>
                 <div>
                   <div className="chrome-label text-xs">DURATION</div>
                   <div className="font-semibold">{service.duration}</div>
