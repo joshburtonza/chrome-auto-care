@@ -25,8 +25,8 @@ const JobTracking = () => {
     if (selectedBooking) {
       fetchStages();
       
-      // Subscribe to realtime updates
-      const channel = supabase
+      // Subscribe to realtime stage updates
+      const stagesChannel = supabase
         .channel('booking-stages-changes')
         .on(
           'postgres_changes',
@@ -44,24 +44,65 @@ const JobTracking = () => {
                 s.id === updatedStage.id ? updatedStage : s
               ));
               
-              // Show toast notification
-              if (updatedStage.completed) {
-                toast.success('Stage Completed!', {
-                  description: getStageLabel(updatedStage.stage)
+              // Show toast notification with visual feedback
+              if (updatedStage.completed && !payload.old.completed) {
+                toast.success('Stage Completed! 🎉', {
+                  description: getStageLabel(updatedStage.stage),
+                  duration: 5000,
                 });
-              } else if (updatedStage.started_at) {
-                toast.info('Stage Started', {
-                  description: getStageLabel(updatedStage.stage)
+              } else if (updatedStage.started_at && !payload.old.started_at) {
+                toast.info('Work Started! 🔧', {
+                  description: getStageLabel(updatedStage.stage),
+                  duration: 5000,
                 });
               }
             }
+            // Refresh to get latest data
             fetchStages();
           }
         )
         .subscribe();
 
+      // Subscribe to booking updates (status, ETA changes)
+      const bookingChannel = supabase
+        .channel('booking-update')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'bookings',
+            filter: `id=eq.${selectedBooking.id}`
+          },
+          (payload) => {
+            console.log('Booking updated:', payload);
+            if (payload.new) {
+              setSelectedBooking(payload.new);
+              
+              // Show notification for ETA updates
+              if (payload.new.estimated_completion !== payload.old?.estimated_completion) {
+                toast.info('Estimated Completion Updated 📅', {
+                  description: `New date: ${new Date(payload.new.estimated_completion).toLocaleDateString()}`,
+                  duration: 5000,
+                });
+              }
+              
+              // Show notification for status changes
+              if (payload.new.status !== payload.old?.status) {
+                toast.success('Booking Status Updated', {
+                  description: `Status: ${payload.new.status}`,
+                  duration: 5000,
+                });
+              }
+            }
+            fetchBookings();
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(stagesChannel);
+        supabase.removeChannel(bookingChannel);
       };
     }
   }, [selectedBooking]);
@@ -262,16 +303,43 @@ const JobTracking = () => {
                     status === 'completed' ? 'border-success' : 'border-border'
                   } transition-all duration-500`}
                 >
-                  <div className="absolute left-0 top-0 -translate-x-1/2">
-                    {getStatusIcon(status)}
+                 <div className="absolute left-0 top-0 -translate-x-1/2 z-10">
+                    <div className={`rounded-full p-1 ${
+                      status === 'completed' ? 'bg-success/20' : 
+                      status === 'current' ? 'bg-primary/20 animate-pulse' : 
+                      'bg-muted'
+                    }`}>
+                      {getStatusIcon(status)}
+                    </div>
                   </div>
                   <ChromeSurface
-                    className={`p-4 ${status === 'current' ? 'border-primary' : ''}`}
+                    className={`p-4 transition-all duration-500 ${
+                      status === 'current' ? 'border-primary shadow-lg shadow-primary/20' : 
+                      status === 'completed' ? 'border-success/50' : ''
+                    }`}
                     glow={status === 'current'}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-1">{getStageLabel(stage.stage)}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className={`font-semibold ${
+                            status === 'current' ? 'text-primary' : 
+                            status === 'completed' ? 'text-success' : 
+                            'text-foreground'
+                          }`}>
+                            {getStageLabel(stage.stage)}
+                          </h3>
+                          {status === 'current' && (
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full animate-pulse">
+                              IN PROGRESS
+                            </span>
+                          )}
+                          {status === 'completed' && (
+                            <span className="px-2 py-0.5 bg-success/10 text-success text-xs rounded-full">
+                              COMPLETED
+                            </span>
+                          )}
+                        </div>
                         {stage.started_at && (
                           <p className="text-xs text-muted-foreground mb-1">
                             Started: {new Date(stage.started_at).toLocaleString()}
