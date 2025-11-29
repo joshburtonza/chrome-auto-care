@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { StatusBadge } from '@/components/chrome/StatusBadge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,8 +61,8 @@ export default function StaffBookings() {
   useEffect(() => {
     fetchBookings();
 
-    // Subscribe to realtime bookings changes
-    const channel = supabase
+    // Subscribe to bookings changes
+    const bookingsChannel = supabase
       .channel('staff-bookings-list-changes')
       .on(
         'postgres_changes',
@@ -72,16 +72,74 @@ export default function StaffBookings() {
           table: 'bookings'
         },
         () => {
-          // Refresh bookings list when changes occur
+          console.log('Bookings changed, refreshing list...');
+          fetchBookings();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to booking stages changes
+    const stagesChannel = supabase
+      .channel('staff-bookings-stages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'booking_stages'
+        },
+        () => {
+          console.log('Booking stages changed, refreshing...');
+          if (selectedBooking) {
+            fetchBookingStages(selectedBooking.id);
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to stage images changes
+    const imagesChannel = supabase
+      .channel('staff-bookings-images-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'booking_stage_images'
+        },
+        () => {
+          console.log('Stage images changed, refreshing...');
+          if (selectedBooking) {
+            fetchBookingStages(selectedBooking.id);
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to profiles changes
+    const profilesChannel = supabase
+      .channel('staff-bookings-profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          console.log('Profiles changed, refreshing bookings...');
           fetchBookings();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(bookingsChannel);
+      supabase.removeChannel(stagesChannel);
+      supabase.removeChannel(imagesChannel);
+      supabase.removeChannel(profilesChannel);
     };
-  }, []);
+  }, [selectedBooking]);
 
   // Handle booking selection from dashboard
   useEffect(() => {
@@ -453,6 +511,9 @@ export default function StaffBookings() {
               <DialogTitle>
                 Booking Details - {selectedBooking?.profiles?.full_name}
               </DialogTitle>
+              <DialogDescription>
+                Manage booking stages, upload progress images, and update completion status
+              </DialogDescription>
             </DialogHeader>
 
             {selectedBooking && (

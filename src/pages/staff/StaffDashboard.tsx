@@ -20,8 +20,8 @@ export default function StaffDashboard() {
   useEffect(() => {
     fetchDashboardData();
 
-    // Subscribe to realtime bookings changes
-    const channel = supabase
+    // Subscribe to bookings changes
+    const bookingsChannel = supabase
       .channel('staff-bookings-changes')
       .on(
         'postgres_changes',
@@ -31,14 +31,68 @@ export default function StaffDashboard() {
           table: 'bookings'
         },
         () => {
-          // Refresh dashboard data when bookings change
+          console.log('Bookings changed, refreshing dashboard...');
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to booking stages changes
+    const stagesChannel = supabase
+      .channel('staff-stages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'booking_stages'
+        },
+        () => {
+          console.log('Booking stages changed, refreshing dashboard...');
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to profiles changes (new customers)
+    const profilesChannel = supabase
+      .channel('staff-profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          console.log('Profiles changed, refreshing dashboard...');
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to vehicles changes
+    const vehiclesChannel = supabase
+      .channel('staff-vehicles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vehicles'
+        },
+        () => {
+          console.log('Vehicles changed, refreshing dashboard...');
           fetchDashboardData();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(bookingsChannel);
+      supabase.removeChannel(stagesChannel);
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(vehiclesChannel);
     };
   }, []);
 
