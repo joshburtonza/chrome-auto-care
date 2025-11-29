@@ -4,13 +4,19 @@ import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Eye, Car } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { StatusBadge } from '@/components/chrome/StatusBadge';
+import { Eye, Car, Search, Users, Calendar, Package } from 'lucide-react';
 
 export default function StaffCustomers() {
   const [customers, setCustomers] = useState<any[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [customerVehicles, setCustomerVehicles] = useState<any[]>([]);
   const [customerBookings, setCustomerBookings] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalCustomers: 0, totalVehicles: 0, activeBookings: 0 });
 
   useEffect(() => {
     fetchCustomers();
@@ -74,6 +80,7 @@ export default function StaffCustomers() {
   }, []);
 
   const fetchCustomers = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
       .select('*, user_roles(role)')
@@ -81,8 +88,36 @@ export default function StaffCustomers() {
 
     if (!error && data) {
       setCustomers(data);
+      setFilteredCustomers(data);
+      
+      // Fetch stats
+      const { data: vehicles } = await supabase.from('vehicles').select('id', { count: 'exact' });
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('id', { count: 'exact' })
+        .in('status', ['pending', 'confirmed', 'in_progress']);
+      
+      setStats({
+        totalCustomers: data.length,
+        totalVehicles: vehicles?.length || 0,
+        activeBookings: bookings?.length || 0,
+      });
     }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    const filtered = customers.filter((customer) => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        customer.full_name?.toLowerCase().includes(searchLower) ||
+        customer.phone?.toLowerCase().includes(searchLower) ||
+        customer.address?.toLowerCase().includes(searchLower);
+      
+      return matchesSearch;
+    });
+    setFilteredCustomers(filtered);
+  }, [searchQuery, customers]);
 
   const handleViewCustomer = async (customer: any) => {
     setSelectedCustomer(customer);
@@ -121,15 +156,93 @@ export default function StaffCustomers() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending': return 'limited';
+      case 'confirmed': return 'available';
+      case 'in_progress': return 'available';
+      case 'completed': return 'full';
+      case 'cancelled': return 'unavailable';
+      default: return 'limited';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <StaffNav />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         <h1 className="chrome-heading text-4xl mb-8">CUSTOMER MANAGEMENT</h1>
 
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <ChromeSurface className="p-6 chrome-sheen" glow>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" strokeWidth={1.4} />
+              </div>
+              <div>
+                <div className="chrome-label text-xs">TOTAL CUSTOMERS</div>
+                <div className="text-2xl font-light mt-1">{stats.totalCustomers}</div>
+              </div>
+            </div>
+          </ChromeSurface>
+
+          <ChromeSurface className="p-6 chrome-sheen" glow>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Car className="w-6 h-6 text-primary" strokeWidth={1.4} />
+              </div>
+              <div>
+                <div className="chrome-label text-xs">TOTAL VEHICLES</div>
+                <div className="text-2xl font-light mt-1">{stats.totalVehicles}</div>
+              </div>
+            </div>
+          </ChromeSurface>
+
+          <ChromeSurface className="p-6 chrome-sheen" glow>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-primary" strokeWidth={1.4} />
+              </div>
+              <div>
+                <div className="chrome-label text-xs">ACTIVE BOOKINGS</div>
+                <div className="text-2xl font-light mt-1">{stats.activeBookings}</div>
+              </div>
+            </div>
+          </ChromeSurface>
+        </div>
+
+        {/* Search */}
+        <ChromeSurface className="p-6 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" strokeWidth={1.4} />
+            <Input
+              type="text"
+              placeholder="Search by name, phone, or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-background/50"
+            />
+          </div>
+        </ChromeSurface>
+
+        {/* Customers List */}
         <ChromeSurface className="p-6">
-          <div className="space-y-4">
-            {customers.map((customer) => (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="chrome-label">LOADING CUSTOMERS...</div>
+            </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="w-12 h-12 text-text-tertiary mx-auto mb-4" strokeWidth={1.4} />
+              <div className="chrome-label mb-2">NO CUSTOMERS FOUND</div>
+              <p className="text-sm text-text-secondary">
+                {searchQuery ? 'Try adjusting your search' : 'No customers registered yet'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredCustomers.map((customer) => (
               <div
                 key={customer.id}
                 className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary transition-colors"
@@ -154,8 +267,9 @@ export default function StaffCustomers() {
                   View Details
                 </Button>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </ChromeSurface>
 
         {/* Customer Details Dialog */}
@@ -208,27 +322,36 @@ export default function StaffCustomers() {
                   <div className="chrome-label mb-3">
                     BOOKING HISTORY ({customerBookings.length})
                   </div>
-                  <div className="space-y-2">
-                    {customerBookings.map((booking) => (
-                      <div
-                        key={booking.id}
-                        className="p-3 border border-border rounded-lg"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold">
-                            {booking.services?.title}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {booking.status}
-                          </span>
+                  {customerBookings.length === 0 ? (
+                    <div className="text-center py-8 text-sm text-text-secondary">
+                      No booking history
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {customerBookings.map((booking) => (
+                        <div
+                          key={booking.id}
+                          className="p-3 border border-border rounded-lg"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold">
+                              {booking.services?.title}
+                            </span>
+                            <StatusBadge status={booking.status} />
+                          </div>
+                          <div className="text-sm text-text-secondary">
+                            {new Date(booking.booking_date).toLocaleDateString()} at{' '}
+                            {booking.booking_time}
+                          </div>
+                          {booking.notes && (
+                            <div className="text-xs text-text-tertiary mt-2 pt-2 border-t border-border">
+                              {booking.notes}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(booking.booking_date).toLocaleDateString()} at{' '}
-                          {booking.booking_time}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
