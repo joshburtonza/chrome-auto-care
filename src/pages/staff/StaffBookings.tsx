@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
@@ -47,6 +48,7 @@ interface BookingStage {
 }
 
 export default function StaffBookings() {
+  const location = useLocation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingStages, setBookingStages] = useState<BookingStage[]>([]);
@@ -78,6 +80,17 @@ export default function StaffBookings() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Handle booking selection from dashboard
+  useEffect(() => {
+    if (location.state?.selectedBookingId && bookings.length > 0) {
+      const booking = bookings.find(b => b.id === location.state.selectedBookingId);
+      if (booking) {
+        setSelectedBooking(booking);
+        fetchBookingStages(booking.id);
+      }
+    }
+  }, [location.state, bookings]);
 
   const fetchBookings = async () => {
     try {
