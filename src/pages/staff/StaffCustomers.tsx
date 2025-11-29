@@ -81,28 +81,46 @@ export default function StaffCustomers() {
 
   const fetchCustomers = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Fetch profiles
+    const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
-      .select('*, user_roles(role)')
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      setCustomers(data);
-      setFilteredCustomers(data);
-      
-      // Fetch stats
-      const { data: vehicles } = await supabase.from('vehicles').select('id', { count: 'exact' });
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select('id', { count: 'exact' })
-        .in('status', ['pending', 'confirmed', 'in_progress']);
-      
-      setStats({
-        totalCustomers: data.length,
-        totalVehicles: vehicles?.length || 0,
-        activeBookings: bookings?.length || 0,
-      });
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      setLoading(false);
+      return;
     }
+
+    // Fetch user roles
+    const { data: rolesData } = await supabase
+      .from('user_roles')
+      .select('user_id, role');
+
+    // Combine profiles with roles
+    const customersWithRoles = profilesData?.map(profile => ({
+      ...profile,
+      role: rolesData?.find(r => r.user_id === profile.id)?.role || 'client'
+    })) || [];
+
+    setCustomers(customersWithRoles);
+    setFilteredCustomers(customersWithRoles);
+    
+    // Fetch stats
+    const { data: vehicles } = await supabase.from('vehicles').select('id', { count: 'exact' });
+    const { data: bookings } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact' })
+      .in('status', ['pending', 'confirmed', 'in_progress']);
+    
+    setStats({
+      totalCustomers: customersWithRoles.length,
+      totalVehicles: vehicles?.length || 0,
+      activeBookings: bookings?.length || 0,
+    });
+    
     setLoading(false);
   };
 
