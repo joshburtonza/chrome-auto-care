@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock, X } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
@@ -352,40 +352,6 @@ export default function StaffBookings() {
     }
   };
 
-  const deleteImage = async (imageId: string, imageUrl: string) => {
-    try {
-      const fileName = imageUrl.split('/').pop();
-      
-      const { error: storageError } = await supabase.storage
-        .from('booking-stage-images')
-        .remove([fileName || '']);
-
-      if (storageError) throw storageError;
-
-      const { error: dbError } = await supabase
-        .from('booking_stage_images')
-        .delete()
-        .eq('id', imageId);
-
-      if (dbError) throw dbError;
-
-      toast({
-        title: 'Success',
-        description: 'Image deleted',
-      });
-
-      if (selectedBooking) {
-        await fetchBookingStages(selectedBooking.id);
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete image',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const getStageLabel = (stage: string): string => {
     const labels: Record<string, string> = {
@@ -586,23 +552,17 @@ export default function StaffBookings() {
                           {/* Display Images */}
                           {stageImages[stage.id] && stageImages[stage.id].length > 0 && (
                             <div className="mt-4">
-                              <div className="text-sm font-medium mb-2">Uploaded Images</div>
+                              <div className="text-sm font-medium mb-2">Uploaded Images (Permanent Record)</div>
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {stageImages[stage.id].map((img) => (
                                   <div key={img.id} className="relative group">
                                     <img
                                       src={img.image_url}
                                       alt="Progress"
-                                      className="w-full h-32 object-cover rounded border border-border"
+                                      className="w-full h-32 object-cover rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                                      onClick={() => window.open(img.image_url, '_blank')}
+                                      title="Click to view full size"
                                     />
-                                    {!stage.completed && (
-                                      <button
-                                        onClick={() => deleteImage(img.id, img.image_url)}
-                                        className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                      >
-                                        <X className="w-4 h-4" />
-                                      </button>
-                                    )}
                                   </div>
                                 ))}
                               </div>

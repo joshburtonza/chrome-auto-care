@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_audit_log: {
+        Row: {
+          action: string
+          booking_id: string
+          changed_by: string
+          id: string
+          new_values: Json | null
+          notes: string | null
+          old_values: Json | null
+          stage_id: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          action: string
+          booking_id: string
+          changed_by: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          stage_id?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          action?: string
+          booking_id?: string
+          changed_by?: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          stage_id?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_audit_log_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_audit_log_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "booking_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_stage_images: {
         Row: {
           booking_stage_id: string
