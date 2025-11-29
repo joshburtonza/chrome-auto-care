@@ -13,6 +13,7 @@ const JobTracking = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [stages, setStages] = useState<any[]>([]);
+  const [stageImages, setStageImages] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -140,6 +141,27 @@ const JobTracking = () => {
 
       if (error) throw error;
       setStages(data || []);
+
+      // Fetch images for all stages
+      const stageIds = data?.map(s => s.id) || [];
+      if (stageIds.length > 0) {
+        const { data: imagesData, error: imagesError } = await supabase
+          .from('booking_stage_images')
+          .select('*')
+          .in('booking_stage_id', stageIds)
+          .order('created_at', { ascending: true });
+
+        if (imagesError) throw imagesError;
+        
+        const imagesMap: Record<string, any[]> = {};
+        imagesData?.forEach(img => {
+          if (!imagesMap[img.booking_stage_id]) {
+            imagesMap[img.booking_stage_id] = [];
+          }
+          imagesMap[img.booking_stage_id].push(img);
+        });
+        setStageImages(imagesMap);
+      }
     } catch (error) {
       console.error('Error fetching stages:', error);
     }
@@ -354,6 +376,24 @@ const JobTracking = () => {
                           <p className="text-sm text-foreground mt-2 p-2 bg-muted rounded">
                             {stage.notes}
                           </p>
+                        )}
+
+                        {/* Progress Images */}
+                        {stageImages[stage.id] && stageImages[stage.id].length > 0 && (
+                          <div className="mt-4">
+                            <div className="chrome-label text-xs mb-2">PROGRESS IMAGES</div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                              {stageImages[stage.id].map((img) => (
+                                <img
+                                  key={img.id}
+                                  src={img.image_url}
+                                  alt="Progress"
+                                  className="w-full h-32 object-cover rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => window.open(img.image_url, '_blank')}
+                                />
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

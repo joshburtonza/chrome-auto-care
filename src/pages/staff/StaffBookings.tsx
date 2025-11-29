@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, X } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
@@ -52,8 +52,10 @@ export default function StaffBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingStages, setBookingStages] = useState<BookingStage[]>([]);
+  const [stageImages, setStageImages] = useState<Record<string, any[]>>({});
   const [stageNotes, setStageNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [uploadingImages, setUploadingImages] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -151,6 +153,27 @@ export default function StaffBookings() {
         if (stage.notes) notesMap[stage.id] = stage.notes;
       });
       setStageNotes(notesMap);
+
+      // Fetch images for all stages
+      const stageIds = data?.map(s => s.id) || [];
+      if (stageIds.length > 0) {
+        const { data: imagesData, error: imagesError } = await supabase
+          .from('booking_stage_images')
+          .select('*')
+          .in('booking_stage_id', stageIds)
+          .order('created_at', { ascending: true });
+
+        if (imagesError) throw imagesError;
+        
+        const imagesMap: Record<string, any[]> = {};
+        imagesData?.forEach(img => {
+          if (!imagesMap[img.booking_stage_id]) {
+            imagesMap[img.booking_stage_id] = [];
+          }
+          imagesMap[img.booking_stage_id].push(img);
+        });
+        setStageImages(imagesMap);
+      }
     } catch (error) {
       console.error('Error fetching stages:', error);
       toast({
@@ -279,46 +302,86 @@ export default function StaffBookings() {
   };
 
   const handlePhotoUpload = async (stageId: string, file: File) => {
+    setUploadingImages(prev => ({ ...prev, [stageId]: true }));
+
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${stageId}_${Date.now()}.${fileExt}`;
-      const filePath = `checkin-photos/${fileName}`;
+      const fileName = `${stageId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('vehicle-photos')
+        .from('booking-stage-images')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('vehicle-photos')
+      const { data: { publicUrl } } = supabase.storage
+        .from('booking-stage-images')
         .getPublicUrl(filePath);
 
-      const currentNotes = stageNotes[stageId] || '';
-      const updatedNotes = currentNotes 
-        ? `${currentNotes}\n\nPhoto: ${urlData.publicUrl}` 
-        : `Photo: ${urlData.publicUrl}`;
+      const { error: dbError, data: userData } = await supabase.auth.getUser();
+      if (dbError) throw dbError;
 
-      const { error: updateError } = await supabase
-        .from('booking_stages')
-        .update({ notes: updatedNotes })
-        .eq('id', stageId);
+      const { error: insertError } = await supabase
+        .from('booking_stage_images')
+        .insert({
+          booking_stage_id: stageId,
+          image_url: publicUrl,
+          uploaded_by: userData.user.id
+        });
 
-      if (updateError) throw updateError;
+      if (insertError) throw insertError;
 
       toast({
         title: 'Success',
-        description: 'Photo uploaded',
+        description: 'Image uploaded successfully',
       });
       
       if (selectedBooking) {
         await fetchBookingStages(selectedBooking.id);
       }
     } catch (error) {
-      console.error('Error uploading photo:', error);
+      console.error('Error uploading image:', error);
       toast({
         title: 'Error',
-        description: 'Failed to upload photo',
+        description: 'Failed to upload image',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingImages(prev => ({ ...prev, [stageId]: false }));
+    }
+  };
+
+  const deleteImage = async (imageId: string, imageUrl: string) => {
+    try {
+      const fileName = imageUrl.split('/').pop();
+      
+      const { error: storageError } = await supabase.storage
+        .from('booking-stage-images')
+        .remove([fileName || '']);
+
+      if (storageError) throw storageError;
+
+      const { error: dbError } = await supabase
+        .from('booking_stage_images')
+        .delete()
+        .eq('id', imageId);
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: 'Success',
+        description: 'Image deleted',
+      });
+
+      if (selectedBooking) {
+        await fetchBookingStages(selectedBooking.id);
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete image',
         variant: 'destructive',
       });
     }
@@ -497,6 +560,54 @@ export default function StaffBookings() {
                               rows={2}
                             />
                           )}
+
+                          {/* Image Upload Section */}
+                          {stage.started_at && !stage.completed && (
+                            <div className="mt-4">
+                              <label className="text-sm font-medium mb-2 block">Progress Images</label>
+                              <div className="flex items-center gap-2 mb-3">
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handlePhotoUpload(stage.id, file);
+                                  }}
+                                  disabled={uploadingImages[stage.id]}
+                                  className="flex-1"
+                                />
+                                {uploadingImages[stage.id] && (
+                                  <span className="text-xs text-muted-foreground">Uploading...</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Display Images */}
+                          {stageImages[stage.id] && stageImages[stage.id].length > 0 && (
+                            <div className="mt-4">
+                              <div className="text-sm font-medium mb-2">Uploaded Images</div>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {stageImages[stage.id].map((img) => (
+                                  <div key={img.id} className="relative group">
+                                    <img
+                                      src={img.image_url}
+                                      alt="Progress"
+                                      className="w-full h-32 object-cover rounded border border-border"
+                                    />
+                                    {!stage.completed && (
+                                      <button
+                                        onClick={() => deleteImage(img.id, img.image_url)}
+                                        className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="ml-4 flex flex-col gap-2">
@@ -521,30 +632,6 @@ export default function StaffBookings() {
                               <Check className="h-4 w-4" />
                               Complete
                             </Button>
-                          )}
-
-                          {stage.stage === 'vehicle_checkin' && stage.started_at && !stage.completed && (
-                            <>
-                              <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handlePhotoUpload(stage.id, file);
-                                }}
-                                className="hidden"
-                              />
-                              <Button
-                                onClick={() => fileInputRef.current?.click()}
-                                size="sm"
-                                variant="secondary"
-                                className="gap-1"
-                              >
-                                <Upload className="h-4 w-4" />
-                                Photo
-                              </Button>
-                            </>
                           )}
                         </div>
                       </div>

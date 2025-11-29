@@ -7,9 +7,12 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [allBookings, setAllBookings] = useState<any[]>([]);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -61,13 +64,26 @@ const Dashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Fetch current booking (most recent in_progress or confirmed)
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Fetch all bookings for selection
+      const { data: allData, error: allError } = await supabase
+        .from('bookings')
+        .select('*, services(title), vehicles(make, model, year)')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (allError) throw allError;
+      setAllBookings(allData || []);
+
+      // Fetch current/active booking
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*, services(title), vehicles(make, model, year)')
         .eq('user_id', user?.id)
         .in('status', ['in_progress', 'confirmed'])
-        .order('created_at', { ascending: false })
+        .lte('booking_date', today)
+        .order('booking_date', { ascending: false })
         .limit(1);
 
       if (bookingsError) throw bookingsError;
@@ -84,6 +100,9 @@ const Dashboard = () => {
           
         if (stagesError) throw stagesError;
         setStages(stagesData || []);
+      } else {
+        setCurrentBooking(null);
+        setStages([]);
       }
 
       // Fetch upcoming bookings
@@ -92,6 +111,7 @@ const Dashboard = () => {
         .select('*, services(title), vehicles(make, model, year)')
         .eq('user_id', user?.id)
         .eq('status', 'pending')
+        .gt('booking_date', today)
         .order('booking_date', { ascending: true })
         .limit(2);
 
@@ -110,9 +130,24 @@ const Dashboard = () => {
       setVehicles(vehiclesData || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchStagesForBooking = async (bookingId: string) => {
+    const { data, error } = await supabase
+      .from('booking_stages')
+      .select('*')
+      .eq('booking_id', bookingId)
+      .order('stage_order', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching stages:', error);
+      return [];
+    }
+    return data || [];
   };
 
   const getStageLabel = (stage: string) => {
@@ -148,6 +183,35 @@ const Dashboard = () => {
           <h1 className="chrome-title text-4xl mb-2">CLIENT DASHBOARD</h1>
           <p className="text-text-secondary">Welcome back, track your services and manage your garage</p>
         </div>
+
+        {/* Booking Selector */}
+        {allBookings.length > 1 && (
+          <div className="mb-6">
+            <label className="chrome-label text-xs mb-2 block">SELECT BOOKING</label>
+            <Select
+              value={currentBooking?.id || ''}
+              onValueChange={async (value) => {
+                const booking = allBookings.find(b => b.id === value);
+                setCurrentBooking(booking || null);
+                if (booking) {
+                  const stagesData = await fetchStagesForBooking(booking.id);
+                  setStages(stagesData);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full max-w-md">
+                <SelectValue placeholder="Select a booking" />
+              </SelectTrigger>
+              <SelectContent>
+                {allBookings.map((booking) => (
+                  <SelectItem key={booking.id} value={booking.id}>
+                    {booking.services?.title} - {booking.vehicles?.year} {booking.vehicles?.make}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Current Booking Card */}
         {currentBooking ? (
