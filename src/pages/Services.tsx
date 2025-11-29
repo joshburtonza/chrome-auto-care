@@ -213,10 +213,10 @@ const Services = () => {
                         <Clock className="w-3 h-3" strokeWidth={1.4} />
                         {service.duration}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3" strokeWidth={1.4} />
-                        From ${service.price_from}
-                      </span>
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="w-3 h-3" strokeWidth={1.4} />
+                      From R{service.price_from}
+                    </span>
                     </div>
                   </div>
                   <ChromeButton size="sm" onClick={() => setSelectedService(service)}>
@@ -240,10 +240,10 @@ const Services = () => {
               <>
                 <ChromeSurface className="p-4" glow>
                   <div className="chrome-label text-[10px] text-text-tertiary mb-2">SELECTED SERVICE</div>
-                  <div className="text-lg font-light text-foreground">{selectedService.title}</div>
-                  <div className="text-sm text-text-secondary mt-1">
-                    Duration: {selectedService.duration} • From ${selectedService.price_from}
-                  </div>
+                <div className="text-lg font-light text-foreground">{selectedService.title}</div>
+                <div className="text-sm text-text-secondary mt-1">
+                  Duration: {selectedService.duration} • From R{selectedService.price_from}
+                </div>
                 </ChromeSurface>
 
                 {bookingStep === 'calendar' && (

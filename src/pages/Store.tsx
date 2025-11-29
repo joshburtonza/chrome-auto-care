@@ -63,7 +63,7 @@ const Store = () => {
               <h3 className="text-lg font-light text-foreground mb-2">{product.name}</h3>
               <p className="text-sm text-text-secondary mb-4">{product.description}</p>
               <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                <div className="text-xl text-primary font-light">${product.price}</div>
+                <div className="text-xl text-primary font-light">R{product.price}</div>
                 <ChromeButton size="sm">Add to Cart</ChromeButton>
               </div>
             </ChromeSurface>
