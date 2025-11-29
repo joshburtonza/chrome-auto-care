@@ -1,182 +1,357 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { StatusBadge } from '@/components/chrome/StatusBadge';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, CheckCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { Play, Check, Calendar, Upload, Clock } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type BookingStatus = Database['public']['Enums']['booking_status'];
+type StageType = Database['public']['Enums']['stage_type'];
+
+interface Booking {
+  id: string;
+  booking_date: string;
+  booking_time: string | null;
+  status: BookingStatus;
+  notes: string | null;
+  estimated_completion: string | null;
+  services: {
+    title: string;
+  } | null;
+  profiles: {
+    full_name: string | null;
+    phone: string | null;
+  } | null;
+  vehicles: {
+    make: string;
+    model: string;
+    year: string;
+  } | null;
+}
+
+interface BookingStage {
+  id: string;
+  stage: StageType;
+  completed: boolean;
+  started_at: string | null;
+  completed_at: string | null;
+  notes: string | null;
+  stage_order: number | null;
+}
 
 export default function StaffBookings() {
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const [bookingStages, setBookingStages] = useState<any[]>([]);
-  const [updateNotes, setUpdateNotes] = useState('');
-  const { toast } = useToast();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [bookingStages, setBookingStages] = useState<BookingStage[]>([]);
+  const [stageNotes, setStageNotes] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchBookings();
   }, []);
 
   const fetchBookings = async () => {
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('*, services(title), profiles(full_name, phone), vehicles(make, model, year)')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services(title),
+          vehicles(make, model, year)
+        `)
+        .order('booking_date', { ascending: true });
 
-    if (!error && data) {
-      setBookings(data);
+      if (error) throw error;
+      
+      // Fetch profiles separately for each booking
+      const bookingsWithProfiles = await Promise.all(
+        (data || []).map(async (booking) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, phone')
+            .eq('id', booking.user_id)
+            .single();
+          
+          return {
+            ...booking,
+            profiles: profile
+          };
+        })
+      );
+      
+      setBookings(bookingsWithProfiles as any);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load bookings',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchBookingStages = async (bookingId: string) => {
-    const { data } = await supabase
-      .from('booking_stages')
-      .select('*')
-      .eq('booking_id', bookingId)
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('booking_stages')
+        .select('*')
+        .eq('booking_id', bookingId)
+        .order('stage_order', { ascending: true });
 
-    if (data) {
-      setBookingStages(data);
-    }
-  };
-
-  const handleViewBooking = async (booking: any) => {
-    setSelectedBooking(booking);
-    await fetchBookingStages(booking.id);
-    
-    // Auto-create stages if they don't exist
-    const { data: existingStages } = await supabase
-      .from('booking_stages')
-      .select('id')
-      .eq('booking_id', booking.id);
-    
-    if (!existingStages || existingStages.length === 0) {
-      await createDefaultStages(booking.id);
-      await fetchBookingStages(booking.id);
-    }
-  };
-
-  const createDefaultStages = async (bookingId: string) => {
-    // Note: Stages are now auto-created by database trigger
-    // This function is kept for backwards compatibility but stages should exist
-    type StageType = 'vehicle_checkin' | 'stripping' | 'surface_prep' | 'paint_correction' | 'ppf_installation' | 'reassembly' | 'qc1' | 'final_detail' | 'qc2' | 'delivery_prep';
-    
-    const stages: Array<{
-      booking_id: string;
-      stage: StageType;
-      stage_order: number;
-      completed: boolean;
-    }> = [
-      { booking_id: bookingId, stage: 'vehicle_checkin' as StageType, stage_order: 1, completed: false },
-      { booking_id: bookingId, stage: 'stripping' as StageType, stage_order: 2, completed: false },
-      { booking_id: bookingId, stage: 'surface_prep' as StageType, stage_order: 3, completed: false },
-      { booking_id: bookingId, stage: 'paint_correction' as StageType, stage_order: 4, completed: false },
-      { booking_id: bookingId, stage: 'ppf_installation' as StageType, stage_order: 5, completed: false },
-      { booking_id: bookingId, stage: 'reassembly' as StageType, stage_order: 6, completed: false },
-      { booking_id: bookingId, stage: 'qc1' as StageType, stage_order: 7, completed: false },
-      { booking_id: bookingId, stage: 'final_detail' as StageType, stage_order: 8, completed: false },
-      { booking_id: bookingId, stage: 'qc2' as StageType, stage_order: 9, completed: false },
-      { booking_id: bookingId, stage: 'delivery_prep' as StageType, stage_order: 10, completed: false },
-    ];
-
-    await supabase.from('booking_stages').insert(stages);
-  };
-
-  const handleUpdateStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled') => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: newStatus })
-      .eq('id', bookingId);
-
-    if (!error) {
-      toast({ title: 'Status updated successfully' });
-      fetchBookings();
-      if (selectedBooking?.id === bookingId) {
-        setSelectedBooking({ ...selectedBooking, status: newStatus });
-      }
-    }
-  };
-
-  const handleUpdateStage = async (stageId: string, stageName: any, completed: boolean) => {
-    const { error } = await supabase
-      .from('booking_stages')
-      .update({ 
-        completed,
-        completed_at: completed ? new Date().toISOString() : null,
-        notes: updateNotes || undefined
-      })
-      .eq('id', stageId);
-
-    if (!error) {
-      // Update booking current_stage
-      if (completed && selectedBooking) {
-        await supabase
-          .from('bookings')
-          .update({ current_stage: stageName })
-          .eq('id', selectedBooking.id);
-      }
+      if (error) throw error;
       
-      toast({ title: 'Stage updated successfully' });
+      setBookingStages(data || []);
+      
+      const notesMap: Record<string, string> = {};
+      data?.forEach(stage => {
+        if (stage.notes) notesMap[stage.id] = stage.notes;
+      });
+      setStageNotes(notesMap);
+    } catch (error) {
+      console.error('Error fetching stages:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load stages',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleViewBooking = (booking: Booking) => {
+    setSelectedBooking(booking);
+    fetchBookingStages(booking.id);
+  };
+
+  const handleUpdateStatus = async (bookingId: string, newStatus: BookingStatus) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      await fetchBookings();
+      
+      toast({
+        title: 'Success',
+        description: 'Booking status updated',
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleStartStage = async (stageId: string, stageName: string) => {
+    try {
+      const { error } = await supabase
+        .from('booking_stages')
+        .update({ 
+          started_at: new Date().toISOString(),
+        })
+        .eq('id', stageId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Started: ${getStageLabel(stageName)}`,
+      });
+      
       if (selectedBooking) {
         await fetchBookingStages(selectedBooking.id);
       }
-      setUpdateNotes('');
+    } catch (error) {
+      console.error('Error starting stage:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start stage',
+        variant: 'destructive',
+      });
     }
   };
 
-  const getStageLabel = (stage: string) => {
+  const handleCompleteStage = async (stageId: string, stageName: string) => {
+    try {
+      const notes = stageNotes[stageId] || null;
+      
+      const { error } = await supabase
+        .from('booking_stages')
+        .update({ 
+          completed: true,
+          completed_at: new Date().toISOString(),
+          notes: notes
+        })
+        .eq('id', stageId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Completed: ${getStageLabel(stageName)}`,
+      });
+      
+      if (selectedBooking) {
+        await fetchBookingStages(selectedBooking.id);
+      }
+    } catch (error) {
+      console.error('Error completing stage:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete stage',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateETA = async (bookingId: string, newETA: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ estimated_completion: newETA })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'ETA updated',
+      });
+      
+      await fetchBookings();
+    } catch (error) {
+      console.error('Error updating ETA:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update ETA',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePhotoUpload = async (stageId: string, file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${stageId}_${Date.now()}.${fileExt}`;
+      const filePath = `checkin-photos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('vehicle-photos')
+        .getPublicUrl(filePath);
+
+      const currentNotes = stageNotes[stageId] || '';
+      const updatedNotes = currentNotes 
+        ? `${currentNotes}\n\nPhoto: ${urlData.publicUrl}` 
+        : `Photo: ${urlData.publicUrl}`;
+
+      const { error: updateError } = await supabase
+        .from('booking_stages')
+        .update({ notes: updatedNotes })
+        .eq('id', stageId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: 'Success',
+        description: 'Photo uploaded',
+      });
+      
+      if (selectedBooking) {
+        await fetchBookingStages(selectedBooking.id);
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload photo',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getStageLabel = (stage: string): string => {
     const labels: Record<string, string> = {
-      vehicle_checkin: 'Vehicle Check-In & Photography',
+      vehicle_checkin: 'Vehicle Check-In',
       stripping: 'Stripping',
-      surface_prep: 'Surface Prep & Inspection',
-      paint_correction: 'Paint Correction / Buffing',
-      ppf_installation: 'PPF Installation / Ceramic Treatment',
+      surface_prep: 'Surface Preparation',
+      paint_correction: 'Paint Correction',
+      ppf_installation: 'PPF Installation',
       reassembly: 'Reassembly',
-      qc1: 'Quality Control #1',
-      final_detail: 'Final Detail + Ceramic Finishing',
-      qc2: 'Quality Control #2',
-      delivery_prep: 'Delivery Prep + Customer Pickup'
+      qc1: 'Quality Check 1',
+      final_detail: 'Final Detailing',
+      qc2: 'Quality Check 2',
+      delivery_prep: 'Delivery Preparation',
     };
     return labels[stage] || stage;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <StaffNav />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <StaffNav />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="chrome-heading text-4xl mb-8">BOOKING MANAGEMENT</h1>
+        <h1 className="text-4xl font-bold mb-8">Bookings Management</h1>
 
-        <ChromeSurface className="p-6">
-          <div className="space-y-4">
-            {bookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-2">
-                    <span className="font-semibold">
-                      {booking.profiles?.full_name || 'Customer'}
-                    </span>
+        <div className="grid gap-4">
+          {bookings.map((booking) => (
+            <ChromeSurface key={booking.id} className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-xl font-semibold">
+                      {booking.profiles?.full_name || 'Unknown Client'}
+                    </h3>
                     <StatusBadge status={booking.status} />
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {booking.services?.title} • {booking.vehicles?.year} {booking.vehicles?.make} {booking.vehicles?.model}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
+                  <p className="text-muted-foreground">
+                    {booking.services?.title || 'No Service'} - {booking.vehicles?.make} {booking.vehicles?.model} ({booking.vehicles?.year})
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>📅 {new Date(booking.booking_date).toLocaleDateString()}</span>
+                    {booking.booking_time && <span>🕐 {booking.booking_time}</span>}
+                    {booking.profiles?.phone && <span>📞 {booking.profiles.phone}</span>}
                   </div>
                 </div>
+
                 <div className="flex gap-2">
                   <Select
                     value={booking.status}
-                    onValueChange={(value) => handleUpdateStatus(booking.id, value as 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')}
+                    onValueChange={(value) => handleUpdateStatus(booking.id, value as BookingStatus)}
                   >
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-[180px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -187,87 +362,160 @@ export default function StaffBookings() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewBooking(booking)}
-                  >
-                    <Eye className="w-4 h-4" />
+
+                  <Button onClick={() => handleViewBooking(booking)}>
+                    View Details
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
-        </ChromeSurface>
 
-        {/* Booking Details Dialog */}
+              <div className="mt-4 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Estimated Completion:</span>
+                <Input
+                  type="date"
+                  value={booking.estimated_completion || ''}
+                  onChange={(e) => handleUpdateETA(booking.id, e.target.value)}
+                  className="w-48"
+                />
+              </div>
+            </ChromeSurface>
+          ))}
+        </div>
+
+        {/* Stage Management Dialog */}
         <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="chrome-heading">BOOKING DETAILS</DialogTitle>
+              <DialogTitle>
+                Booking Details - {selectedBooking?.profiles?.full_name}
+              </DialogTitle>
             </DialogHeader>
+
             {selectedBooking && (
               <div className="space-y-6">
-                <div>
-                  <div className="chrome-label mb-2">CUSTOMER</div>
-                  <div>{selectedBooking.profiles?.full_name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {selectedBooking.profiles?.phone}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Service:</span> {selectedBooking.services?.title}
+                  </div>
+                  <div>
+                    <span className="font-medium">Vehicle:</span>{' '}
+                    {selectedBooking.vehicles?.make} {selectedBooking.vehicles?.model}
+                  </div>
+                  <div>
+                    <span className="font-medium">Date:</span>{' '}
+                    {new Date(selectedBooking.booking_date).toLocaleDateString()}
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span>{' '}
+                    <StatusBadge status={selectedBooking.status} />
                   </div>
                 </div>
 
-                <div>
-                  <div className="chrome-label mb-2">SERVICE & VEHICLE</div>
-                  <div>{selectedBooking.services?.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {selectedBooking.vehicles?.year} {selectedBooking.vehicles?.make}{' '}
-                    {selectedBooking.vehicles?.model}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="chrome-label mb-4">BOOKING STAGES</div>
-                  <div className="space-y-3">
-                    {bookingStages.map((stage) => (
-                      <div key={stage.id} className={`border rounded-lg p-4 ${stage.completed ? 'border-success bg-success/5' : 'border-border'}`}>
-                        <div className="flex items-center justify-between mb-2">
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">Process Stages</h3>
+                  
+                  {bookingStages.map((stage, index) => (
+                    <ChromeSurface
+                      key={stage.id}
+                      className={`p-4 ${
+                        stage.completed
+                          ? 'bg-green-50 dark:bg-green-950 border-green-300'
+                          : stage.started_at
+                          ? 'bg-blue-50 dark:bg-blue-950 border-blue-300'
+                          : 'bg-card'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold">{getStageLabel(stage.stage)}</span>
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                              {index + 1}
+                            </span>
+                            <h4 className="font-semibold">{getStageLabel(stage.stage)}</h4>
+                          </div>
+
+                          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                             {stage.completed && (
-                              <CheckCircle className="w-4 h-4 text-success" />
+                              <span className="flex items-center gap-1 text-green-600">
+                                <Check className="h-4 w-4" />
+                                Completed {new Date(stage.completed_at!).toLocaleString()}
+                              </span>
+                            )}
+                            {stage.started_at && !stage.completed && (
+                              <span className="flex items-center gap-1 text-blue-600">
+                                <Clock className="h-4 w-4" />
+                                In Progress (started {new Date(stage.started_at).toLocaleString()})
+                              </span>
+                            )}
+                            {!stage.started_at && !stage.completed && (
+                              <span className="text-muted-foreground">Not started</span>
                             )}
                           </div>
-                          <Button
-                            variant={stage.completed ? "outline" : "default"}
-                            size="sm"
-                            onClick={() => handleUpdateStage(stage.id, stage.stage, !stage.completed)}
-                          >
-                            {stage.completed ? 'Undo' : 'Complete'}
-                          </Button>
-                        </div>
-                        {stage.completed_at && (
-                          <div className="text-xs text-muted-foreground mb-2">
-                            Completed: {new Date(stage.completed_at).toLocaleString()}
-                          </div>
-                        )}
-                        {stage.notes && (
-                          <div className="text-sm text-muted-foreground mt-2 p-2 bg-muted rounded">
-                            {stage.notes}
-                          </div>
-                        )}
-                        {!stage.completed && (
-                          <div className="mt-3">
+
+                          {(stage.started_at || stage.completed) && (
                             <Textarea
-                              placeholder="Add completion notes..."
-                              value={updateNotes}
-                              onChange={(e) => setUpdateNotes(e.target.value)}
-                              className="text-sm"
+                              value={stageNotes[stage.id] || ''}
+                              onChange={(e) => setStageNotes(prev => ({ ...prev, [stage.id]: e.target.value }))}
+                              placeholder="Add notes..."
+                              disabled={stage.completed}
+                              className="mt-3"
+                              rows={2}
                             />
-                          </div>
-                        )}
+                          )}
+                        </div>
+
+                        <div className="ml-4 flex flex-col gap-2">
+                          {!stage.started_at && !stage.completed && (
+                            <Button
+                              onClick={() => handleStartStage(stage.id, stage.stage)}
+                              size="sm"
+                              className="gap-1"
+                            >
+                              <Play className="h-4 w-4" />
+                              Start
+                            </Button>
+                          )}
+                          
+                          {stage.started_at && !stage.completed && (
+                            <Button
+                              onClick={() => handleCompleteStage(stage.id, stage.stage)}
+                              size="sm"
+                              variant="default"
+                              className="gap-1"
+                            >
+                              <Check className="h-4 w-4" />
+                              Complete
+                            </Button>
+                          )}
+
+                          {stage.stage === 'vehicle_checkin' && stage.started_at && !stage.completed && (
+                            <>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handlePhotoUpload(stage.id, file);
+                                }}
+                                className="hidden"
+                              />
+                              <Button
+                                onClick={() => fileInputRef.current?.click()}
+                                size="sm"
+                                variant="secondary"
+                                className="gap-1"
+                              >
+                                <Upload className="h-4 w-4" />
+                                Photo
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </ChromeSurface>
+                  ))}
                 </div>
               </div>
             )}

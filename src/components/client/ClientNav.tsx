@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Home, Calendar, Car, Package, User, LogOut, Store, ClipboardCheck } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 
 export const ClientNav = () => {
   const location = useLocation();
@@ -44,10 +45,13 @@ export const ClientNav = () => {
               })}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
     </nav>

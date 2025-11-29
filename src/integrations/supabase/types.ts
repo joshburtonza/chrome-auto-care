@@ -154,6 +154,66 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          action_required: boolean | null
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          message: string
+          priority: string | null
+          read_at: string | null
+          recipient_uid: string
+          sender_uid: string | null
+          title: string
+          type: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          action_required?: boolean | null
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          priority?: string | null
+          read_at?: string | null
+          recipient_uid: string
+          sender_uid?: string | null
+          title: string
+          type: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          action_required?: boolean | null
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          priority?: string | null
+          read_at?: string | null
+          recipient_uid?: string
+          sender_uid?: string | null
+          title?: string
+          type?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -326,6 +386,11 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
+      mark_notification_read: {
+        Args: { notification_id: string }
+        Returns: undefined
       }
     }
     Enums: {
