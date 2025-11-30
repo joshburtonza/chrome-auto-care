@@ -61,7 +61,7 @@ serve(async (req) => {
           status: 'confirmed', // Automatically confirm booking on payment
         })
         .eq('id', bookingId)
-        .select('*, profiles!bookings_user_id_fkey(full_name), vehicles(make, model)')
+        .select('*, vehicles(make, model)')
         .single();
 
       if (updateError) {
