@@ -8,15 +8,17 @@ import { TimeSlotPicker } from "@/components/booking/TimeSlotPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClientNav } from "@/components/client/ClientNav";
 
 const Services = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [services, setServices] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -70,7 +72,18 @@ const Services = () => {
     if (user) {
       loadVehicles();
     }
-  }, [user]);
+
+    // Handle payment status from URL
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      toast.success('Payment successful! Your booking is confirmed.');
+      // Clear the URL parameter
+      navigate('/services', { replace: true });
+    } else if (paymentStatus === 'failed') {
+      toast.error('Payment failed. Please try again.');
+      navigate('/services', { replace: true });
+    }
+  }, [user, searchParams, navigate]);
 
   const loadServices = async () => {
     try {
@@ -108,7 +121,7 @@ const Services = () => {
   const handleBooking = async () => {
     if (!user) {
       toast.error('Please sign in to book a service');
-      navigate('/auth/login');
+      navigate('/auth/client-login');
       return;
     }
 
@@ -117,28 +130,53 @@ const Services = () => {
       return;
     }
 
+    setProcessingPayment(true);
+
     try {
-      const { error } = await supabase.from('bookings').insert({
-        user_id: user.id,
-        service_id: selectedService.id,
-        vehicle_id: selectedVehicle,
-        booking_date: selectedDate,
-        booking_time: selectedTime,
-        status: 'pending',
-      });
+      // 1. Create the booking first
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          user_id: user.id,
+          service_id: selectedService.id,
+          vehicle_id: selectedVehicle,
+          booking_date: selectedDate,
+          booking_time: selectedTime,
+          status: 'pending',
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (bookingError) throw bookingError;
 
-      toast.success('Booking created successfully!');
-      setSelectedService(null);
-      setSelectedDate(null);
-      setSelectedTime(null);
-      setSelectedVehicle('');
-      setBookingStep('calendar');
-      navigate('/bookings');
+      console.log('Booking created:', booking.id);
+
+      // 2. Create Yoco checkout session
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
+        'create-yoco-checkout',
+        {
+          body: {
+            bookingId: booking.id,
+            amount: selectedService.price_from,
+            currency: 'ZAR',
+          },
+        }
+      );
+
+      if (checkoutError) throw checkoutError;
+
+      console.log('Checkout session created:', checkoutData);
+
+      // 3. Redirect to Yoco payment page
+      if (checkoutData.redirectUrl) {
+        window.location.href = checkoutData.redirectUrl;
+      } else {
+        throw new Error('No redirect URL received');
+      }
     } catch (error: any) {
-      console.error('Error creating booking:', error);
-      toast.error('Failed to create booking');
+      console.error('Error processing booking:', error);
+      toast.error(error.message || 'Failed to process booking');
+      setProcessingPayment(false);
     }
   };
 
@@ -330,15 +368,15 @@ const Services = () => {
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                      <ChromeButton variant="outline" onClick={() => setBookingStep('time')}>
+                      <ChromeButton variant="outline" onClick={() => setBookingStep('time')} disabled={processingPayment}>
                         ← Back
                       </ChromeButton>
                       <ChromeButton
                         className="flex-1"
                         onClick={handleBooking}
-                        disabled={!selectedVehicle}
+                        disabled={!selectedVehicle || processingPayment}
                       >
-                        Confirm Booking
+                        {processingPayment ? 'Processing...' : 'Proceed to Payment'}
                       </ChromeButton>
                     </div>
                   </>
