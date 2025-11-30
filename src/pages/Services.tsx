@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Shield, Sparkles, Car, Clock, DollarSign, User, Mail, Phone } from "lucide-react";
+import { Shield, Sparkles, Car, Clock, DollarSign, User, Mail, Phone, TestTube } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClientNav } from "@/components/client/ClientNav";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const Services = () => {
   const { user } = useAuth();
@@ -24,6 +26,7 @@ const Services = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [bookingStep, setBookingStep] = useState<'calendar' | 'time' | 'details'>('calendar');
+  const [testMode, setTestMode] = useState(true); // Default to test mode for safety
 
   // Generate mock availability (90 days forward)
   const generateAvailability = () => {
@@ -159,6 +162,7 @@ const Services = () => {
             bookingId: booking.id,
             amount: selectedService.price_from,
             currency: 'ZAR',
+            testMode: testMode,
           },
         }
       );
@@ -271,7 +275,21 @@ const Services = () => {
       <Dialog open={!!selectedService} onOpenChange={resetBookingModal}>
         <DialogContent className="bg-card border-border max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="chrome-title text-2xl">Book Service</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="chrome-title text-2xl">Book Service</DialogTitle>
+              <div className="flex items-center gap-2">
+                <TestTube className={`w-4 h-4 ${testMode ? 'text-amber-500' : 'text-green-500'}`} />
+                <Label htmlFor="test-mode" className="text-sm font-normal cursor-pointer">
+                  {testMode ? 'Test Mode' : 'Live Mode'}
+                </Label>
+                <Switch
+                  id="test-mode"
+                  checked={testMode}
+                  onCheckedChange={setTestMode}
+                  className="data-[state=checked]:bg-amber-500"
+                />
+              </div>
+            </div>
           </DialogHeader>
           <div className="space-y-6">
             {selectedService && (
@@ -324,6 +342,12 @@ const Services = () => {
                   <>
                     <ChromeSurface className="p-4" glow>
                       <div className="chrome-label text-[10px] text-text-tertiary mb-3">BOOKING DETAILS</div>
+                      {testMode && (
+                        <div className="mb-3 p-2 rounded bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
+                          <TestTube className="w-4 h-4 text-amber-500" />
+                          <span className="text-xs text-amber-500">Test Mode Active - No real charges will be made</span>
+                        </div>
+                      )}
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-text-tertiary">Date:</span>
