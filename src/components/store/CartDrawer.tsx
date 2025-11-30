@@ -63,7 +63,7 @@ export const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
 
       if (itemsError) throw itemsError;
 
-      // Create Yoco checkout
+      // Create Yoco checkout (using test mode for safety)
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
         'create-store-checkout',
         {
@@ -71,6 +71,7 @@ export const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
             orderId: order.id,
             amount: cartTotal,
             currency: 'ZAR',
+            testMode: true, // Set to false for live payments
           },
         }
       );
