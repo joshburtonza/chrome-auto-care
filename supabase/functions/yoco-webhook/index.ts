@@ -13,6 +13,8 @@ interface YocoWebhookPayload {
     status: string;
     metadata?: {
       bookingId?: string;
+      orderId?: string;
+      orderType?: string;
     };
     amount?: number;
     currency?: string;
@@ -40,11 +42,55 @@ serve(async (req) => {
     if (webhookData.type === 'payment.succeeded' || webhookData.type === 'checkout.succeeded') {
       const { payload } = webhookData;
       const bookingId = payload.metadata?.bookingId;
+      const orderId = payload.metadata?.orderId;
+      const orderType = payload.metadata?.orderType;
 
-      if (!bookingId) {
-        console.error('No bookingId in webhook metadata');
+      // Handle merchandise orders
+      if (orderType === 'merchandise' && orderId) {
+        console.log('Processing successful payment for order:', orderId);
+
+        const { data: order, error: updateError } = await supabase
+          .from('orders')
+          .update({
+            payment_status: 'paid',
+            yoco_payment_id: payload.id,
+            payment_date: payload.createdDate || new Date().toISOString(),
+            status: 'confirmed',
+          })
+          .eq('id', orderId)
+          .select('*')
+          .single();
+
+        if (updateError) {
+          console.error('Failed to update order:', updateError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to update order' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Notify customer
+        await supabase.from('notifications').insert({
+          recipient_uid: order.user_id,
+          type: 'order_confirmed',
+          title: 'Order Confirmed',
+          message: `Your order has been confirmed! Payment received: R${(payload.amount! / 100).toFixed(2)}`,
+          priority: 'high',
+        });
+
+        console.log('Order updated successfully:', orderId);
+
         return new Response(
-          JSON.stringify({ error: 'Missing booking ID in metadata' }),
+          JSON.stringify({ success: true, orderId }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Handle service bookings
+      if (!bookingId) {
+        console.error('No bookingId or orderId in webhook metadata');
+        return new Response(
+          JSON.stringify({ error: 'Missing booking or order ID in metadata' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

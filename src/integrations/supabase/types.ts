@@ -222,6 +222,41 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          merchandise_id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merchandise_id: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merchandise_id?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_merchandise_id_fkey"
+            columns: ["merchandise_id"]
+            isOneToOne: false
+            referencedRelation: "merchandise"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchandise: {
         Row: {
           category: string
@@ -317,6 +352,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          merchandise_id: string
+          order_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merchandise_id: string
+          order_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merchandise_id?: string
+          order_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_merchandise_id_fkey"
+            columns: ["merchandise_id"]
+            isOneToOne: false
+            referencedRelation: "merchandise"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          payment_status: string
+          shipping_address: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+          yoco_checkout_id: string | null
+          yoco_payment_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_status?: string
+          shipping_address?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+          yoco_checkout_id?: string | null
+          yoco_payment_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_status?: string
+          shipping_address?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+          yoco_checkout_id?: string | null
+          yoco_payment_id?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
