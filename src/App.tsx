@@ -17,12 +17,15 @@ import Profile from "./pages/Profile";
 import Bookings from "./pages/Bookings";
 import Garage from "./pages/Garage";
 import Store from "./pages/Store";
+import Orders from "./pages/Orders";
 import Gallery from "./pages/Gallery";
 import JobTracking from "./pages/JobTracking";
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffBookings from "./pages/staff/StaffBookings";
 import StaffCustomers from "./pages/staff/StaffCustomers";
 import StaffServices from "./pages/staff/StaffServices";
+import StaffMerchandise from "./pages/staff/StaffMerchandise";
+import StaffOrders from "./pages/staff/StaffOrders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -94,6 +97,14 @@ const App = () => (
               }
             />
             <Route
+              path="/orders"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  <Orders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/job-tracking"
               element={
                 <ProtectedRoute allowedRoles={['client']}>
@@ -132,6 +143,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['staff', 'admin']}>
                   <StaffServices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/merchandise"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <StaffMerchandise />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/orders"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <StaffOrders />
                 </ProtectedRoute>
               }
             />
