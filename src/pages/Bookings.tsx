@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { Car, Calendar } from "lucide-react";
+import { Car, Calendar, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,16 @@ const Bookings = () => {
     return statusMap[status] || 'unavailable';
   };
 
+  const getPaymentStatusBadge = (paymentStatus: string) => {
+    const statusMap: Record<string, 'available' | 'limited' | 'full' | 'unavailable'> = {
+      paid: 'available',
+      pending: 'limited',
+      failed: 'unavailable',
+      refunded: 'full',
+    };
+    return statusMap[paymentStatus] || 'limited';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -84,6 +94,12 @@ const Bookings = () => {
                       <StatusBadge status={getStatusBadge(booking.status)}>
                         {booking.status.replace('_', ' ')}
                       </StatusBadge>
+                      {booking.payment_status && (
+                        <StatusBadge status={getPaymentStatusBadge(booking.payment_status)}>
+                          <CreditCard className="w-3 h-3 inline mr-1" strokeWidth={1.4} />
+                          {booking.payment_status}
+                        </StatusBadge>
+                      )}
                     </div>
                     <h3 className="text-xl font-light text-foreground mb-1">{booking.services?.title}</h3>
                     <div className="flex items-center gap-4 text-sm text-text-secondary">
@@ -97,6 +113,12 @@ const Bookings = () => {
                         <Calendar className="w-4 h-4" strokeWidth={1.4} />
                         {new Date(booking.booking_date).toLocaleDateString()} {booking.booking_time}
                       </span>
+                      {booking.payment_amount && (
+                        <span className="flex items-center gap-2 text-primary">
+                          <CreditCard className="w-4 h-4" strokeWidth={1.4} />
+                          R{booking.payment_amount}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

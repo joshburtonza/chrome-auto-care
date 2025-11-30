@@ -156,11 +156,16 @@ export type Database = {
           estimated_completion: string | null
           id: string
           notes: string | null
+          payment_amount: number | null
+          payment_date: string | null
+          payment_status: string | null
           service_id: string
           status: Database["public"]["Enums"]["booking_status"] | null
           updated_at: string | null
           user_id: string
           vehicle_id: string | null
+          yoco_checkout_id: string | null
+          yoco_payment_id: string | null
         }
         Insert: {
           booking_date: string
@@ -170,11 +175,16 @@ export type Database = {
           estimated_completion?: string | null
           id?: string
           notes?: string | null
+          payment_amount?: number | null
+          payment_date?: string | null
+          payment_status?: string | null
           service_id: string
           status?: Database["public"]["Enums"]["booking_status"] | null
           updated_at?: string | null
           user_id: string
           vehicle_id?: string | null
+          yoco_checkout_id?: string | null
+          yoco_payment_id?: string | null
         }
         Update: {
           booking_date?: string
@@ -184,11 +194,16 @@ export type Database = {
           estimated_completion?: string | null
           id?: string
           notes?: string | null
+          payment_amount?: number | null
+          payment_date?: string | null
+          payment_status?: string | null
           service_id?: string
           status?: Database["public"]["Enums"]["booking_status"] | null
           updated_at?: string | null
           user_id?: string
           vehicle_id?: string | null
+          yoco_checkout_id?: string | null
+          yoco_payment_id?: string | null
         }
         Relationships: [
           {
