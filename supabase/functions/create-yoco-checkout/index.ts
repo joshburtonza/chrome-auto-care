@@ -12,6 +12,7 @@ interface CheckoutRequest {
   currency?: string;
   customerEmail?: string;
   metadata?: Record<string, string>;
+  testMode?: boolean;
 }
 
 serve(async (req) => {
@@ -21,9 +22,15 @@ serve(async (req) => {
   }
 
   try {
-    const yocoSecretKey = Deno.env.get('YOCO_SECRET_KEY');
+    // Get the appropriate API key based on test mode
+    const { bookingId, amount, currency = 'ZAR', customerEmail, metadata, testMode = false }: CheckoutRequest = await req.json();
+    
+    const yocoSecretKey = testMode 
+      ? Deno.env.get('YOCO_TEST_SECRET_KEY')
+      : Deno.env.get('YOCO_SECRET_KEY');
+    
     if (!yocoSecretKey) {
-      console.error('YOCO_SECRET_KEY not configured');
+      console.error(`${testMode ? 'Test' : 'Live'} YOCO_SECRET_KEY not configured`);
       return new Response(
         JSON.stringify({ error: 'Payment gateway not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -35,10 +42,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get request data
-    const { bookingId, amount, currency = 'ZAR', customerEmail, metadata }: CheckoutRequest = await req.json();
-
-    console.log('Creating Yoco checkout for booking:', bookingId);
+    console.log(`Creating Yoco checkout in ${testMode ? 'TEST' : 'LIVE'} mode for booking:`, bookingId);
 
     // Verify booking exists and get details
     const { data: booking, error: bookingError } = await supabase
