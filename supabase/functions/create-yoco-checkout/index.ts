@@ -50,8 +50,7 @@ serve(async (req) => {
       .select(`
         *,
         services(title, category),
-        vehicles(make, model, year),
-        profiles!bookings_user_id_fkey(full_name)
+        vehicles(make, model, year)
       `)
       .eq('id', bookingId)
       .single();
