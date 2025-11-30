@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { CartProvider } from "@/contexts/CartContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import ClientLogin from "./pages/auth/ClientLogin";
@@ -34,7 +35,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <NotificationProvider>
-            <Routes>
+            <CartProvider>
+              <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth/client-login" element={<ClientLogin />} />
@@ -137,6 +139,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>
+            </CartProvider>
           </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
