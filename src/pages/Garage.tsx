@@ -1,17 +1,31 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Car, Plus } from "lucide-react";
+import { Car, Plus, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/client/ClientNav";
 import { AddVehicleDialog } from "@/components/garage/AddVehicleDialog";
+import { EditVehicleDialog } from "@/components/garage/EditVehicleDialog";
+
+interface Vehicle {
+  id: string;
+  year: string;
+  make: string;
+  model: string;
+  color: string | null;
+  vin: string | null;
+  image_url: string | null;
+  created_at: string;
+}
 
 const Garage = () => {
   const { user } = useAuth();
-  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -35,6 +49,11 @@ const Garage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVehicleClick = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setEditDialogOpen(true);
   };
 
   if (loading) {
@@ -77,21 +96,32 @@ const Garage = () => {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {vehicles.map((vehicle) => (
-              <ChromeSurface key={vehicle.id} className="overflow-hidden chrome-sheen" glow>
+              <ChromeSurface 
+                key={vehicle.id} 
+                className="overflow-hidden chrome-sheen cursor-pointer group transition-all hover:scale-[1.02]" 
+                glow
+                onClick={() => handleVehicleClick(vehicle)}
+              >
                 {/* Vehicle Image */}
-                {vehicle.image_url ? (
-                  <div className="aspect-video w-full overflow-hidden">
-                    <img 
-                      src={vehicle.image_url} 
-                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                      className="w-full h-full object-cover"
-                    />
+                <div className="relative">
+                  {vehicle.image_url ? (
+                    <div className="aspect-video w-full overflow-hidden">
+                      <img 
+                        src={vehicle.image_url} 
+                        alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video w-full bg-muted/30 flex items-center justify-center">
+                      <Car className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.4} />
+                    </div>
+                  )}
+                  {/* Edit indicator */}
+                  <div className="absolute top-3 right-3 p-2 bg-background/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="w-4 h-4 text-foreground" />
                   </div>
-                ) : (
-                  <div className="aspect-video w-full bg-muted/30 flex items-center justify-center">
-                    <Car className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.4} />
-                  </div>
-                )}
+                </div>
                 
                 {/* Vehicle Details */}
                 <div className="p-6">
@@ -120,12 +150,22 @@ const Garage = () => {
                       </div>
                     </div>
                   </div>
+                  <div className="mt-4 pt-4 border-t border-border/50 text-center">
+                    <span className="text-xs text-muted-foreground">Click to edit</span>
+                  </div>
                 </div>
               </ChromeSurface>
             ))}
           </div>
         )}
       </div>
+
+      <EditVehicleDialog
+        vehicle={selectedVehicle}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onVehicleUpdated={loadVehicles}
+      />
     </div>
   );
 };
