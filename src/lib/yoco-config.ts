@@ -7,8 +7,8 @@ export const YOCO_CONFIG = {
   // Live public key for production payments
   PUBLIC_KEY_LIVE: 'pk_live_d768e30a3oO0qjZ8ab24',
   
-  // Test public key (to be added when available)
-  PUBLIC_KEY_TEST: '', // Add your test public key here when needed
+  // Test public key for testing payments
+  PUBLIC_KEY_TEST: 'pk_test_b9e8dfe13oO0qjZ58d74',
 } as const;
 
 /**
