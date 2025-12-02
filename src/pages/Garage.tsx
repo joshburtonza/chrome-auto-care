@@ -77,29 +77,47 @@ const Garage = () => {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {vehicles.map((vehicle) => (
-              <ChromeSurface key={vehicle.id} className="p-6 chrome-sheen" glow>
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-lg chrome-surface">
-                    <Car className="w-6 h-6 text-primary" strokeWidth={1.4} />
+              <ChromeSurface key={vehicle.id} className="overflow-hidden chrome-sheen" glow>
+                {/* Vehicle Image */}
+                {vehicle.image_url ? (
+                  <div className="aspect-video w-full overflow-hidden">
+                    <img 
+                      src={vehicle.image_url} 
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-light text-foreground mb-1">
-                      {vehicle.year} {vehicle.make}
-                    </h3>
-                    <div className="chrome-label text-[10px] text-text-secondary mb-3">{vehicle.model}</div>
-                    <div className="space-y-1 text-sm text-text-secondary">
-                      {vehicle.color && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-text-tertiary">Color:</span>
-                          <span>{vehicle.color}</span>
-                        </div>
-                      )}
-                      {vehicle.vin && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-text-tertiary">VIN:</span>
-                          <span className="font-mono text-xs">{vehicle.vin}</span>
-                        </div>
-                      )}
+                ) : (
+                  <div className="aspect-video w-full bg-muted/30 flex items-center justify-center">
+                    <Car className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.4} />
+                  </div>
+                )}
+                
+                {/* Vehicle Details */}
+                <div className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg chrome-surface">
+                      <Car className="w-6 h-6 text-primary" strokeWidth={1.4} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-light text-foreground mb-1">
+                        {vehicle.year} {vehicle.make}
+                      </h3>
+                      <div className="chrome-label text-[10px] text-text-secondary mb-3">{vehicle.model}</div>
+                      <div className="space-y-1 text-sm text-text-secondary">
+                        {vehicle.color && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-text-tertiary">Color:</span>
+                            <span>{vehicle.color}</span>
+                          </div>
+                        )}
+                        {vehicle.vin && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-text-tertiary">VIN:</span>
+                            <span className="font-mono text-xs">{vehicle.vin}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

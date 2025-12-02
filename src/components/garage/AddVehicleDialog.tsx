@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -23,7 +23,56 @@ export const AddVehicleDialog = ({ onVehicleAdded, trigger }: AddVehicleDialogPr
     color: '',
     vin: '',
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image must be less than 5MB');
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImage = async (vehicleId: string): Promise<string | null> => {
+    if (!selectedImage || !user) return null;
+
+    const fileExt = selectedImage.name.split('.').pop();
+    const fileName = `${user.id}/${vehicleId}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-photos')
+      .upload(fileName, selectedImage, { upsert: true });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('vehicle-photos')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,19 +84,37 @@ export const AddVehicleDialog = ({ onVehicleAdded, trigger }: AddVehicleDialogPr
 
     setLoading(true);
     try {
-      const { error } = await supabase.from('vehicles').insert({
-        user_id: user?.id,
-        year: formData.year,
-        make: formData.make,
-        model: formData.model,
-        color: formData.color || null,
-        vin: formData.vin || null,
-      });
+      // First insert the vehicle
+      const { data: vehicle, error } = await supabase
+        .from('vehicles')
+        .insert({
+          user_id: user?.id,
+          year: formData.year,
+          make: formData.make,
+          model: formData.model,
+          color: formData.color || null,
+          vin: formData.vin || null,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Upload image if selected
+      if (selectedImage && vehicle) {
+        const imageUrl = await uploadImage(vehicle.id);
+        if (imageUrl) {
+          await supabase
+            .from('vehicles')
+            .update({ image_url: imageUrl })
+            .eq('id', vehicle.id);
+        }
+      }
+
       toast.success('Vehicle added successfully');
       setFormData({ year: '', make: '', model: '', color: '', vin: '' });
+      setSelectedImage(null);
+      setImagePreview(null);
       setOpen(false);
       onVehicleAdded();
     } catch (error) {
@@ -58,8 +125,17 @@ export const AddVehicleDialog = ({ onVehicleAdded, trigger }: AddVehicleDialogPr
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setFormData({ year: '', make: '', model: '', color: '', vin: '' });
+      setSelectedImage(null);
+      setImagePreview(null);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button>
@@ -68,11 +144,47 @@ export const AddVehicleDialog = ({ onVehicleAdded, trigger }: AddVehicleDialogPr
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="chrome-heading">ADD VEHICLE</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label>Vehicle Photo</Label>
+            <div className="flex flex-col items-center gap-3">
+              {imagePreview ? (
+                <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
+                  <img 
+                    src={imagePreview} 
+                    alt="Vehicle preview" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 p-1.5 bg-background/80 rounded-full hover:bg-background transition-colors"
+                  >
+                    <X className="w-4 h-4 text-foreground" />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-full aspect-video rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer flex flex-col items-center justify-center gap-2 transition-colors bg-muted/30">
+                  <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Click to upload photo</span>
+                  <span className="text-xs text-muted-foreground/60">Max 5MB</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="year">Year *</Label>
             <Input
@@ -122,7 +234,7 @@ export const AddVehicleDialog = ({ onVehicleAdded, trigger }: AddVehicleDialogPr
             />
           </div>
           <div className="flex gap-2 justify-end">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
