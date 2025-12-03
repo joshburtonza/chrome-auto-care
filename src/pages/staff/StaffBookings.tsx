@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
@@ -23,6 +24,7 @@ interface Booking {
   status: BookingStatus;
   notes: string | null;
   estimated_completion: string | null;
+  priority: string | null;
   services: {
     title: string;
   } | null;
@@ -446,6 +448,42 @@ export default function StaffBookings() {
     return labels[stage] || stage;
   };
 
+  const getPriorityBadge = (priority: string | null) => {
+    switch (priority) {
+      case 'urgent':
+        return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Urgent</Badge>;
+      case 'high':
+        return <Badge className="bg-orange-500 hover:bg-orange-600 gap-1"><AlertTriangle className="h-3 w-3" /> High</Badge>;
+      default:
+        return <Badge variant="secondary">Normal</Badge>;
+    }
+  };
+
+  const handleUpdatePriority = async (bookingId: string, newPriority: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ priority: newPriority })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Priority updated',
+      });
+      
+      await fetchBookings();
+    } catch (error) {
+      console.error('Error updating priority:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update priority',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -470,11 +508,12 @@ export default function StaffBookings() {
             <ChromeSurface key={booking.id} className="p-6">
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                     <h3 className="text-xl font-semibold">
                       {booking.profiles?.full_name || 'Unknown Client'}
                     </h3>
                     <StatusBadge status={booking.status} />
+                    {getPriorityBadge(booking.priority)}
                   </div>
                   <p className="text-muted-foreground">
                     {booking.services?.title || 'No Service'} - {booking.vehicles?.make} {booking.vehicles?.model} ({booking.vehicles?.year})
@@ -486,12 +525,26 @@ export default function StaffBookings() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Select
+                    value={booking.priority || 'normal'}
+                    onValueChange={(value) => handleUpdatePriority(booking.id, value)}
+                  >
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   <Select
                     value={booking.status}
                     onValueChange={(value) => handleUpdateStatus(booking.id, value as BookingStatus)}
                   >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[150px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

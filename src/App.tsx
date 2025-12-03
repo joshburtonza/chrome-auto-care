@@ -27,6 +27,7 @@ import StaffCustomers from "./pages/staff/StaffCustomers";
 import StaffServices from "./pages/staff/StaffServices";
 import StaffMerchandise from "./pages/staff/StaffMerchandise";
 import StaffOrders from "./pages/staff/StaffOrders";
+import StaffWorkQueue from "./pages/staff/StaffWorkQueue";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -160,6 +161,14 @@ const App = () => (
                   element={
                     <ProtectedRoute allowedRoles={['staff', 'admin']}>
                       <StaffOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/staff/work-queue"
+                  element={
+                    <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                      <StaffWorkQueue />
                     </ProtectedRoute>
                   }
                 />
