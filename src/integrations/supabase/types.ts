@@ -105,6 +105,7 @@ export type Database = {
       }
       booking_stages: {
         Row: {
+          assigned_to: string | null
           booking_id: string
           completed: boolean | null
           completed_at: string | null
@@ -116,6 +117,7 @@ export type Database = {
           started_at: string | null
         }
         Insert: {
+          assigned_to?: string | null
           booking_id: string
           completed?: boolean | null
           completed_at?: string | null
@@ -127,6 +129,7 @@ export type Database = {
           started_at?: string | null
         }
         Update: {
+          assigned_to?: string | null
           booking_id?: string
           completed?: boolean | null
           completed_at?: string | null
@@ -159,6 +162,7 @@ export type Database = {
           payment_amount: number | null
           payment_date: string | null
           payment_status: string | null
+          priority: string | null
           service_id: string
           status: Database["public"]["Enums"]["booking_status"] | null
           updated_at: string | null
@@ -178,6 +182,7 @@ export type Database = {
           payment_amount?: number | null
           payment_date?: string | null
           payment_status?: string | null
+          priority?: string | null
           service_id: string
           status?: Database["public"]["Enums"]["booking_status"] | null
           updated_at?: string | null
@@ -197,6 +202,7 @@ export type Database = {
           payment_amount?: number | null
           payment_date?: string | null
           payment_status?: string | null
+          priority?: string | null
           service_id?: string
           status?: Database["public"]["Enums"]["booking_status"] | null
           updated_at?: string | null

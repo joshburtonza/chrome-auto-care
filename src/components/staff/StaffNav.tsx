@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Calendar, Users, Settings, LogOut, Package, Store, ShoppingBag } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, Settings, LogOut, Package, Store, ShoppingBag, ListTodo } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
 export const StaffNav = () => {
@@ -10,6 +10,7 @@ export const StaffNav = () => {
 
   const navItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/staff/work-queue', label: 'Work Queue', icon: ListTodo },
     { path: '/staff/bookings', label: 'Bookings', icon: Calendar },
     { path: '/staff/customers', label: 'Customers', icon: Users },
     { path: '/staff/services', label: 'Services', icon: Package },
