@@ -273,24 +273,24 @@ export default function StaffWorkQueue() {
     <div className="min-h-screen bg-background">
       <StaffNav />
       
-      <main className="container mx-auto px-4 py-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Work Queue</h1>
-            <p className="text-muted-foreground">
-              {filteredItems.length} tasks pending
-            </p>
-          </div>
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="flex flex-col gap-2 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold">Work Queue</h1>
+          <p className="text-sm text-muted-foreground">
+            {filteredItems.length} tasks pending
+          </p>
         </div>
 
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
-          <TabsList>
-            <TabsTrigger value="all">All Tasks ({workItems.length})</TabsTrigger>
-            <TabsTrigger value="unassigned">
-              Unassigned ({workItems.filter(i => !i.assigned_to).length})
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-4 sm:mb-6">
+          <TabsList className="w-full grid grid-cols-3 h-auto">
+            <TabsTrigger value="all" className="text-xs sm:text-sm px-2 py-2">
+              All ({workItems.length})
             </TabsTrigger>
-            <TabsTrigger value="mine">
-              My Tasks ({workItems.filter(i => i.assigned_to === currentUserId).length})
+            <TabsTrigger value="unassigned" className="text-xs sm:text-sm px-2 py-2">
+              Open ({workItems.filter(i => !i.assigned_to).length})
+            </TabsTrigger>
+            <TabsTrigger value="mine" className="text-xs sm:text-sm px-2 py-2">
+              Mine ({workItems.filter(i => i.assigned_to === currentUserId).length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -299,57 +299,62 @@ export default function StaffWorkQueue() {
           <div className="text-center py-12 text-muted-foreground">Loading work queue...</div>
         ) : filteredItems.length === 0 ? (
           <ChromeSurface className="text-center py-12">
-            <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
+            <CheckCircle className="h-12 w-12 mx-auto text-success mb-4" />
             <p className="text-muted-foreground">No pending tasks</p>
           </ChromeSurface>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {filteredItems.map((item) => (
-              <ChromeSurface key={item.id} className="p-4">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                  {/* Vehicle & Service Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {getPriorityBadge(item.booking.priority)}
-                      <Badge variant="outline">{STAGE_LABELS[item.stage] || item.stage}</Badge>
-                      {item.started_at && (
-                        <Badge variant="secondary" className="gap-1">
-                          <Clock className="h-3 w-3" />
-                          {getDuration(item.started_at)}
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2 mt-2">
-                      <Car className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">
+              <ChromeSurface key={item.id} className="p-3 sm:p-4">
+                <div className="flex flex-col gap-3">
+                  {/* Priority & Stage badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    {getPriorityBadge(item.booking.priority)}
+                    <Badge variant="outline" className="text-xs">
+                      {STAGE_LABELS[item.stage] || item.stage}
+                    </Badge>
+                    {item.started_at && (
+                      <Badge variant="secondary" className="gap-1 text-xs">
+                        <Clock className="h-3 w-3" />
+                        {getDuration(item.started_at)}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {/* Vehicle Info */}
+                  <div className="space-y-1">
+                    <div className="flex items-start gap-2">
+                      <Car className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <span className="font-medium text-sm sm:text-base leading-tight">
                         {item.booking.vehicle 
                           ? `${item.booking.vehicle.year} ${item.booking.vehicle.make} ${item.booking.vehicle.model}`
                           : 'Unknown Vehicle'}
-                        {item.booking.vehicle?.color && ` (${item.booking.vehicle.color})`}
+                        {item.booking.vehicle?.color && (
+                          <span className="text-muted-foreground"> ({item.booking.vehicle.color})</span>
+                        )}
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <User className="h-3 w-3" />
-                      <span>{item.booking.profile?.full_name || 'Unknown Customer'}</span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground pl-6">
+                      <User className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{item.booking.profile?.full_name || 'Unknown Customer'}</span>
                       {item.booking.profile?.phone && (
-                        <span className="text-xs">• {item.booking.profile.phone}</span>
+                        <span className="hidden sm:inline">• {item.booking.profile.phone}</span>
                       )}
                     </div>
                     
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground pl-6 truncate">
                       {item.booking.service?.title || 'Unknown Service'}
                     </p>
                   </div>
 
                   {/* Assignment & Actions */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
                     <Select
                       value={item.assigned_to || 'unassigned'}
                       onValueChange={(value) => handleAssign(item.id, value === 'unassigned' ? null : value)}
                     >
-                      <SelectTrigger className="w-full sm:w-[180px]">
+                      <SelectTrigger className="w-full h-9 text-sm">
                         <SelectValue placeholder="Assign to..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -367,7 +372,7 @@ export default function StaffWorkQueue() {
                         <Button
                           size="sm"
                           onClick={() => handleStartStage(item.id)}
-                          className="gap-1"
+                          className="flex-1 gap-1 h-9 text-sm"
                         >
                           <Play className="h-4 w-4" />
                           Start
@@ -377,6 +382,7 @@ export default function StaffWorkQueue() {
                         size="sm"
                         variant="outline"
                         onClick={() => navigate(`/staff/bookings?booking=${item.booking_id}`)}
+                        className={`h-9 text-sm ${!item.started_at ? 'flex-1' : 'w-full'}`}
                       >
                         View Booking
                       </Button>
