@@ -185,6 +185,15 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.15);
   }
 
+  /* Staff amethyst sheen effect */
+  .staff-theme .chrome-sheen::after {
+    background: linear-gradient(45deg, transparent 30%, rgba(168, 85, 247, 0.15) 50%, transparent 70%);
+  }
+
+  .staff-theme .chrome-surface::before {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.02) 100%);
+  }
+
   .amethyst-glow {
     box-shadow: 0 0 20px rgba(168, 85, 247, 0.25), 0 0 40px rgba(168, 85, 247, 0.15), 0 0 60px rgba(168, 85, 247, 0.1);
   }
