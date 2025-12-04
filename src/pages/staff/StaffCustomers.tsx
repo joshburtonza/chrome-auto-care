@@ -186,7 +186,7 @@ export default function StaffCustomers() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-7xl">
         <h1 className="chrome-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 sm:mb-6 md:mb-8">CUSTOMER MANAGEMENT</h1>

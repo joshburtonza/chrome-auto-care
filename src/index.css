@@ -79,6 +79,30 @@ All colors MUST be HSL.
     --sidebar-border: 220 15% 20%;
     --sidebar-ring: 210 100% 98%;
   }
+
+  /* Staff Portal Amethyst Theme */
+  .staff-theme {
+    /* Bright glowing amethyst accent */
+    --primary: 270 80% 70%;
+    --primary-foreground: 270 10% 10%;
+    
+    --accent: 270 80% 70%;
+    --accent-foreground: 270 10% 10%;
+    --accent-soft: 280 70% 80%;
+    --accent-dark: 265 60% 50%;
+    
+    --ring: 270 80% 70%;
+    
+    /* Amethyst chrome gradient */
+    --chrome-start: 280 70% 85%;
+    --chrome-mid: 270 75% 70%;
+    --chrome-end: 260 65% 55%;
+    
+    /* Sidebar with amethyst tint */
+    --sidebar-primary: 270 80% 70%;
+    --sidebar-primary-foreground: 270 10% 10%;
+    --sidebar-ring: 270 80% 70%;
+  }
 }
 
 @layer base {
@@ -150,6 +174,19 @@ All colors MUST be HSL.
 
   .chrome-glow-strong {
     box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
+  }
+
+  /* Staff amethyst glow effects */
+  .staff-theme .chrome-glow {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), 0 0 40px rgba(168, 85, 247, 0.1);
+  }
+
+  .staff-theme .chrome-glow-strong {
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.15);
+  }
+
+  .amethyst-glow {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.25), 0 0 40px rgba(168, 85, 247, 0.15), 0 0 60px rgba(168, 85, 247, 0.1);
   }
 }
 

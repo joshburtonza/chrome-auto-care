@@ -270,7 +270,7 @@ export default function StaffWorkQueue() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
       
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
