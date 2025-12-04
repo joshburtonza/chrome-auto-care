@@ -77,14 +77,14 @@ const StaffLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 staff-theme">
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex p-4 rounded-lg chrome-surface chrome-glow mb-4">
-            <Shield className="w-10 h-10 text-warning" strokeWidth={1.4} />
+            <Shield className="w-10 h-10 text-primary" strokeWidth={1.4} />
           </div>
           <h1 className="chrome-title text-3xl mb-2">RACE TECHNIK</h1>
-          <p className="chrome-label text-warning">STAFF PORTAL</p>
+          <p className="chrome-label text-primary">STAFF PORTAL</p>
         </div>
 
         <ChromeSurface className="p-8" glow>
@@ -97,7 +97,7 @@ const StaffLogin = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-background-alt border border-border rounded-lg pl-10 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-warning/50 transition-all"
+                  className="w-full bg-background-alt border border-border rounded-lg pl-10 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="staff@racetechnik.com"
                   disabled={loading}
                 />
@@ -112,7 +112,7 @@ const StaffLogin = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-background-alt border border-border rounded-lg pl-10 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-warning/50 transition-all"
+                  className="w-full bg-background-alt border border-border rounded-lg pl-10 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="••••••••"
                   disabled={loading}
                 />
