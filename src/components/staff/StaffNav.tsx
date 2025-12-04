@@ -23,7 +23,7 @@ export const StaffNav = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <Link to="/staff/dashboard" className="chrome-label text-warning hover:text-warning/80 transition-colors">
+            <Link to="/staff/dashboard" className="chrome-label text-primary hover:text-primary/80 transition-colors">
               STAFF PORTAL
             </Link>
             <div className="hidden md:flex gap-1">
