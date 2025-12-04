@@ -160,10 +160,10 @@ export default function StaffDashboard() {
         {/* Quick Actions */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
           <Link to="/staff/bookings">
-            <ChromeSurface className="p-6 hover:border-warning transition-colors cursor-pointer" glow>
+            <ChromeSurface className="p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-warning/10 rounded-lg">
-                  <AlertCircle className="w-6 h-6 text-warning" />
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <AlertCircle className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-foreground">{stats.pendingBookings}</div>
@@ -174,7 +174,7 @@ export default function StaffDashboard() {
           </Link>
 
           <Link to="/staff/bookings">
-            <ChromeSurface className="p-6 hover:border-primary transition-colors cursor-pointer" glow>
+            <ChromeSurface className="p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-primary/10 rounded-lg">
                   <Activity className="w-6 h-6 text-primary" />
@@ -187,7 +187,7 @@ export default function StaffDashboard() {
             </ChromeSurface>
           </Link>
 
-          <ChromeSurface className="p-6" glow>
+          <ChromeSurface className="p-6 chrome-sheen" glow>
             <div className="flex items-center gap-4">
               <div className="p-3 bg-success/10 rounded-lg">
                 <CheckCircle className="w-6 h-6 text-success" />
@@ -205,10 +205,10 @@ export default function StaffDashboard() {
           {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
-              <ChromeSurface key={stat.label} className="p-6" glow>
+              <ChromeSurface key={stat.label} className="p-6 chrome-sheen" glow>
                 <div className="flex items-center justify-between mb-4">
                   <div className="chrome-label text-sm">{stat.label}</div>
-                  <Icon className="w-5 h-5 text-muted-foreground" />
+                  <Icon className="w-5 h-5 text-primary" />
                 </div>
                 <div className="chrome-heading text-3xl">{stat.value}</div>
               </ChromeSurface>
@@ -234,7 +234,7 @@ export default function StaffDashboard() {
                   to="/staff/bookings"
                   state={{ selectedBookingId: booking.id }}
                 >
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-warning transition-colors chrome-sheen cursor-pointer">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary transition-colors chrome-sheen cursor-pointer">
                     <div className="flex-1">
                       <div className="font-semibold mb-1 text-foreground">
                         {booking.profiles?.full_name || 'Customer'}
@@ -248,7 +248,7 @@ export default function StaffDashboard() {
                     </div>
                     <div className="flex items-center gap-3">
                       <StatusBadge status={booking.status} />
-                      <AlertCircle className="w-5 h-5 text-warning" />
+                      <AlertCircle className="w-5 h-5 text-primary" />
                     </div>
                   </div>
                 </Link>
