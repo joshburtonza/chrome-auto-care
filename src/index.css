@@ -176,26 +176,26 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
   }
 
-  /* Staff amethyst glow effects */
+  /* Staff amethyst glow effects - subtle chrome with amethyst hint */
   .staff-theme .chrome-glow {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), 0 0 40px rgba(168, 85, 247, 0.1);
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.08), 0 0 30px rgba(246, 250, 255, 0.05);
   }
 
   .staff-theme .chrome-glow-strong {
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.15);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.12), 0 0 40px rgba(246, 250, 255, 0.08);
   }
 
-  /* Staff amethyst sheen effect */
+  /* Staff amethyst sheen effect - subtle */
   .staff-theme .chrome-sheen::after {
-    background: linear-gradient(45deg, transparent 30%, rgba(168, 85, 247, 0.15) 50%, transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(168, 85, 247, 0.08) 50%, transparent 70%);
   }
 
   .staff-theme .chrome-surface::before {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.02) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(168, 85, 247, 0.03) 100%);
   }
 
   .amethyst-glow {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.25), 0 0 40px rgba(168, 85, 247, 0.15), 0 0 60px rgba(168, 85, 247, 0.1);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.1), 0 0 24px rgba(246, 250, 255, 0.05);
   }
 }
 
