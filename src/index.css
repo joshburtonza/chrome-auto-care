@@ -82,26 +82,26 @@ All colors MUST be HSL.
 
   /* Staff Portal Amethyst Theme */
   .staff-theme {
-    /* Bright glowing amethyst accent */
-    --primary: 270 80% 70%;
-    --primary-foreground: 270 10% 10%;
+    /* Deep amethyst accent */
+    --primary: 270 70% 55%;
+    --primary-foreground: 0 0% 98%;
     
-    --accent: 270 80% 70%;
-    --accent-foreground: 270 10% 10%;
-    --accent-soft: 280 70% 80%;
-    --accent-dark: 265 60% 50%;
+    --accent: 270 70% 55%;
+    --accent-foreground: 0 0% 98%;
+    --accent-soft: 275 60% 65%;
+    --accent-dark: 265 75% 40%;
     
-    --ring: 270 80% 70%;
+    --ring: 270 70% 55%;
     
-    /* Amethyst chrome gradient */
-    --chrome-start: 280 70% 85%;
-    --chrome-mid: 270 75% 70%;
-    --chrome-end: 260 65% 55%;
+    /* Deep amethyst chrome gradient */
+    --chrome-start: 275 50% 70%;
+    --chrome-mid: 270 65% 55%;
+    --chrome-end: 265 70% 40%;
     
     /* Sidebar with amethyst tint */
-    --sidebar-primary: 270 80% 70%;
-    --sidebar-primary-foreground: 270 10% 10%;
-    --sidebar-ring: 270 80% 70%;
+    --sidebar-primary: 270 70% 55%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-ring: 270 70% 55%;
   }
 }
 
@@ -176,26 +176,26 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
   }
 
-  /* Staff amethyst glow effects - subtle chrome with amethyst hint */
+  /* Staff amethyst glow effects - subtle chrome with deep amethyst hint */
   .staff-theme .chrome-glow {
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.08), 0 0 30px rgba(246, 250, 255, 0.05);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.1), 0 0 30px rgba(246, 250, 255, 0.05);
   }
 
   .staff-theme .chrome-glow-strong {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.12), 0 0 40px rgba(246, 250, 255, 0.08);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(246, 250, 255, 0.08);
   }
 
   /* Staff amethyst sheen effect - subtle */
   .staff-theme .chrome-sheen::after {
-    background: linear-gradient(45deg, transparent 30%, rgba(168, 85, 247, 0.08) 50%, transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.1) 50%, transparent 70%);
   }
 
   .staff-theme .chrome-surface::before {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(168, 85, 247, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(139, 92, 246, 0.04) 100%);
   }
 
   .amethyst-glow {
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.1), 0 0 24px rgba(246, 250, 255, 0.05);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.12), 0 0 24px rgba(246, 250, 255, 0.05);
   }
 }
 
