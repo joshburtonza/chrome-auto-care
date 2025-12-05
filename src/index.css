@@ -80,28 +80,35 @@ All colors MUST be HSL.
     --sidebar-ring: 210 100% 98%;
   }
 
-  /* Staff Portal Amethyst Theme */
+  /* Staff Portal Brushed Bronze Theme */
   .staff-theme {
-    /* Deep jewel-toned amethyst */
-    --primary: 268 85% 45%;
-    --primary-foreground: 0 0% 98%;
+    /* Premium brushed bronze */
+    --primary: 36 42% 51%;
+    --primary-foreground: 0 0% 8%;
     
-    --accent: 268 85% 45%;
-    --accent-foreground: 0 0% 98%;
-    --accent-soft: 272 70% 55%;
-    --accent-dark: 262 90% 32%;
+    --accent: 36 42% 51%;
+    --accent-foreground: 0 0% 8%;
+    --accent-soft: 37 47% 66%;
+    --accent-dark: 30 35% 17%;
     
-    --ring: 268 85% 45%;
+    --ring: 36 42% 51%;
     
-    /* Deep jewel amethyst gradient */
-    --chrome-start: 272 65% 55%;
-    --chrome-mid: 268 80% 42%;
-    --chrome-end: 262 85% 30%;
+    /* Brushed bronze gradient stops */
+    --chrome-start: 41 54% 77%;
+    --chrome-mid: 36 42% 51%;
+    --chrome-end: 30 35% 17%;
     
-    /* Sidebar with amethyst tint */
-    --sidebar-primary: 268 85% 45%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-ring: 268 85% 45%;
+    /* Bronze text hierarchy */
+    --bronze-deep: 30 35% 17%;
+    --bronze-dark: 34 31% 33%;
+    --bronze-primary: 36 42% 51%;
+    --bronze-mid: 37 47% 66%;
+    --bronze-light: 41 54% 77%;
+    
+    /* Sidebar with bronze tint */
+    --sidebar-primary: 36 42% 51%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-ring: 36 42% 51%;
   }
 }
 
@@ -176,26 +183,33 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
   }
 
-  /* Staff jewel amethyst glow effects */
+  /* Staff brushed bronze glow effects */
   .staff-theme .chrome-glow {
-    box-shadow: 0 0 15px rgba(109, 40, 217, 0.12), 0 0 30px rgba(246, 250, 255, 0.05);
+    box-shadow: 0 0 15px rgba(176, 141, 87, 0.15), 0 0 30px rgba(209, 178, 128, 0.08);
   }
 
   .staff-theme .chrome-glow-strong {
-    box-shadow: 0 0 20px rgba(109, 40, 217, 0.18), 0 0 40px rgba(246, 250, 255, 0.08);
+    box-shadow: 0 0 20px rgba(176, 141, 87, 0.22), 0 0 40px rgba(209, 178, 128, 0.12);
   }
 
-  /* Staff amethyst sheen effect */
+  /* Staff brushed bronze sheen effect */
   .staff-theme .chrome-sheen::after {
-    background: linear-gradient(45deg, transparent 30%, rgba(109, 40, 217, 0.12) 50%, transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(209, 178, 128, 0.15) 50%, transparent 70%);
   }
 
   .staff-theme .chrome-surface::before {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(109, 40, 217, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(230, 210, 162, 0.08) 0%, rgba(176, 141, 87, 0.06) 100%);
   }
 
-  .amethyst-glow {
-    box-shadow: 0 0 12px rgba(109, 40, 217, 0.15), 0 0 24px rgba(246, 250, 255, 0.05);
+  /* Brushed bronze texture overlay */
+  .brushed-bronze {
+    background-image: 
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0 1px, rgba(255,255,255,0) 1px 5px),
+      linear-gradient(120deg, hsl(30 35% 17%) 0%, hsl(34 31% 33%) 32%, hsl(36 42% 51%) 55%, hsl(37 47% 66%) 75%, hsl(41 54% 77%) 100%);
+  }
+
+  .bronze-glow {
+    box-shadow: 0 0 12px rgba(176, 141, 87, 0.18), 0 0 24px rgba(209, 178, 128, 0.08);
   }
 }
 
