@@ -8,7 +8,80 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Race Technik Chrome & Carbon Design System */
+    /* Light Mode - Race Technik Clean Chrome */
+    --background: 0 0% 98%;
+    --background-alt: 220 15% 95%;
+    --foreground: 220 15% 10%;
+
+    /* Chrome surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 10%;
+    --card-gradient-start: 0 0% 100%;
+    --card-gradient-end: 220 15% 96%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 10%;
+
+    /* Primary - dark metallic */
+    --primary: 218 18% 15%;
+    --primary-foreground: 0 0% 98%;
+
+    /* Secondary */
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 15% 15%;
+
+    /* Muted tones */
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 45%;
+
+    /* Accent */
+    --accent: 218 18% 15%;
+    --accent-foreground: 0 0% 98%;
+    --accent-soft: 220 15% 85%;
+    --accent-dark: 218 18% 25%;
+
+    /* Success - teal */
+    --success: 165 68% 40%;
+    --success-foreground: 0 0% 98%;
+
+    /* Warning - orange */
+    --warning: 30 100% 50%;
+    --warning-foreground: 0 0% 8%;
+
+    /* Destructive - red */
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Border and input */
+    --border: 220 15% 88%;
+    --input: 220 15% 92%;
+    --ring: 218 18% 15%;
+
+    --radius: 0.75rem;
+
+    /* Chrome gradient stops */
+    --chrome-start: 220 15% 95%;
+    --chrome-mid: 220 10% 80%;
+    --chrome-end: 218 15% 65%;
+
+    /* Text hierarchy */
+    --text-primary: 220 15% 10%;
+    --text-secondary: 220 10% 40%;
+    --text-tertiary: 220 10% 55%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 10%;
+    --sidebar-primary: 218 18% 15%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 220 15% 94%;
+    --sidebar-accent-foreground: 220 15% 10%;
+    --sidebar-border: 220 15% 88%;
+    --sidebar-ring: 218 18% 15%;
+  }
+
+  .dark {
+    /* Dark Mode - Race Technik Chrome & Carbon */
     --background: 216 20% 8%;
     --background-alt: 220 15% 10%;
     --foreground: 0 0% 94%;
@@ -57,8 +130,6 @@ All colors MUST be HSL.
     --input: 220 15% 18%;
     --ring: 210 100% 98%;
 
-    --radius: 0.75rem;
-
     /* Chrome gradient stops */
     --chrome-start: 0 0% 100%;
     --chrome-mid: 0 0% 85%;
@@ -80,8 +151,9 @@ All colors MUST be HSL.
     --sidebar-ring: 210 100% 98%;
   }
 
-  /* Staff Portal Brushed Bronze Theme */
-  .staff-theme {
+  /* Staff Portal Brushed Bronze Theme - applies in both light and dark modes */
+  .staff-theme,
+  .dark .staff-theme {
     /* Premium brushed bronze */
     --primary: 36 42% 51%;
     --primary-foreground: 0 0% 8%;

@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Calendar, Users, Settings, LogOut, Package, Store, ShoppingBag, ListTodo } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const StaffNav = () => {
   const location = useLocation();
@@ -46,6 +47,7 @@ export const StaffNav = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationBell />
             <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
               <LogOut className="w-4 h-4" />
