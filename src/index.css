@@ -189,7 +189,7 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  /* PPF Film-like theme transition */
+  /* PPF Film-like theme transition - OPTIMIZED */
   html {
     transition: none;
   }
@@ -199,75 +199,122 @@ All colors MUST be HSL.
   html.theme-transition *::before,
   html.theme-transition *::after {
     transition: 
-      background-color 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      fill 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      stroke 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
+      background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      fill 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      stroke 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
-  /* PPF shimmer overlay during transition */
+  /* Layer 1: Soft ambient glow */
   html.theme-transition::before {
     content: '';
     position: fixed;
-    inset: 0;
+    inset: -50%;
     pointer-events: none;
-    z-index: 9998;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-    animation: ppf-flash 0.6s ease-out forwards;
+    z-index: 9997;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    );
+    animation: ppf-glow 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity;
   }
 
+  /* Layer 2: Main PPF film sweep */
   html.theme-transition::after {
     content: '';
     position: fixed;
-    inset: 0;
+    top: -10%;
+    left: -100%;
+    width: 60%;
+    height: 120%;
     pointer-events: none;
     z-index: 9999;
     background: linear-gradient(
-      105deg,
+      100deg,
       transparent 0%,
-      transparent 35%,
-      rgba(255, 255, 255, 0.12) 42%,
-      rgba(255, 255, 255, 0.25) 50%,
-      rgba(255, 255, 255, 0.12) 58%,
-      transparent 65%,
+      rgba(255, 255, 255, 0.03) 20%,
+      rgba(255, 255, 255, 0.08) 35%,
+      rgba(255, 255, 255, 0.18) 45%,
+      rgba(255, 255, 255, 0.35) 50%,
+      rgba(255, 255, 255, 0.18) 55%,
+      rgba(255, 255, 255, 0.08) 65%,
+      rgba(255, 255, 255, 0.03) 80%,
       transparent 100%
     );
-    animation: ppf-shimmer 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform: skewX(-15deg);
+    animation: ppf-sweep 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity;
+    filter: blur(1px);
   }
 
-  @keyframes ppf-flash {
+  @keyframes ppf-glow {
     0% {
       opacity: 0;
-      transform: scale(0.8);
+      transform: scale(0.5);
     }
-    40% {
+    50% {
       opacity: 1;
-      transform: scale(1.1);
+      transform: scale(1);
     }
     100% {
       opacity: 0;
-      transform: scale(1.5);
+      transform: scale(1.2);
     }
   }
 
-  @keyframes ppf-shimmer {
+  @keyframes ppf-sweep {
     0% {
+      left: -60%;
       opacity: 0;
-      transform: translateX(-150%) skewX(-20deg);
     }
-    20% {
+    10% {
       opacity: 1;
     }
-    80% {
+    90% {
       opacity: 1;
     }
     100% {
+      left: 140%;
       opacity: 0;
-      transform: translateX(150%) skewX(-20deg);
     }
+  }
+
+  /* Dark mode specific: warmer sweep */
+  .dark.theme-transition::after {
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(200, 220, 255, 0.02) 20%,
+      rgba(200, 220, 255, 0.06) 35%,
+      rgba(200, 220, 255, 0.12) 45%,
+      rgba(200, 220, 255, 0.25) 50%,
+      rgba(200, 220, 255, 0.12) 55%,
+      rgba(200, 220, 255, 0.06) 65%,
+      rgba(200, 220, 255, 0.02) 80%,
+      transparent 100%
+    );
+  }
+
+  /* Staff theme: bronze sweep */
+  .staff-theme.theme-transition::after,
+  .dark .staff-theme.theme-transition::after {
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(209, 178, 128, 0.03) 20%,
+      rgba(209, 178, 128, 0.08) 35%,
+      rgba(209, 178, 128, 0.18) 45%,
+      rgba(230, 210, 162, 0.35) 50%,
+      rgba(209, 178, 128, 0.18) 55%,
+      rgba(209, 178, 128, 0.08) 65%,
+      rgba(209, 178, 128, 0.03) 80%,
+      transparent 100%
+    );
   }
 
   body {
