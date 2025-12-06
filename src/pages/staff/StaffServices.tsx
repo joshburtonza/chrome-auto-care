@@ -148,42 +148,43 @@ export default function StaffServices() {
   return (
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="chrome-heading text-4xl">SERVICE MANAGEMENT</h1>
-          <Button onClick={handleAddNew}>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8">
+          <h1 className="chrome-heading text-xl sm:text-2xl md:text-3xl lg:text-4xl">SERVICE MANAGEMENT</h1>
+          <Button onClick={handleAddNew} size="sm" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Add Service
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {services.map((service) => (
-            <ChromeSurface key={service.id} className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="chrome-label">{service.category}</div>
+            <ChromeSurface key={service.id} className="p-4 sm:p-5 md:p-6">
+              <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                <div className="chrome-label text-xs sm:text-sm truncate">{service.category}</div>
                 <Switch
                   checked={service.is_active}
                   onCheckedChange={() => handleToggleActive(service.id, service.is_active)}
                 />
               </div>
-              <h3 className="chrome-heading text-xl mb-2">{service.title}</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h3 className="chrome-heading text-base sm:text-lg md:text-xl mb-2">{service.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
                 {service.description}
               </p>
-              <div className="flex items-center justify-between">
-              <div>
-                <div className="chrome-label text-xs">PRICE</div>
-                <div className="font-semibold">From R{service.price_from}</div>
-              </div>
+              <div className="flex items-center justify-between text-sm">
                 <div>
-                  <div className="chrome-label text-xs">DURATION</div>
-                  <div className="font-semibold">{service.duration}</div>
+                  <div className="chrome-label text-[10px] sm:text-xs">PRICE</div>
+                  <div className="font-semibold text-sm sm:text-base">From R{service.price_from}</div>
+                </div>
+                <div className="text-right">
+                  <div className="chrome-label text-[10px] sm:text-xs">DURATION</div>
+                  <div className="font-semibold text-sm sm:text-base">{service.duration}</div>
                 </div>
               </div>
               <Button
                 variant="outline"
-                className="w-full mt-4"
+                className="w-full mt-3 sm:mt-4"
+                size="sm"
                 onClick={() => handleEdit(service)}
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -195,60 +196,66 @@ export default function StaffServices() {
 
         {/* Service Edit Dialog */}
         <Dialog open={showDialog} onOpenChange={handleDialogOpenChange}>
-          <DialogContent>
+          <DialogContent className="mx-2 sm:mx-auto max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="chrome-heading">
+              <DialogTitle className="chrome-heading text-base sm:text-lg md:text-xl">
                 {editingService ? 'EDIT SERVICE' : 'ADD SERVICE'}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm">
                 {editingService ? 'Update service details and pricing' : 'Create a new service offering'}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="chrome-label text-xs mb-2 block">TITLE</label>
+                <label className="chrome-label text-xs mb-1 sm:mb-2 block">TITLE</label>
                 <Input 
                   placeholder="Service title" 
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="text-sm"
                 />
               </div>
               <div>
-                <label className="chrome-label text-xs mb-2 block">CATEGORY</label>
+                <label className="chrome-label text-xs mb-1 sm:mb-2 block">CATEGORY</label>
                 <Input 
                   placeholder="e.g. Tuning, Maintenance" 
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="text-sm"
                 />
               </div>
               <div>
-                <label className="chrome-label text-xs mb-2 block">DESCRIPTION</label>
+                <label className="chrome-label text-xs mb-1 sm:mb-2 block">DESCRIPTION</label>
                 <Textarea 
                   placeholder="Service description" 
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="text-sm"
+                  rows={3}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="chrome-label text-xs mb-2 block">PRICE FROM</label>
+                  <label className="chrome-label text-xs mb-1 sm:mb-2 block">PRICE FROM</label>
                   <Input 
                     type="number" 
                     placeholder="0" 
                     value={formData.price_from}
                     onChange={(e) => setFormData({ ...formData, price_from: parseFloat(e.target.value) })}
+                    className="text-sm"
                   />
                 </div>
                 <div>
-                  <label className="chrome-label text-xs mb-2 block">DURATION</label>
+                  <label className="chrome-label text-xs mb-1 sm:mb-2 block">DURATION</label>
                   <Input 
                     placeholder="e.g. 2-3 hours" 
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    className="text-sm"
                   />
                 </div>
               </div>
-              <Button className="w-full" onClick={handleSaveService}>
+              <Button className="w-full" size="sm" onClick={handleSaveService}>
                 {editingService ? 'Update Service' : 'Create Service'}
               </Button>
             </div>

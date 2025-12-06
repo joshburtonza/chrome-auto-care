@@ -164,92 +164,91 @@ const StaffOrders = () => {
   return (
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="chrome-title text-4xl mb-2">ORDERS MANAGEMENT</h1>
-          <p className="text-text-secondary">View and manage customer orders</p>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <h1 className="chrome-title text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">ORDERS</h1>
+          <p className="text-xs sm:text-sm text-text-secondary">View and manage customer orders</p>
         </div>
 
         {orders.length === 0 ? (
-          <ChromeSurface className="p-12 text-center" glow>
-            <Package className="w-16 h-16 text-text-tertiary mx-auto mb-4" />
-            <p className="text-text-secondary">No orders yet</p>
+          <ChromeSurface className="p-8 sm:p-12 text-center" glow>
+            <Package className="w-12 h-12 sm:w-16 sm:h-16 text-text-tertiary mx-auto mb-3 sm:mb-4" />
+            <p className="text-sm sm:text-base text-text-secondary">No orders yet</p>
           </ChromeSurface>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {orders.map((order) => (
               <Collapsible key={order.id} open={expandedOrders.has(order.id)}>
-                <ChromeSurface className="p-6 chrome-sheen" glow>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="chrome-label text-[10px] text-text-tertiary">
-                          ORDER #{order.id.slice(0, 8).toUpperCase()}
-                        </div>
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
-                        <div className={`text-xs ${getPaymentStatusColor(order.payment_status)}`}>
-                          Payment: {order.payment_status}
-                        </div>
+                <ChromeSurface className="p-3 sm:p-4 md:p-6 chrome-sheen" glow>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      <div className="chrome-label text-[10px] sm:text-xs text-text-tertiary">
+                        #{order.id.slice(0, 8).toUpperCase()}
                       </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-text-secondary mb-4">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {format(new Date(order.created_at), 'MMM dd, yyyy')}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          R{order.total_amount.toFixed(2)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
-                          {order.customer_name || 'N/A'}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Package className="w-4 h-4" />
-                          {order.order_items.length} item{order.order_items.length !== 1 ? 's' : ''}
-                        </div>
+                      <Badge className={`${getStatusColor(order.status)} text-xs`}>
+                        {order.status}
+                      </Badge>
+                      <div className={`text-xs ${getPaymentStatusColor(order.payment_status)}`}>
+                        {order.payment_status}
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => updateOrderStatus(order.id, value)}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm text-text-secondary">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                        <span className="truncate">{format(new Date(order.created_at), 'MMM dd')}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                        R{order.total_amount.toFixed(2)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                        <span className="truncate">{order.customer_name || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Package className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                        {order.order_items.length} item{order.order_items.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/50">
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) => updateOrderStatus(order.id, value)}
+                      >
+                        <SelectTrigger className="w-full sm:w-[150px] h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <CollapsibleTrigger asChild>
+                        <ChromeButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleExpanded(order.id)}
+                          className="w-full sm:w-auto h-9 text-sm"
                         >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <CollapsibleTrigger asChild>
-                          <ChromeButton
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleExpanded(order.id)}
-                          >
-                            {expandedOrders.has(order.id) ? 'Hide' : 'Show'} Details
-                            <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${expandedOrders.has(order.id) ? 'rotate-180' : ''}`} />
-                          </ChromeButton>
-                        </CollapsibleTrigger>
-                      </div>
+                          {expandedOrders.has(order.id) ? 'Hide' : 'Details'}
+                          <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${expandedOrders.has(order.id) ? 'rotate-180' : ''}`} />
+                        </ChromeButton>
+                      </CollapsibleTrigger>
                     </div>
                   </div>
 
-                  <CollapsibleContent className="mt-4 pt-4 border-t border-border/50">
-                    <div className="space-y-4">
+                  <CollapsibleContent className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/50">
+                    <div className="space-y-3 sm:space-y-4">
                       {/* Customer Details */}
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>
-                          <div className="text-xs text-text-tertiary mb-2">CUSTOMER DETAILS</div>
-                          <div className="text-sm space-y-1">
+                          <div className="text-[10px] sm:text-xs text-text-tertiary mb-1 sm:mb-2">CUSTOMER</div>
+                          <div className="text-xs sm:text-sm space-y-1">
                             <div className="text-foreground">{order.customer_name || 'N/A'}</div>
                             <div className="text-text-secondary">{order.customer_phone || 'N/A'}</div>
                           </div>
@@ -257,11 +256,11 @@ const StaffOrders = () => {
 
                         {order.shipping_address && (
                           <div>
-                            <div className="text-xs text-text-tertiary mb-2 flex items-center gap-1">
+                            <div className="text-[10px] sm:text-xs text-text-tertiary mb-1 sm:mb-2 flex items-center gap-1">
                               <Truck className="w-3 h-3" />
-                              SHIPPING ADDRESS
+                              SHIPPING
                             </div>
-                            <div className="text-sm text-text-secondary">
+                            <div className="text-xs sm:text-sm text-text-secondary break-words">
                               {order.shipping_address}
                             </div>
                           </div>
@@ -270,18 +269,18 @@ const StaffOrders = () => {
 
                       {/* Order Items */}
                       <div>
-                        <div className="text-xs text-text-tertiary mb-3">ORDER ITEMS</div>
+                        <div className="text-[10px] sm:text-xs text-text-tertiary mb-2 sm:mb-3">ITEMS</div>
                         <div className="space-y-2">
                           {order.order_items.map((item) => (
-                            <div key={item.id} className="flex items-center justify-between text-sm chrome-surface p-3 rounded">
-                              <div className="flex-1">
-                                <div className="text-foreground">{item.merchandise.name}</div>
-                                <div className="text-xs text-text-tertiary">{item.merchandise.category}</div>
+                            <div key={item.id} className="flex items-center justify-between text-xs sm:text-sm chrome-surface p-2 sm:p-3 rounded">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-foreground truncate">{item.merchandise.name}</div>
+                                <div className="text-[10px] sm:text-xs text-text-tertiary">{item.merchandise.category}</div>
                               </div>
-                              <div className="text-text-secondary mr-4">
-                                Qty: {item.quantity}
+                              <div className="text-text-secondary mx-2 sm:mx-4 shrink-0">
+                                x{item.quantity}
                               </div>
-                              <div className="text-foreground font-light">
+                              <div className="text-foreground font-light shrink-0">
                                 R{(item.unit_price * item.quantity).toFixed(2)}
                               </div>
                             </div>
