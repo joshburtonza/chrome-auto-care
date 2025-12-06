@@ -67,14 +67,14 @@ const Garage = () => {
   return (
     <div className="min-h-screen bg-background">
       <ClientNav />
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-5xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-8">
           <div>
-            <h1 className="chrome-title text-4xl mb-2">MY GARAGE</h1>
-            <p className="text-text-secondary">Manage your vehicle collection</p>
+            <h1 className="chrome-title text-2xl sm:text-4xl mb-1 sm:mb-2">MY GARAGE</h1>
+            <p className="text-text-secondary text-sm sm:text-base">Manage your vehicle collection</p>
           </div>
           <AddVehicleDialog onVehicleAdded={loadVehicles} trigger={
-            <ChromeButton>
+            <ChromeButton className="w-full sm:w-auto">
               <Plus className="mr-2 w-4 h-4" strokeWidth={1.4} />
               Add Vehicle
             </ChromeButton>
@@ -82,19 +82,19 @@ const Garage = () => {
         </div>
 
         {vehicles.length === 0 ? (
-          <ChromeSurface className="p-12 text-center" glow>
-            <Car className="w-16 h-16 text-primary/30 mx-auto mb-4" strokeWidth={1.4} />
-            <h3 className="chrome-label text-foreground mb-2">NO VEHICLES YET</h3>
-            <p className="text-text-secondary mb-6">Add your first vehicle to get started</p>
+          <ChromeSurface className="p-8 sm:p-12 text-center" glow>
+            <Car className="w-12 h-12 sm:w-16 sm:h-16 text-primary/30 mx-auto mb-3 sm:mb-4" strokeWidth={1.4} />
+            <h3 className="chrome-label text-sm sm:text-base text-foreground mb-2">NO VEHICLES YET</h3>
+            <p className="text-text-secondary text-sm mb-4 sm:mb-6">Add your first vehicle to get started</p>
             <AddVehicleDialog onVehicleAdded={loadVehicles} trigger={
-              <ChromeButton>
+              <ChromeButton className="w-full sm:w-auto">
                 <Plus className="mr-2 w-4 h-4" strokeWidth={1.4} />
                 Add Vehicle
               </ChromeButton>
             } />
           </ChromeSurface>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {vehicles.map((vehicle) => (
               <ChromeSurface 
                 key={vehicle.id} 
@@ -114,27 +114,27 @@ const Garage = () => {
                     </div>
                   ) : (
                     <div className="aspect-video w-full bg-muted/30 flex items-center justify-center">
-                      <Car className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.4} />
+                      <Car className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/30" strokeWidth={1.4} />
                     </div>
                   )}
                   {/* Edit indicator */}
-                  <div className="absolute top-3 right-3 p-2 bg-background/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Pencil className="w-4 h-4 text-foreground" />
+                  <div className="absolute top-2 sm:top-3 right-2 sm:right-3 p-1.5 sm:p-2 bg-background/80 rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="w-3 h-3 sm:w-4 sm:h-4 text-foreground" />
                   </div>
                 </div>
                 
                 {/* Vehicle Details */}
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg chrome-surface">
-                      <Car className="w-6 h-6 text-primary" strokeWidth={1.4} />
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 rounded-lg chrome-surface">
+                      <Car className="w-5 h-5 sm:w-6 sm:h-6 text-primary" strokeWidth={1.4} />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-light text-foreground mb-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-light text-foreground mb-1 truncate">
                         {vehicle.year} {vehicle.make}
                       </h3>
-                      <div className="chrome-label text-[10px] text-text-secondary mb-3">{vehicle.model}</div>
-                      <div className="space-y-1 text-sm text-text-secondary">
+                      <div className="chrome-label text-[9px] sm:text-[10px] text-text-secondary mb-2 sm:mb-3">{vehicle.model}</div>
+                      <div className="space-y-1 text-xs sm:text-sm text-text-secondary">
                         {vehicle.color && (
                           <div className="flex items-center justify-between">
                             <span className="text-text-tertiary">Color:</span>
@@ -144,14 +144,14 @@ const Garage = () => {
                         {vehicle.vin && (
                           <div className="flex items-center justify-between">
                             <span className="text-text-tertiary">VIN:</span>
-                            <span className="font-mono text-xs">{vehicle.vin}</span>
+                            <span className="font-mono text-[10px] sm:text-xs truncate max-w-[100px]">{vehicle.vin}</span>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-border/50 text-center">
-                    <span className="text-xs text-muted-foreground">Click to edit</span>
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/50 text-center">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">Tap to edit</span>
                   </div>
                 </div>
               </ChromeSurface>
