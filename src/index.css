@@ -154,33 +154,41 @@ All colors MUST be HSL.
   /* Staff Portal Brushed Bronze Theme - applies in both light and dark modes */
   .staff-theme,
   .dark .staff-theme {
-    /* Premium brushed bronze */
-    --primary: 36 42% 51%;
-    --primary-foreground: 0 0% 8%;
+    /* Premium true bronze (copper-brown, not mustard) */
+    --primary: 25 55% 45%;
+    --primary-foreground: 0 0% 98%;
     
-    --accent: 36 42% 51%;
-    --accent-foreground: 0 0% 8%;
-    --accent-soft: 37 47% 66%;
-    --accent-dark: 30 35% 17%;
+    --accent: 25 55% 45%;
+    --accent-foreground: 0 0% 98%;
+    --accent-soft: 28 45% 58%;
+    --accent-dark: 20 50% 22%;
     
-    --ring: 36 42% 51%;
+    --ring: 25 55% 45%;
     
-    /* Brushed bronze gradient stops */
-    --chrome-start: 41 54% 77%;
-    --chrome-mid: 36 42% 51%;
-    --chrome-end: 30 35% 17%;
+    /* True bronze gradient stops */
+    --chrome-start: 30 40% 65%;
+    --chrome-mid: 25 55% 45%;
+    --chrome-end: 20 50% 22%;
+    
+    /* Bronze accent for box shading */
+    --bronze-accent: 25 55% 45%;
+    --bronze-accent-glow: 25 55% 45% / 0.15;
+    --bronze-accent-border: 25 55% 45% / 0.25;
     
     /* Bronze text hierarchy */
-    --bronze-deep: 30 35% 17%;
-    --bronze-dark: 34 31% 33%;
-    --bronze-primary: 36 42% 51%;
-    --bronze-mid: 37 47% 66%;
-    --bronze-light: 41 54% 77%;
+    --bronze-deep: 20 50% 18%;
+    --bronze-dark: 22 48% 30%;
+    --bronze-primary: 25 55% 45%;
+    --bronze-mid: 28 45% 58%;
+    --bronze-light: 30 40% 70%;
     
     /* Sidebar with bronze tint */
-    --sidebar-primary: 36 42% 51%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-ring: 36 42% 51%;
+    --sidebar-primary: 25 55% 45%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-ring: 25 55% 45%;
+    
+    /* Cards get subtle bronze border glow */
+    --card-border-accent: 25 55% 45% / 0.2;
   }
 }
 
@@ -306,19 +314,19 @@ All colors MUST be HSL.
     );
   }
 
-  /* Staff theme: bronze sweep */
+  /* Staff theme: true bronze sweep (copper-brown) */
   .staff-theme.theme-transition::after,
   .dark .staff-theme.theme-transition::after {
     background: linear-gradient(
       100deg,
       transparent 0%,
-      rgba(209, 178, 128, 0.03) 20%,
-      rgba(209, 178, 128, 0.08) 35%,
-      rgba(209, 178, 128, 0.18) 45%,
-      rgba(230, 210, 162, 0.35) 50%,
-      rgba(209, 178, 128, 0.18) 55%,
-      rgba(209, 178, 128, 0.08) 65%,
-      rgba(209, 178, 128, 0.03) 80%,
+      hsl(25 55% 45% / 0.03) 20%,
+      hsl(25 55% 45% / 0.1) 35%,
+      hsl(28 45% 58% / 0.2) 45%,
+      hsl(30 40% 65% / 0.35) 50%,
+      hsl(28 45% 58% / 0.2) 55%,
+      hsl(25 55% 45% / 0.1) 65%,
+      hsl(25 55% 45% / 0.03) 80%,
       transparent 100%
     );
   }
@@ -462,33 +470,61 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
   }
 
-  /* Staff brushed bronze glow effects */
-  .staff-theme .chrome-glow {
-    box-shadow: 0 0 15px rgba(176, 141, 87, 0.15), 0 0 30px rgba(209, 178, 128, 0.08);
+  /* Staff bronze accent box shadows - subtle glow around all boxes */
+  .staff-theme .chrome-glow,
+  .staff-theme [class*="rounded"],
+  .staff-theme .card,
+  .staff-theme [class*="Card"] {
+    box-shadow: 
+      0 0 0 1px hsl(25 55% 45% / 0.12),
+      0 1px 3px hsl(25 55% 45% / 0.08),
+      0 4px 12px hsl(25 55% 45% / 0.06);
   }
 
   .staff-theme .chrome-glow-strong {
-    box-shadow: 0 0 20px rgba(176, 141, 87, 0.22), 0 0 40px rgba(209, 178, 128, 0.12);
+    box-shadow: 
+      0 0 0 1px hsl(25 55% 45% / 0.2),
+      0 2px 8px hsl(25 55% 45% / 0.15),
+      0 8px 24px hsl(25 55% 45% / 0.1);
+  }
+
+  /* Bronze border accent on inputs and interactive elements */
+  .staff-theme input:focus,
+  .staff-theme select:focus,
+  .staff-theme textarea:focus,
+  .staff-theme button:focus-visible {
+    box-shadow: 
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 4px hsl(25 55% 45% / 0.35);
   }
 
   /* Staff brushed bronze sheen effect */
   .staff-theme .chrome-sheen::after {
-    background: linear-gradient(45deg, transparent 30%, rgba(209, 178, 128, 0.15) 50%, transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, hsl(25 55% 55% / 0.2) 50%, transparent 70%);
   }
 
   .staff-theme .chrome-surface::before {
-    background: linear-gradient(135deg, rgba(230, 210, 162, 0.08) 0%, rgba(176, 141, 87, 0.06) 100%);
+    background: linear-gradient(135deg, hsl(28 45% 58% / 0.1) 0%, hsl(25 55% 45% / 0.08) 100%);
   }
 
-  /* Brushed bronze texture overlay */
+  /* Brushed bronze texture overlay - true copper-bronze */
   .brushed-bronze {
     background-image: 
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0 1px, rgba(255,255,255,0) 1px 5px),
-      linear-gradient(120deg, hsl(30 35% 17%) 0%, hsl(34 31% 33%) 32%, hsl(36 42% 51%) 55%, hsl(37 47% 66%) 75%, hsl(41 54% 77%) 100%);
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 1px, rgba(255,255,255,0) 1px 5px),
+      linear-gradient(120deg, hsl(20 50% 18%) 0%, hsl(22 48% 30%) 30%, hsl(25 55% 45%) 55%, hsl(28 45% 58%) 75%, hsl(30 40% 70%) 100%);
   }
 
   .bronze-glow {
-    box-shadow: 0 0 12px rgba(176, 141, 87, 0.18), 0 0 24px rgba(209, 178, 128, 0.08);
+    box-shadow: 
+      0 0 0 1px hsl(25 55% 45% / 0.15),
+      0 0 16px hsl(25 55% 45% / 0.12),
+      0 0 32px hsl(25 55% 45% / 0.06);
+  }
+
+  /* Bronze accent border utility */
+  .staff-theme .border,
+  .staff-theme [class*="border-"] {
+    border-color: hsl(25 55% 45% / 0.15);
   }
 }
 
