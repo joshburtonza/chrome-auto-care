@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Shield, Sparkles, Car, Clock, DollarSign, User, Mail, Phone, TestTube } from "lucide-react";
+import { Shield, Sparkles, Car, Clock, DollarSign, TestTube } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
@@ -12,6 +12,21 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClientNav } from "@/components/client/ClientNav";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 const Services = () => {
   const { user } = useAuth();
@@ -26,7 +41,7 @@ const Services = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [bookingStep, setBookingStep] = useState<'calendar' | 'time' | 'details'>('calendar');
-  const [testMode, setTestMode] = useState(true); // Default to test mode for safety
+  const [testMode, setTestMode] = useState(true);
 
   // Generate mock availability (90 days forward)
   const generateAvailability = () => {
@@ -38,14 +53,12 @@ const Services = () => {
       date.setDate(today.getDate() + i);
       const dateString = date.toISOString().split('T')[0];
 
-      // Pseudo-random availability based on date
       const hash = dateString.split('-').reduce((acc, part) => acc + parseInt(part), 0);
       const availableSlots = (hash % 4) + 1;
       const bookedSlots = hash % availableSlots;
 
       let status: 'available' | 'limited' | 'full' | 'unavailable';
       if (date.getDay() === 0) {
-        // Sundays closed
         status = 'unavailable';
       } else if (bookedSlots === 0) {
         status = 'available';
@@ -76,11 +89,9 @@ const Services = () => {
       loadVehicles();
     }
 
-    // Handle payment status from URL
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
       toast.success('Payment successful! Your booking is confirmed.');
-      // Clear the URL parameter
       navigate('/services', { replace: true });
     } else if (paymentStatus === 'failed') {
       toast.error('Payment failed. Please try again.');
@@ -136,7 +147,6 @@ const Services = () => {
     setProcessingPayment(true);
 
     try {
-      // 1. Create the booking first
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
@@ -152,9 +162,6 @@ const Services = () => {
 
       if (bookingError) throw bookingError;
 
-      console.log('Booking created:', booking.id);
-
-      // 2. Create Yoco checkout session
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
         'create-yoco-checkout',
         {
@@ -169,9 +176,6 @@ const Services = () => {
 
       if (checkoutError) throw checkoutError;
 
-      console.log('Checkout session created:', checkoutData);
-
-      // 3. Redirect to Yoco payment page
       if (checkoutData.redirectUrl) {
         window.location.href = checkoutData.redirectUrl;
       } else {
@@ -206,80 +210,115 @@ const Services = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="chrome-label text-primary">LOADING SERVICES...</div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-primary font-medium tracking-wider"
+        >
+          Loading services...
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
+      </div>
+
       <ClientNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl relative">
         {/* Header */}
-        <div className="mb-6 sm:mb-12">
-          <h1 className="chrome-title text-2xl sm:text-4xl mb-1 sm:mb-2">OUR SERVICES</h1>
-          <p className="text-text-secondary text-sm sm:text-base">Premium automotive protection and enhancement solutions</p>
-        </div>
+        <motion.div 
+          className="mb-6 sm:mb-10"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Our Services
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
+            Premium automotive protection and enhancement solutions
+          </p>
+        </motion.div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {services.map((service) => {
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {services.map((service, index) => {
             const ServiceIcon = getServiceIcon(service.category);
             return (
-              <ChromeSurface key={service.id} className="p-4 sm:p-8 chrome-sheen group hover:chrome-glow-strong transition-all duration-300" glow>
-                <div className="mb-4 sm:mb-6 inline-flex p-3 sm:p-4 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <ServiceIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.4} />
-                </div>
-
-                <div className="mb-3 sm:mb-4">
-                  <div className="chrome-label text-[9px] sm:text-[10px] text-text-tertiary mb-1 sm:mb-2">{service.category}</div>
-                  <h3 className="text-lg sm:text-xl font-light text-foreground mb-1 sm:mb-2">{service.title}</h3>
-                  <p className="text-text-secondary text-xs sm:text-sm leading-relaxed">{service.description}</p>
-                </div>
-
-                {service.features && service.features.length > 0 && (
-                  <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
-                    {service.features.map((feature: string, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs sm:text-sm text-text-secondary">
-                        <div className="w-1 h-1 rounded-full bg-primary flex-shrink-0" />
-                        {feature}
-                      </div>
-                    ))}
+              <motion.div
+                key={service.id}
+                variants={fadeInUp}
+                transition={{ delay: index * 0.05 }}
+              >
+                <ChromeSurface className="p-5 sm:p-6 bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/70 hover:border-primary/20 transition-all duration-300 group">
+                  <div className="mb-4 inline-flex p-3 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                    <ServiceIcon className="w-6 h-6 text-primary" strokeWidth={1.5} />
                   </div>
-                )}
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-text-secondary">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" strokeWidth={1.4} />
+                  <div className="mb-4">
+                    <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
+                      {service.category}
+                    </div>
+                    <h3 className="text-lg font-medium text-foreground mb-1.5">{service.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{service.description}</p>
+                  </div>
+
+                  {service.features && service.features.length > 0 && (
+                    <div className="space-y-1.5 mb-5 pb-5 border-b border-border/30">
+                      {service.features.map((feature: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="w-1 h-1 rounded-full bg-primary flex-shrink-0" />
+                          {feature}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />
                         {service.duration}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3" strokeWidth={1.4} />
+                      <span className="flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
                         From R{service.price_from}
                       </span>
                     </div>
+                    <ChromeButton size="sm" className="w-full sm:w-auto" onClick={() => setSelectedService(service)}>
+                      Book Now
+                    </ChromeButton>
                   </div>
-                  <ChromeButton size="sm" className="w-full sm:w-auto" onClick={() => setSelectedService(service)}>
-                    Book Now
-                  </ChromeButton>
-                </div>
-              </ChromeSurface>
+                </ChromeSurface>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* Booking Modal */}
       <Dialog open={!!selectedService} onOpenChange={resetBookingModal}>
-        <DialogContent className="bg-card border-border max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto p-4 sm:p-6">
+        <DialogContent className="bg-card/95 backdrop-blur-md border-border/50 max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto p-4 sm:p-6">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="chrome-title text-2xl">Book Service</DialogTitle>
+              <DialogTitle className="text-xl font-semibold">Book Service</DialogTitle>
               <div className="flex items-center gap-2">
-                <TestTube className={`w-4 h-4 ${testMode ? 'text-amber-500' : 'text-green-500'}`} />
-                <Label htmlFor="test-mode" className="text-sm font-normal cursor-pointer">
+                <TestTube className={`w-4 h-4 ${testMode ? 'text-amber-500' : 'text-emerald-500'}`} />
+                <Label htmlFor="test-mode" className="text-sm font-normal cursor-pointer text-muted-foreground">
                   {testMode ? 'Test Mode' : 'Live Mode'}
                 </Label>
                 <Switch
@@ -291,34 +330,36 @@ const Services = () => {
               </div>
             </div>
           </DialogHeader>
-          <div className="space-y-6">
+          <div className="space-y-5 mt-2">
             {selectedService && (
               <>
-                <ChromeSurface className="p-4" glow>
-                  <div className="chrome-label text-[10px] text-text-tertiary mb-2">SELECTED SERVICE</div>
-                <div className="text-lg font-light text-foreground">{selectedService.title}</div>
-                <div className="text-sm text-text-secondary mt-1">
-                  Duration: {selectedService.duration} • From R{selectedService.price_from}
-                </div>
+                <ChromeSurface className="p-4 bg-muted/30 border-border/30">
+                  <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
+                    Selected Service
+                  </div>
+                  <div className="text-base font-medium text-foreground">{selectedService.title}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Duration: {selectedService.duration} • From R{selectedService.price_from}
+                  </div>
                 </ChromeSurface>
 
                 {bookingStep === 'calendar' && (
-                  <>
-                    <AvailabilityCalendar
-                      availability={availability}
-                      selectedDate={selectedDate}
-                      onSelectDate={(date) => {
-                        setSelectedDate(date);
-                        setBookingStep('time');
-                      }}
-                    />
-                  </>
+                  <AvailabilityCalendar
+                    availability={availability}
+                    selectedDate={selectedDate}
+                    onSelectDate={(date) => {
+                      setSelectedDate(date);
+                      setBookingStep('time');
+                    }}
+                  />
                 )}
 
                 {bookingStep === 'time' && selectedDate && (
                   <>
-                    <ChromeSurface className="p-4" glow>
-                      <div className="chrome-label text-[10px] text-text-tertiary mb-2">SELECTED DATE</div>
+                    <ChromeSurface className="p-4 bg-muted/30 border-border/30">
+                      <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
+                        Selected Date
+                      </div>
                       <div className="text-foreground mb-4">
                         {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                       </div>
@@ -340,50 +381,54 @@ const Services = () => {
 
                 {bookingStep === 'details' && selectedDate && selectedTime && (
                   <>
-                    <ChromeSurface className="p-4" glow>
-                      <div className="chrome-label text-[10px] text-text-tertiary mb-3">BOOKING DETAILS</div>
+                    <ChromeSurface className="p-4 bg-muted/30 border-border/30">
+                      <div className="text-[10px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                        Booking Details
+                      </div>
                       {testMode && (
-                        <div className="mb-3 p-2 rounded bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
+                        <div className="mb-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
                           <TestTube className="w-4 h-4 text-amber-500" />
                           <span className="text-xs text-amber-500">Test Mode Active - No real charges will be made</span>
                         </div>
                       )}
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-text-tertiary">Date:</span>
+                          <span className="text-muted-foreground">Date:</span>
                           <span className="text-foreground">{new Date(selectedDate).toLocaleDateString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-text-tertiary">Time:</span>
+                          <span className="text-muted-foreground">Time:</span>
                           <span className="text-foreground">{selectedTime}</span>
                         </div>
                       </div>
                     </ChromeSurface>
 
                     <div>
-                      <div className="chrome-label mb-3">SELECT VEHICLE</div>
+                      <div className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                        Select Vehicle
+                      </div>
                       {vehicles.length > 0 ? (
                         <div className="space-y-2">
                           {vehicles.map((vehicle) => (
                             <button
                               key={vehicle.id}
                               onClick={() => setSelectedVehicle(vehicle.id)}
-                              className={`w-full p-4 rounded-lg border transition-all text-left ${
+                              className={`w-full p-3.5 rounded-lg border transition-all text-left ${
                                 selectedVehicle === vehicle.id
-                                  ? 'chrome-surface border-primary chrome-glow'
-                                  : 'bg-background-alt border-border hover:border-primary/50'
+                                  ? 'bg-primary/10 border-primary/50'
+                                  : 'bg-muted/20 border-border/50 hover:border-primary/30'
                               }`}
                             >
-                              <div className="text-foreground font-light">
+                              <div className="text-foreground font-medium">
                                 {vehicle.year} {vehicle.make} {vehicle.model}
                               </div>
-                              <div className="text-sm text-text-tertiary">{vehicle.color}</div>
+                              <div className="text-sm text-muted-foreground">{vehicle.color}</div>
                             </button>
                           ))}
                         </div>
                       ) : (
-                        <ChromeSurface className="p-6 text-center" glow>
-                          <p className="text-text-secondary mb-4">No vehicles in your garage</p>
+                        <ChromeSurface className="p-5 text-center bg-muted/30 border-border/30">
+                          <p className="text-muted-foreground text-sm mb-4">No vehicles in your garage</p>
                           <ChromeButton variant="outline" onClick={() => navigate('/garage')}>
                             Add Vehicle
                           </ChromeButton>
@@ -391,7 +436,7 @@ const Services = () => {
                       )}
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-3 pt-2">
                       <ChromeButton variant="outline" onClick={() => setBookingStep('time')} disabled={processingPayment}>
                         ← Back
                       </ChromeButton>

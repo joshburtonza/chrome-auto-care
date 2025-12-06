@@ -2,13 +2,28 @@ import { ClientNav } from "@/components/client/ClientNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { Calendar, Car, Package, User, Clock, AlertCircle } from "lucide-react";
+import { Calendar, Car, Package, User, Clock, AlertCircle, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -166,28 +181,66 @@ const Dashboard = () => {
     return labels[stage] || stage;
   };
 
+  const calculateProgress = () => {
+    if (stages.length === 0) return 0;
+    const completed = stages.filter(s => s.completed).length;
+    return Math.round((completed / stages.length) * 100);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="chrome-label text-primary">LOADING...</div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-primary font-medium tracking-wider"
+        >
+          Loading...
+        </motion.div>
       </div>
     );
   }
 
+  const progress = calculateProgress();
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-20 w-64 h-64 bg-primary/3 rounded-full blur-3xl" />
+      </div>
+
       <ClientNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
+      
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl relative">
         {/* Header */}
-        <div className="mb-4 sm:mb-8">
-          <h1 className="chrome-title text-2xl sm:text-4xl mb-1 sm:mb-2">CLIENT DASHBOARD</h1>
-          <p className="text-text-secondary text-sm sm:text-base">Welcome back, track your services and manage your garage</p>
-        </div>
+        <motion.div 
+          className="mb-6 sm:mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Dashboard
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
+            Track your services and manage your garage
+          </p>
+        </motion.div>
 
         {/* Booking Selector */}
         {allBookings.length > 1 && (
-          <div className="mb-4 sm:mb-6">
-            <label className="chrome-label text-xs mb-2 block">SELECT BOOKING</label>
+          <motion.div 
+            className="mb-4 sm:mb-6"
+            {...fadeInUp}
+          >
+            <label className="text-xs font-medium text-muted-foreground mb-2 block uppercase tracking-wide">
+              Select Booking
+            </label>
             <Select
               value={currentBooking?.id || ''}
               onValueChange={async (value) => {
@@ -199,7 +252,7 @@ const Dashboard = () => {
                 }
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-card/50 border-border/50 backdrop-blur-sm">
                 <SelectValue placeholder="Select a booking" />
               </SelectTrigger>
               <SelectContent>
@@ -210,178 +263,254 @@ const Dashboard = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </motion.div>
         )}
 
         {/* Current Booking Card */}
         {currentBooking ? (
-          <ChromeSurface className="p-4 sm:p-8 mb-4 sm:mb-8" glow>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 sm:mb-6">
-              <div>
-                <div className="chrome-label text-[10px] sm:text-xs mb-1 sm:mb-2 text-text-tertiary">CURRENT BOOKING</div>
-                <h2 className="text-lg sm:text-2xl font-light text-foreground mb-1">{currentBooking.services?.title}</h2>
-                <p className="text-text-secondary text-sm flex items-center gap-2">
-                  <Car className="w-4 h-4 flex-shrink-0" strokeWidth={1.4} />
-                  <span className="truncate">{currentBooking.vehicles?.year} {currentBooking.vehicles?.make} {currentBooking.vehicles?.model}</span>
-                </p>
-              </div>
-              <StatusBadge status={currentBooking.status} className="self-start">
-                {currentBooking.status === 'in_progress' ? 'In Progress' : 'Confirmed'}
-              </StatusBadge>
-            </div>
-
-            {/* Timeline */}
-            {stages.length > 0 && (
-              <div className="space-y-4 sm:space-y-6">
-                <div className="chrome-label text-[10px] sm:text-xs mb-2 sm:mb-4">SERVICE TIMELINE</div>
-                <div className="grid grid-cols-5 gap-1 sm:gap-4 overflow-x-auto">
-                  {stages.slice(0, 5).map((stage, idx) => (
-                    <div key={stage.id} className="relative">
-                      <div className="flex flex-col items-center text-center">
-                        <div
-                          className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center mb-1 sm:mb-2 transition-all text-xs sm:text-sm ${
-                            stage.completed
-                              ? "border-success bg-success/20 text-success"
-                              : stage.started_at
-                              ? "border-primary bg-primary/20 text-primary chrome-glow"
-                              : "border-border bg-muted/10 text-muted-foreground"
-                          }`}
-                        >
-                          {stage.completed ? "✓" : idx + 1}
-                        </div>
-                        <div className={`chrome-label text-[7px] sm:text-[9px] leading-tight ${stage.completed || stage.started_at ? "text-foreground" : "text-text-tertiary"}`}>
-                          {getStageLabel(stage.stage)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <ChromeSurface className="p-4 sm:p-6 mb-4 sm:mb-6 bg-card/60 backdrop-blur-sm border-border/40">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+                    Current Booking
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-medium text-foreground mb-1">
+                    {currentBooking.services?.title}
+                  </h2>
+                  <p className="text-muted-foreground text-sm flex items-center gap-2">
+                    <Car className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                    <span className="truncate">
+                      {currentBooking.vehicles?.year} {currentBooking.vehicles?.make} {currentBooking.vehicles?.model}
+                    </span>
+                  </p>
                 </div>
-                {stages.length > 5 && (
-                  <div className="grid grid-cols-5 gap-1 sm:gap-4 mt-2">
-                    {stages.slice(5).map((stage, idx) => (
+                <StatusBadge status={currentBooking.status} className="self-start">
+                  {currentBooking.status === 'in_progress' ? 'In Progress' : 'Confirmed'}
+                </StatusBadge>
+              </div>
+
+              {/* Progress Bar */}
+              {stages.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Progress
+                    </span>
+                    <span className="text-sm font-semibold text-primary">{progress}%</span>
+                  </div>
+                  <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Timeline */}
+              {stages.length > 0 && (
+                <div className="space-y-3">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Service Timeline
+                  </div>
+                  <div className="grid grid-cols-5 gap-1 sm:gap-3">
+                    {stages.slice(0, 5).map((stage, idx) => (
                       <div key={stage.id} className="relative">
                         <div className="flex flex-col items-center text-center">
                           <div
-                            className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center mb-1 sm:mb-2 transition-all text-xs sm:text-sm ${
+                            className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center mb-1 transition-all text-xs ${
                               stage.completed
-                                ? "border-success bg-success/20 text-success"
+                                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-500"
                                 : stage.started_at
-                                ? "border-primary bg-primary/20 text-primary chrome-glow"
-                                : "border-border bg-muted/10 text-muted-foreground"
+                                ? "border-primary/50 bg-primary/10 text-primary"
+                                : "border-border/50 bg-muted/20 text-muted-foreground"
                             }`}
                           >
-                            {stage.completed ? "✓" : idx + 6}
+                            {stage.completed ? "✓" : idx + 1}
                           </div>
-                          <div className={`chrome-label text-[7px] sm:text-[9px] leading-tight ${stage.completed || stage.started_at ? "text-foreground" : "text-text-tertiary"}`}>
+                          <div className={`text-[7px] sm:text-[9px] leading-tight font-medium ${
+                            stage.completed || stage.started_at ? "text-foreground" : "text-muted-foreground"
+                          }`}>
                             {getStageLabel(stage.stage)}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            )}
+                  {stages.length > 5 && (
+                    <div className="grid grid-cols-5 gap-1 sm:gap-3 mt-2">
+                      {stages.slice(5).map((stage, idx) => (
+                        <div key={stage.id} className="relative">
+                          <div className="flex flex-col items-center text-center">
+                            <div
+                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center mb-1 transition-all text-xs ${
+                                stage.completed
+                                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-500"
+                                  : stage.started_at
+                                  ? "border-primary/50 bg-primary/10 text-primary"
+                                  : "border-border/50 bg-muted/20 text-muted-foreground"
+                              }`}
+                            >
+                              {stage.completed ? "✓" : idx + 6}
+                            </div>
+                            <div className={`text-[7px] sm:text-[9px] leading-tight font-medium ${
+                              stage.completed || stage.started_at ? "text-foreground" : "text-muted-foreground"
+                            }`}>
+                              {getStageLabel(stage.stage)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {/* Actions */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-8 pt-4 sm:pt-6 border-t border-border/50">
-              <ChromeButton size="sm" className="w-full sm:w-auto" asChild>
-                <Link to="/job-tracking">
-                  <Clock className="mr-2 w-3 h-3" strokeWidth={1.4} />
-                  Track Progress
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/30">
+                <ChromeButton size="sm" className="flex-1 sm:flex-none" asChild>
+                  <Link to="/job-tracking">
+                    <Clock className="mr-2 w-3.5 h-3.5" strokeWidth={1.5} />
+                    Track Progress
+                    <ArrowRight className="ml-2 w-3.5 h-3.5" strokeWidth={1.5} />
+                  </Link>
+                </ChromeButton>
+              </div>
+
+              {/* ETA */}
+              {currentBooking.estimated_completion && (
+                <div className="mt-4 pt-4 border-t border-border/30">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <Clock className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                    <span>
+                      Estimated: <span className="text-primary font-medium">
+                        {new Date(currentBooking.estimated_completion).toLocaleDateString()}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              )}
+            </ChromeSurface>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <ChromeSurface className="p-6 sm:p-8 mb-4 sm:mb-6 text-center bg-card/60 backdrop-blur-sm border-border/40">
+              <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/50 mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Active Bookings</h3>
+              <p className="text-muted-foreground text-sm mb-4">You don't have any active bookings at the moment.</p>
+              <ChromeButton size="sm" asChild>
+                <Link to="/services">
+                  <Calendar className="mr-2 w-3.5 h-3.5" strokeWidth={1.5} />
+                  Book a Service
                 </Link>
               </ChromeButton>
-            </div>
-
-            {/* ETA */}
-            {currentBooking.estimated_completion && (
-              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border/50">
-                <div className="flex items-center gap-2 text-text-secondary text-xs sm:text-sm">
-                  <Clock className="w-4 h-4 flex-shrink-0" strokeWidth={1.4} />
-                  <span>Estimated: <span className="text-primary font-normal">
-                    {new Date(currentBooking.estimated_completion).toLocaleDateString()}
-                  </span></span>
-                </div>
-              </div>
-            )}
-          </ChromeSurface>
-        ) : (
-          <ChromeSurface className="p-6 sm:p-8 mb-4 sm:mb-8 text-center" glow>
-            <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
-            <h3 className="chrome-heading text-lg sm:text-xl mb-2">NO ACTIVE BOOKINGS</h3>
-            <p className="text-muted-foreground text-sm mb-4">You don't have any active bookings at the moment.</p>
-            <ChromeButton size="sm" className="w-full sm:w-auto" asChild>
-              <Link to="/services">
-                <Calendar className="mr-2 w-3 h-3" strokeWidth={1.4} />
-                Book a Service
-              </Link>
-            </ChromeButton>
-          </ChromeSurface>
+            </ChromeSurface>
+          </motion.div>
         )}
 
         {/* Quick Actions Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-8">
+        <motion.div 
+          className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 sm:mb-6"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
           {[
             { icon: Calendar, label: "Book Service", to: "/services" },
             { icon: Package, label: "My Bookings", to: "/bookings" },
             { icon: Car, label: "My Vehicles", to: "/garage" },
             { icon: User, label: "Profile", to: "/profile" },
-          ].map((action) => (
-            <Link key={action.label} to={action.to}>
-              <ChromeSurface className="p-4 sm:p-6 chrome-sheen hover:chrome-glow-strong transition-all duration-300 cursor-pointer" glow>
-                <action.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary mb-2 sm:mb-3" strokeWidth={1.4} />
-                <div className="chrome-label text-[10px] sm:text-xs text-foreground">{action.label}</div>
-              </ChromeSurface>
-            </Link>
+          ].map((action, index) => (
+            <motion.div
+              key={action.label}
+              variants={fadeInUp}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Link to={action.to}>
+                <ChromeSurface className="p-4 sm:p-5 bg-card/40 backdrop-blur-sm border-border/30 hover:bg-card/60 hover:border-primary/20 transition-all duration-300 cursor-pointer group">
+                  <action.icon className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                  <div className="text-xs sm:text-sm font-medium text-foreground">{action.label}</div>
+                </ChromeSurface>
+              </Link>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Upcoming Bookings */}
         {upcomingBookings.length > 0 && (
-          <div className="mb-4 sm:mb-8">
-            <h2 className="chrome-label text-xs sm:text-sm mb-3 sm:mb-4 text-foreground">UPCOMING BOOKINGS</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <motion.div 
+            className="mb-4 sm:mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <h2 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+              Upcoming Bookings
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {upcomingBookings.map((booking) => (
-                <ChromeSurface key={booking.id} className="p-4 sm:p-6" glow>
+                <ChromeSurface key={booking.id} className="p-4 bg-card/40 backdrop-blur-sm border-border/30">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm sm:text-base font-light text-foreground mb-1 truncate">{booking.services?.title}</div>
-                      <div className="text-xs sm:text-sm text-text-secondary flex items-center gap-2">
-                        <Car className="w-3 h-3 flex-shrink-0" strokeWidth={1.4} />
+                      <div className="text-sm font-medium text-foreground mb-1 truncate">
+                        {booking.services?.title}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <Car className="w-3 h-3 flex-shrink-0" strokeWidth={1.5} />
                         <span className="truncate">{booking.vehicles?.year} {booking.vehicles?.make}</span>
                       </div>
                     </div>
-                    <div className="chrome-label text-[9px] sm:text-[10px] text-text-tertiary whitespace-nowrap">
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(booking.booking_date).toLocaleDateString()}
                     </div>
                   </div>
                 </ChromeSurface>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Garage Snapshot */}
         {vehicles.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="chrome-label text-xs sm:text-sm text-foreground">MY GARAGE</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                My Garage
+              </h2>
               <ChromeButton variant="ghost" size="sm" asChild>
-                <Link to="/garage" className="text-xs">View All</Link>
+                <Link to="/garage" className="text-xs">
+                  View All
+                  <ArrowRight className="ml-1 w-3 h-3" strokeWidth={1.5} />
+                </Link>
               </ChromeButton>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {vehicles.map((vehicle) => (
-                <ChromeSurface key={vehicle.id} className="p-4 sm:p-6 chrome-sheen" glow>
-                  <Car className="w-5 h-5 sm:w-6 sm:h-6 text-primary mb-2 sm:mb-3" strokeWidth={1.4} />
-                  <div className="text-sm sm:text-base font-light text-foreground mb-1 truncate">
+                <ChromeSurface key={vehicle.id} className="p-4 bg-card/40 backdrop-blur-sm border-border/30">
+                  <Car className="w-5 h-5 text-primary mb-2" strokeWidth={1.5} />
+                  <div className="text-sm font-medium text-foreground mb-0.5 truncate">
                     {vehicle.year} {vehicle.make}
                   </div>
-                  <div className="chrome-label text-[9px] sm:text-[10px] text-text-secondary truncate">{vehicle.model}</div>
+                  <div className="text-xs text-muted-foreground truncate">{vehicle.model}</div>
                 </ChromeSurface>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
