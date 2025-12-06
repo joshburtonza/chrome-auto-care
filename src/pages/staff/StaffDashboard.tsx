@@ -151,82 +151,82 @@ export default function StaffDashboard() {
   return (
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="chrome-heading text-4xl mb-2">STAFF DASHBOARD</h1>
-          <p className="text-muted-foreground">Overview of bookings and customer activity</p>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <h1 className="chrome-heading text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">STAFF DASHBOARD</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Overview of bookings and customer activity</p>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
           <Link to="/staff/bookings">
-            <ChromeSurface className="p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <AlertCircle className="w-6 h-6 text-primary" />
+            <ChromeSurface className="p-4 sm:p-5 md:p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-primary/10 rounded-lg shrink-0">
+                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-foreground">{stats.pendingBookings}</div>
-                  <div className="text-sm text-muted-foreground">Pending Bookings</div>
+                <div className="min-w-0">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.pendingBookings}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Pending Bookings</div>
                 </div>
               </div>
             </ChromeSurface>
           </Link>
 
           <Link to="/staff/bookings">
-            <ChromeSurface className="p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Activity className="w-6 h-6 text-primary" />
+            <ChromeSurface className="p-4 sm:p-5 md:p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-primary/10 rounded-lg shrink-0">
+                  <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-foreground">{stats.activeBookings}</div>
-                  <div className="text-sm text-muted-foreground">In Progress</div>
+                <div className="min-w-0">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.activeBookings}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">In Progress</div>
                 </div>
               </div>
             </ChromeSurface>
           </Link>
 
-          <ChromeSurface className="p-6 chrome-sheen" glow>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-success/10 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-success" />
+          <ChromeSurface className="p-4 sm:p-5 md:p-6 chrome-sheen sm:col-span-2 md:col-span-1" glow>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-success/10 rounded-lg shrink-0">
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
               </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">{stats.completedBookings}</div>
-                <div className="text-sm text-muted-foreground">Completed</div>
+              <div className="min-w-0">
+                <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.completedBookings}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Completed</div>
               </div>
             </div>
           </ChromeSurface>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8 animate-fade-in">
           {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
-              <ChromeSurface key={stat.label} className="p-6 chrome-sheen" glow>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="chrome-label text-sm">{stat.label}</div>
-                  <Icon className="w-5 h-5 text-primary" />
+              <ChromeSurface key={stat.label} className="p-3 sm:p-4 md:p-6 chrome-sheen" glow>
+                <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
+                  <div className="chrome-label text-xs sm:text-sm truncate pr-2">{stat.label}</div>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                 </div>
-                <div className="chrome-heading text-3xl">{stat.value}</div>
+                <div className="chrome-heading text-xl sm:text-2xl md:text-3xl">{stat.value}</div>
               </ChromeSurface>
             );
           })}
         </div>
 
         {/* Recent Bookings */}
-        <ChromeSurface className="p-6" glow>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="chrome-heading text-2xl">RECENT BOOKINGS</h2>
+        <ChromeSurface className="p-3 sm:p-4 md:p-6" glow>
+          <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6 gap-2">
+            <h2 className="chrome-heading text-lg sm:text-xl md:text-2xl">RECENT BOOKINGS</h2>
             <Link to="/staff/bookings">
-              <ChromeButton variant="outline" size="sm">View All</ChromeButton>
+              <ChromeButton variant="outline" size="sm" className="text-xs sm:text-sm">View All</ChromeButton>
             </Link>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-3 md:space-y-4">
             {recentBookings.length === 0 ? (
-              <div className="text-center py-8 text-text-tertiary chrome-label">NO BOOKINGS YET</div>
+              <div className="text-center py-6 sm:py-8 text-text-tertiary chrome-label text-xs sm:text-sm">NO BOOKINGS YET</div>
             ) : (
               recentBookings.map((booking) => (
                 <Link
@@ -234,21 +234,21 @@ export default function StaffDashboard() {
                   to="/staff/bookings"
                   state={{ selectedBookingId: booking.id }}
                 >
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary transition-colors chrome-sheen cursor-pointer">
-                    <div className="flex-1">
-                      <div className="font-semibold mb-1 text-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-border rounded-lg hover:border-primary transition-colors chrome-sheen cursor-pointer gap-2 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm sm:text-base mb-1 text-foreground truncate">
                         {booking.profiles?.full_name || 'Customer'}
                       </div>
-                      <div className="text-sm text-text-secondary">
+                      <div className="text-xs sm:text-sm text-text-secondary truncate">
                         {booking.services?.title}
                       </div>
                       <div className="text-xs text-text-tertiary mt-1">
                         {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-center">
                       <StatusBadge status={booking.status} />
-                      <AlertCircle className="w-5 h-5 text-primary" />
+                      <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary hidden sm:block" />
                     </div>
                   </div>
                 </Link>

@@ -500,77 +500,81 @@ export default function StaffBookings() {
   return (
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8">Bookings Management</h1>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Bookings Management</h1>
 
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {bookings.map((booking) => (
-            <ChromeSurface key={booking.id} className="p-6">
-              <div className="flex justify-between items-start">
+            <ChromeSurface key={booking.id} className="p-3 sm:p-4 md:p-6">
+              <div className="flex flex-col gap-3 sm:gap-4">
                 <div className="space-y-2">
-                <div className="flex items-center gap-4 flex-wrap">
-                    <h3 className="text-xl font-semibold">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold">
                       {booking.profiles?.full_name || 'Unknown Client'}
                     </h3>
                     <StatusBadge status={booking.status} />
                     {getPriorityBadge(booking.priority)}
                   </div>
-                  <p className="text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {booking.services?.title || 'No Service'} - {booking.vehicles?.make} {booking.vehicles?.model} ({booking.vehicles?.year})
                   </p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                     <span>📅 {new Date(booking.booking_date).toLocaleDateString()}</span>
                     {booking.booking_time && <span>🕐 {booking.booking_time}</span>}
-                    {booking.profiles?.phone && <span>📞 {booking.profiles.phone}</span>}
+                    {booking.profiles?.phone && <span className="hidden sm:inline">📞 {booking.profiles.phone}</span>}
                   </div>
                 </div>
 
-                <div className="flex gap-2 flex-wrap">
-                  <Select
-                    value={booking.priority || 'normal'}
-                    onValueChange={(value) => handleUpdatePriority(booking.id, value)}
-                  >
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="Priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <div className="grid grid-cols-2 sm:flex gap-2">
+                    <Select
+                      value={booking.priority || 'normal'}
+                      onValueChange={(value) => handleUpdatePriority(booking.id, value)}
+                    >
+                      <SelectTrigger className="w-full sm:w-[120px] h-9 text-xs sm:text-sm">
+                        <SelectValue placeholder="Priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  <Select
-                    value={booking.status}
-                    onValueChange={(value) => handleUpdateStatus(booking.id, value as BookingStatus)}
-                  >
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={booking.status}
+                      onValueChange={(value) => handleUpdateStatus(booking.id, value as BookingStatus)}
+                    >
+                      <SelectTrigger className="w-full sm:w-[130px] h-9 text-xs sm:text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Button onClick={() => handleViewBooking(booking)}>
+                  <Button onClick={() => handleViewBooking(booking)} size="sm" className="w-full sm:w-auto h-9">
                     View Details
                   </Button>
                 </div>
-              </div>
 
-              <div className="mt-4 flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Estimated Completion:</span>
-                <Input
-                  type="date"
-                  value={booking.estimated_completion || ''}
-                  onChange={(e) => handleUpdateETA(booking.id, e.target.value)}
-                  className="w-48"
-                />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2 border-t border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium whitespace-nowrap">ETA:</span>
+                  </div>
+                  <Input
+                    type="date"
+                    value={booking.estimated_completion || ''}
+                    onChange={(e) => handleUpdateETA(booking.id, e.target.value)}
+                    className="w-full sm:w-48 h-9 text-sm"
+                  />
+                </div>
               </div>
             </ChromeSurface>
           ))}
@@ -578,19 +582,19 @@ export default function StaffBookings() {
 
         {/* Stage Management Dialog */}
         <Dialog open={!!selectedBooking} onOpenChange={handleDialogOpenChange}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto">
             <DialogHeader>
-              <DialogTitle>
-                Booking Details - {selectedBooking?.profiles?.full_name}
+              <DialogTitle className="text-base sm:text-lg md:text-xl">
+                Booking - {selectedBooking?.profiles?.full_name}
               </DialogTitle>
-              <DialogDescription>
-                Manage booking stages, upload progress images, and update completion status
+              <DialogDescription className="text-xs sm:text-sm">
+                Manage stages, upload images, and update status
               </DialogDescription>
             </DialogHeader>
 
             {selectedBooking && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
                   <div>
                     <span className="font-medium">Service:</span> {selectedBooking.services?.title}
                   </div>
@@ -602,19 +606,19 @@ export default function StaffBookings() {
                     <span className="font-medium">Date:</span>{' '}
                     {new Date(selectedBooking.booking_date).toLocaleDateString()}
                   </div>
-                  <div>
-                    <span className="font-medium">Status:</span>{' '}
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Status:</span>
                     <StatusBadge status={selectedBooking.status} />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">Process Stages</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold">Process Stages</h3>
                   
                   {bookingStages.map((stage, index) => (
                     <ChromeSurface
                       key={stage.id}
-                      className={`p-4 ${
+                      className={`p-3 sm:p-4 ${
                         stage.completed
                           ? 'bg-green-50 dark:bg-green-950 border-green-300'
                           : stage.started_at
@@ -622,26 +626,26 @@ export default function StaffBookings() {
                           : 'bg-card'
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                            <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-muted text-xs sm:text-sm font-medium shrink-0">
                               {index + 1}
                             </span>
-                            <h4 className="font-semibold">{getStageLabel(stage.stage)}</h4>
+                            <h4 className="font-semibold text-sm sm:text-base truncate">{getStageLabel(stage.stage)}</h4>
                           </div>
 
-                          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="mt-2 text-xs sm:text-sm text-muted-foreground">
                             {stage.completed && (
                               <span className="flex items-center gap-1 text-green-600">
-                                <Check className="h-4 w-4" />
-                                Completed {new Date(stage.completed_at!).toLocaleString()}
+                                <Check className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                                <span className="truncate">Done {new Date(stage.completed_at!).toLocaleDateString()}</span>
                               </span>
                             )}
                             {stage.started_at && !stage.completed && (
                               <span className="flex items-center gap-1 text-blue-600">
-                                <Clock className="h-4 w-4" />
-                                In Progress (started {new Date(stage.started_at).toLocaleString()})
+                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                                <span className="truncate">Started {new Date(stage.started_at).toLocaleDateString()}</span>
                               </span>
                             )}
                             {!stage.started_at && !stage.completed && (
@@ -655,16 +659,16 @@ export default function StaffBookings() {
                               onChange={(e) => setStageNotes(prev => ({ ...prev, [stage.id]: e.target.value }))}
                               placeholder="Add notes..."
                               disabled={stage.completed}
-                              className="mt-3"
+                              className="mt-2 sm:mt-3 text-sm"
                               rows={2}
                             />
                           )}
 
                           {/* Image Upload Section */}
                           {stage.started_at && !stage.completed && (
-                            <div className="mt-4">
-                              <label className="text-sm font-medium mb-2 block">Progress Images</label>
-                              <div className="flex items-center gap-2 mb-3">
+                            <div className="mt-3 sm:mt-4">
+                              <label className="text-xs sm:text-sm font-medium mb-2 block">Progress Images</label>
+                              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
                                 <Input
                                   type="file"
                                   accept="image/*"
@@ -673,7 +677,7 @@ export default function StaffBookings() {
                                     if (file) handlePhotoUpload(stage.id, file);
                                   }}
                                   disabled={uploadingImages[stage.id]}
-                                  className="flex-1"
+                                  className="flex-1 text-sm"
                                 />
                                 {uploadingImages[stage.id] && (
                                   <span className="text-xs text-muted-foreground">Uploading...</span>
@@ -684,15 +688,15 @@ export default function StaffBookings() {
 
                           {/* Display Images */}
                           {stageImages[stage.id] && stageImages[stage.id].length > 0 && (
-                            <div className="mt-4">
-                              <div className="text-sm font-medium mb-2">Uploaded Images (Permanent Record)</div>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <div className="mt-3 sm:mt-4">
+                              <div className="text-xs sm:text-sm font-medium mb-2">Uploaded Images</div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                                 {stageImages[stage.id].map((img) => (
                                   <div key={img.id} className="relative group">
                                     <img
                                       src={img.image_url}
                                       alt="Progress"
-                                      className="w-full h-32 object-cover rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                                      className="w-full h-20 sm:h-24 md:h-32 object-cover rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
                                       onClick={() => window.open(img.image_url, '_blank')}
                                       title="Click to view full size"
                                     />
@@ -703,14 +707,14 @@ export default function StaffBookings() {
                           )}
                         </div>
 
-                        <div className="ml-4 flex flex-col gap-2">
+                        <div className="flex sm:flex-col gap-2 sm:ml-2 shrink-0">
                           {!stage.started_at && !stage.completed && (
                             <Button
                               onClick={() => handleStartStage(stage.id, stage.stage)}
                               size="sm"
-                              className="gap-1"
+                              className="gap-1 flex-1 sm:flex-none h-8 sm:h-9 text-xs sm:text-sm"
                             >
-                              <Play className="h-4 w-4" />
+                              <Play className="h-3 w-3 sm:h-4 sm:w-4" />
                               Start
                             </Button>
                           )}
@@ -720,9 +724,9 @@ export default function StaffBookings() {
                               onClick={() => handleCompleteStage(stage.id, stage.stage)}
                               size="sm"
                               variant="default"
-                              className="gap-1"
+                              className="gap-1 flex-1 sm:flex-none h-8 sm:h-9 text-xs sm:text-sm"
                             >
-                              <Check className="h-4 w-4" />
+                              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                               Complete
                             </Button>
                           )}

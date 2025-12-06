@@ -159,52 +159,50 @@ const StaffMerchandise = () => {
   return (
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8">
           <div>
-            <h1 className="chrome-title text-4xl mb-2">MERCHANDISE MANAGEMENT</h1>
-            <p className="text-text-secondary">Manage store inventory and products</p>
+            <h1 className="chrome-title text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">MERCHANDISE</h1>
+            <p className="text-xs sm:text-sm text-text-secondary">Manage store inventory</p>
           </div>
-          <ChromeButton onClick={openAddDialog}>
+          <ChromeButton onClick={openAddDialog} className="w-full sm:w-auto">
             <Plus className="mr-2 w-4 h-4" />
             Add Product
           </ChromeButton>
         </div>
 
         {products.length === 0 ? (
-          <ChromeSurface className="p-12 text-center" glow>
-            <Package className="w-16 h-16 text-text-tertiary mx-auto mb-4" />
-            <p className="text-text-secondary mb-4">No products yet</p>
-            <ChromeButton onClick={openAddDialog}>
+          <ChromeSurface className="p-8 sm:p-12 text-center" glow>
+            <Package className="w-12 h-12 sm:w-16 sm:h-16 text-text-tertiary mx-auto mb-3 sm:mb-4" />
+            <p className="text-sm sm:text-base text-text-secondary mb-3 sm:mb-4">No products yet</p>
+            <ChromeButton onClick={openAddDialog} className="w-full sm:w-auto">
               <Plus className="mr-2 w-4 h-4" />
               Add First Product
             </ChromeButton>
           </ChromeSurface>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {products.map((product) => (
-              <ChromeSurface key={product.id} className="p-6 chrome-sheen" glow>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="chrome-label text-[10px] text-text-tertiary">
+              <ChromeSurface key={product.id} className="p-4 sm:p-5 md:p-6 chrome-sheen" glow>
+                <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                  <div className="chrome-label text-[10px] sm:text-xs text-text-tertiary truncate">
                     {product.category}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`text-xs ${product.is_active ? 'text-green-500' : 'text-red-500'}`}>
-                      {product.is_active ? 'Active' : 'Inactive'}
-                    </div>
+                  <div className={`text-xs shrink-0 ${product.is_active ? 'text-green-500' : 'text-red-500'}`}>
+                    {product.is_active ? 'Active' : 'Inactive'}
                   </div>
                 </div>
 
-                <h3 className="text-lg font-light text-foreground mb-2">{product.name}</h3>
-                <p className="text-sm text-text-secondary mb-4 line-clamp-2">
+                <h3 className="text-base sm:text-lg font-light text-foreground mb-2 truncate">{product.name}</h3>
+                <p className="text-xs sm:text-sm text-text-secondary mb-3 sm:mb-4 line-clamp-2">
                   {product.description}
                 </p>
 
-                <div className="flex items-center justify-between pt-4 border-t border-border/50 mb-4">
-                  <div className="text-xl text-primary font-light">
+                <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-border/50 mb-3 sm:mb-4">
+                  <div className="text-lg sm:text-xl text-primary font-light">
                     R{product.price.toFixed(2)}
                   </div>
-                  <div className={`text-sm ${product.stock_quantity === 0 ? 'text-red-500' : 'text-text-secondary'}`}>
+                  <div className={`text-xs sm:text-sm ${product.stock_quantity === 0 ? 'text-red-500' : 'text-text-secondary'}`}>
                     Stock: {product.stock_quantity}
                   </div>
                 </div>
@@ -213,7 +211,7 @@ const StaffMerchandise = () => {
                   <ChromeButton
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 text-xs sm:text-sm"
                     onClick={() => openEditDialog(product)}
                   >
                     <Edit2 className="w-3 h-3 mr-1" />
@@ -234,37 +232,39 @@ const StaffMerchandise = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="chrome-surface">
+        <DialogContent className="chrome-surface mx-2 sm:mx-auto max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="chrome-title">
+            <DialogTitle className="chrome-title text-base sm:text-lg md:text-xl">
               {editingProduct ? 'Edit Product' : 'Add Product'}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <Label htmlFor="name">Product Name</Label>
+              <Label htmlFor="name" className="text-xs sm:text-sm">Product Name</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Premium Wax"
+                className="text-sm"
               />
             </div>
 
             <div>
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-xs sm:text-sm">Category</Label>
               <Input
                 id="category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 placeholder="Detailing Products"
+                className="text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <Label htmlFor="price">Price (R)</Label>
+                <Label htmlFor="price" className="text-xs sm:text-sm">Price (R)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -272,34 +272,37 @@ const StaffMerchandise = () => {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="299.99"
+                  className="text-sm"
                 />
               </div>
 
               <div>
-                <Label htmlFor="stock">Stock Quantity</Label>
+                <Label htmlFor="stock" className="text-xs sm:text-sm">Stock</Label>
                 <Input
                   id="stock"
                   type="number"
                   value={formData.stock_quantity}
                   onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
                   placeholder="50"
+                  className="text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-xs sm:text-sm">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Premium quality detailing wax for showroom finish"
+                placeholder="Premium quality detailing wax"
                 rows={3}
+                className="text-sm"
               />
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="active">Active</Label>
+              <Label htmlFor="active" className="text-xs sm:text-sm">Active</Label>
               <Switch
                 id="active"
                 checked={formData.is_active}
@@ -308,11 +311,11 @@ const StaffMerchandise = () => {
             </div>
           </div>
 
-          <DialogFooter>
-            <ChromeButton variant="outline" onClick={() => setDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <ChromeButton variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </ChromeButton>
-            <ChromeButton onClick={handleSubmit}>
+            <ChromeButton onClick={handleSubmit} className="w-full sm:w-auto">
               {editingProduct ? 'Update' : 'Add'} Product
             </ChromeButton>
           </DialogFooter>
