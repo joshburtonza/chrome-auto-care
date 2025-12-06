@@ -1,12 +1,19 @@
 import { ClientNav } from "@/components/client/ClientNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { CheckCircle, Clock, Circle, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, Circle, AlertCircle, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion } from "framer-motion";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4 }
+};
 
 const JobTracking = () => {
   const { user } = useAuth();
@@ -26,7 +33,6 @@ const JobTracking = () => {
     if (selectedBooking) {
       fetchStages();
       
-      // Subscribe to realtime stage updates
       const stagesChannel = supabase
         .channel('booking-stages-changes')
         .on(
@@ -38,14 +44,12 @@ const JobTracking = () => {
             filter: `booking_id=eq.${selectedBooking.id}`
           },
           (payload) => {
-            console.log('Stage updated:', payload);
             if (payload.eventType === 'UPDATE' && payload.new) {
               const updatedStage = payload.new;
               setStages(prev => prev.map(s => 
                 s.id === updatedStage.id ? updatedStage : s
               ));
               
-              // Show toast notification with visual feedback
               if (updatedStage.completed && !payload.old.completed) {
                 toast.success('Stage Completed! 🎉', {
                   description: getStageLabel(updatedStage.stage),
@@ -58,13 +62,11 @@ const JobTracking = () => {
                 });
               }
             }
-            // Refresh to get latest data
             fetchStages();
           }
         )
         .subscribe();
 
-      // Subscribe to booking updates (status, ETA changes)
       const bookingChannel = supabase
         .channel('booking-update')
         .on(
@@ -76,11 +78,9 @@ const JobTracking = () => {
             filter: `id=eq.${selectedBooking.id}`
           },
           (payload) => {
-            console.log('Booking updated:', payload);
             if (payload.new) {
               setSelectedBooking(payload.new);
               
-              // Show notification for ETA updates
               if (payload.new.estimated_completion !== payload.old?.estimated_completion) {
                 toast.info('Estimated Completion Updated 📅', {
                   description: `New date: ${new Date(payload.new.estimated_completion).toLocaleDateString()}`,
@@ -88,7 +88,6 @@ const JobTracking = () => {
                 });
               }
               
-              // Show notification for status changes
               if (payload.new.status !== payload.old?.status) {
                 toast.success('Booking Status Updated', {
                   description: `Status: ${payload.new.status}`,
@@ -142,7 +141,6 @@ const JobTracking = () => {
       if (error) throw error;
       setStages(data || []);
 
-      // Fetch images for all stages
       const stageIds = data?.map(s => s.id) || [];
       if (stageIds.length > 0) {
         const { data: imagesData, error: imagesError } = await supabase
@@ -192,11 +190,11 @@ const JobTracking = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-success" />;
+        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
       case 'current':
         return <Clock className="w-5 h-5 text-primary animate-pulse" />;
       default:
-        return <Circle className="w-5 h-5 text-muted-foreground" />;
+        return <Circle className="w-5 h-5 text-muted-foreground/40" />;
     }
   };
 
@@ -209,18 +207,27 @@ const JobTracking = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="chrome-label text-primary">LOADING...</div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-primary font-medium tracking-wider"
+        >
+          Loading...
+        </motion.div>
       </div>
     );
   }
 
   if (bookings.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        </div>
         <ClientNav />
         <div className="container mx-auto px-4 py-16 text-center">
-          <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="chrome-heading text-2xl mb-2">NO ACTIVE BOOKINGS</h2>
+          <AlertCircle className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+          <h2 className="text-xl font-medium text-foreground mb-2">No Active Bookings</h2>
           <p className="text-muted-foreground">You don't have any active bookings at the moment.</p>
         </div>
       </div>
@@ -230,17 +237,40 @@ const JobTracking = () => {
   const progress = calculateProgress();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
+      </div>
+
       <ClientNav />
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <div className="mb-8">
-          <h1 className="chrome-title text-4xl mb-2">JOB TRACKING</h1>
-          <p className="text-text-secondary">Track your service progress in real-time</p>
-        </div>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-5xl relative">
+        <motion.div 
+          className="mb-6 sm:mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Job Tracking
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
+            Track your service progress in real-time
+          </p>
+        </motion.div>
 
         {bookings.length > 1 && (
-          <div className="mb-6">
-            <label className="chrome-label text-xs mb-2 block">SELECT BOOKING</label>
+          <motion.div 
+            className="mb-5"
+            {...fadeInUp}
+          >
+            <label className="text-xs font-medium text-muted-foreground mb-2 block uppercase tracking-wide">
+              Select Booking
+            </label>
             <Select
               value={selectedBooking?.id}
               onValueChange={(value) => {
@@ -248,7 +278,7 @@ const JobTracking = () => {
                 setSelectedBooking(booking);
               }}
             >
-              <SelectTrigger className="w-full max-w-md">
+              <SelectTrigger className="w-full max-w-md bg-card/50 border-border/50 backdrop-blur-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -259,106 +289,129 @@ const JobTracking = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </motion.div>
         )}
 
         {selectedBooking && (
-          <ChromeSurface className="p-8 mb-8" glow>
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <div className="chrome-label mb-2 text-text-tertiary">CURRENT BOOKING</div>
-                <h2 className="text-2xl font-light text-foreground mb-1">
-                  {selectedBooking.services?.title}
-                </h2>
-                <p className="text-text-secondary">
-                  {selectedBooking.vehicles?.year} {selectedBooking.vehicles?.make} {selectedBooking.vehicles?.model}
-                </p>
-              </div>
-              <StatusBadge status={selectedBooking.status} />
-            </div>
-
-            {/* Global Progress Bar */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <span className="chrome-label text-xs">OVERALL PROGRESS</span>
-                <span className="text-primary font-semibold">{progress}%</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-primary to-success transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Booking Date:</span>
-                <span className="ml-2 text-foreground">
-                  {new Date(selectedBooking.booking_date).toLocaleDateString()}
-                </span>
-              </div>
-              {selectedBooking.estimated_completion && (
+          <motion.div {...fadeInUp}>
+            <ChromeSurface className="p-5 sm:p-6 mb-5 bg-card/60 backdrop-blur-sm border-border/40">
+              <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className="text-muted-foreground">Est. Completion:</span>
-                  <span className="ml-2 text-primary">
-                    {new Date(selectedBooking.estimated_completion).toLocaleDateString()}
+                  <div className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+                    Current Booking
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-medium text-foreground mb-1">
+                    {selectedBooking.services?.title}
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    {selectedBooking.vehicles?.year} {selectedBooking.vehicles?.make} {selectedBooking.vehicles?.model}
+                  </p>
+                </div>
+                <StatusBadge status={selectedBooking.status} />
+              </div>
+
+              {/* Global Progress Bar */}
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Overall Progress
+                  </span>
+                  <span className="text-sm font-semibold text-primary">{progress}%</span>
+                </div>
+                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                  <span className="text-muted-foreground">Booking Date:</span>
+                  <span className="text-foreground font-medium">
+                    {new Date(selectedBooking.booking_date).toLocaleDateString()}
                   </span>
                 </div>
-              )}
-            </div>
-          </ChromeSurface>
+                {selectedBooking.estimated_completion && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <span className="text-muted-foreground">Est. Completion:</span>
+                    <span className="text-primary font-medium">
+                      {new Date(selectedBooking.estimated_completion).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </ChromeSurface>
+          </motion.div>
         )}
 
         {/* Progress Timeline */}
-        <div className="mb-8">
-          <h2 className="chrome-label mb-6 text-foreground">SERVICE TIMELINE</h2>
-          <div className="space-y-4">
+        <motion.div 
+          className="mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <h2 className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wide">
+            Service Timeline
+          </h2>
+          <div className="space-y-3">
             {stages.map((stage, idx) => {
               const status = getStageStatus(stage);
               return (
-                <div
+                <motion.div
                   key={stage.id}
-                  className={`relative pl-12 pb-4 ${
-                    idx < stages.length - 1 ? 'border-l-2 ml-2.5' : ''
-                  } ${
-                    status === 'completed' ? 'border-success' : 'border-border'
-                  } transition-all duration-500`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className={`relative pl-10 ${
+                    idx < stages.length - 1 ? 'pb-3' : ''
+                  }`}
                 >
-                 <div className="absolute left-0 top-0 -translate-x-1/2 z-10">
-                    <div className={`rounded-full p-1 ${
-                      status === 'completed' ? 'bg-success/20' : 
-                      status === 'current' ? 'bg-primary/20 animate-pulse' : 
-                      'bg-muted'
+                  {/* Timeline line */}
+                  {idx < stages.length - 1 && (
+                    <div className={`absolute left-[11px] top-7 w-0.5 h-full ${
+                      status === 'completed' ? 'bg-emerald-500/50' : 'bg-border/50'
+                    }`} />
+                  )}
+                  
+                  <div className="absolute left-0 top-0 z-10">
+                    <div className={`rounded-full p-0.5 ${
+                      status === 'completed' ? 'bg-emerald-500/20' : 
+                      status === 'current' ? 'bg-primary/20' : 
+                      'bg-muted/30'
                     }`}>
                       {getStatusIcon(status)}
                     </div>
                   </div>
+                  
                   <ChromeSurface
-                    className={`p-4 transition-all duration-500 ${
-                      status === 'current' ? 'border-primary shadow-lg shadow-primary/20' : 
-                      status === 'completed' ? 'border-success/50' : ''
+                    className={`p-4 transition-all bg-card/40 backdrop-blur-sm ${
+                      status === 'current' ? 'border-primary/50 bg-primary/5' : 
+                      status === 'completed' ? 'border-emerald-500/30' : 'border-border/30'
                     }`}
-                    glow={status === 'current'}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-semibold ${
+                          <h3 className={`font-medium text-sm ${
                             status === 'current' ? 'text-primary' : 
-                            status === 'completed' ? 'text-success' : 
+                            status === 'completed' ? 'text-emerald-500' : 
                             'text-foreground'
                           }`}>
                             {getStageLabel(stage.stage)}
                           </h3>
                           {status === 'current' && (
-                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full animate-pulse">
-                              IN PROGRESS
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">
+                              In Progress
                             </span>
                           )}
                           {status === 'completed' && (
-                            <span className="px-2 py-0.5 bg-success/10 text-success text-xs rounded-full">
-                              COMPLETED
+                            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] rounded-full font-medium">
+                              Completed
                             </span>
                           )}
                         </div>
@@ -368,27 +421,29 @@ const JobTracking = () => {
                           </p>
                         )}
                         {stage.completed_at && (
-                          <p className="text-xs text-success mb-1">
+                          <p className="text-xs text-emerald-500 mb-1">
                             Completed: {new Date(stage.completed_at).toLocaleString()}
                           </p>
                         )}
                         {stage.notes && (
-                          <p className="text-sm text-foreground mt-2 p-2 bg-muted rounded">
+                          <p className="text-sm text-foreground mt-2 p-2.5 bg-muted/20 rounded-lg">
                             {stage.notes}
                           </p>
                         )}
 
                         {/* Progress Images */}
                         {stageImages[stage.id] && stageImages[stage.id].length > 0 && (
-                          <div className="mt-4">
-                            <div className="chrome-label text-xs mb-2">PROGRESS IMAGES</div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          <div className="mt-3">
+                            <div className="text-[10px] font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                              Progress Images
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {stageImages[stage.id].map((img) => (
                                 <img
                                   key={img.id}
                                   src={img.image_url}
                                   alt="Progress"
-                                  className="w-full h-32 object-cover rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                                  className="w-full h-24 sm:h-28 object-cover rounded-lg border border-border/30 cursor-pointer hover:opacity-80 transition-opacity"
                                   onClick={() => window.open(img.image_url, '_blank')}
                                 />
                               ))}
@@ -398,11 +453,11 @@ const JobTracking = () => {
                       </div>
                     </div>
                   </ChromeSurface>
-                </div>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
