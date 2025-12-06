@@ -151,44 +151,74 @@ All colors MUST be HSL.
     --sidebar-ring: 210 100% 98%;
   }
 
-  /* Staff Portal Brushed Bronze Theme - applies in both light and dark modes */
+  /* Staff Portal - Premium Stealth Wealth Theme */
   .staff-theme,
   .dark .staff-theme {
-    /* Premium champagne gold-bronze (chrome-gold, not orange) */
-    --primary: 42 45% 52%;
-    --primary-foreground: 0 0% 8%;
+    /* Core background system - matte charcoal */
+    --background: 215 22% 6%;
+    --background-alt: 215 18% 9%;
+    --foreground: 218 15% 93%;
     
-    --accent: 42 45% 52%;
-    --accent-foreground: 0 0% 8%;
-    --accent-soft: 45 38% 65%;
-    --accent-dark: 38 40% 28%;
+    /* Elevated surfaces */
+    --card: 215 18% 10%;
+    --card-foreground: 218 15% 93%;
+    --card-gradient-start: 215 18% 11%;
+    --card-gradient-end: 215 20% 8%;
     
-    --ring: 42 45% 52%;
+    --popover: 215 18% 10%;
+    --popover-foreground: 218 15% 93%;
     
-    /* Gold-chrome gradient stops */
-    --chrome-start: 48 35% 72%;
-    --chrome-mid: 42 45% 52%;
-    --chrome-end: 38 40% 28%;
+    /* Gold/Bronze accents - micro-accent only */
+    --accent-1: 47 90% 75%;
+    --accent-2: 35 65% 50%;
+    --accent-3: 25 55% 29%;
     
-    /* Gold-bronze accent for box shading */
-    --bronze-accent: 42 45% 52%;
-    --bronze-accent-glow: 42 45% 52% / 0.15;
-    --bronze-accent-border: 42 45% 52% / 0.25;
+    /* Primary uses accent-2 (mid gold) */
+    --primary: 35 65% 50%;
+    --primary-foreground: 215 22% 6%;
     
-    /* Gold-bronze text hierarchy */
-    --bronze-deep: 38 38% 18%;
-    --bronze-dark: 40 42% 32%;
-    --bronze-primary: 42 45% 52%;
-    --bronze-mid: 45 38% 62%;
-    --bronze-light: 48 35% 75%;
+    --accent: 35 65% 50%;
+    --accent-foreground: 215 22% 6%;
+    --accent-soft: 47 90% 75%;
+    --accent-dark: 25 55% 29%;
     
-    /* Sidebar with gold-bronze tint */
-    --sidebar-primary: 42 45% 52%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-ring: 42 45% 52%;
+    --ring: 35 65% 50%;
     
-    /* Cards get subtle gold-bronze border glow */
-    --card-border-accent: 42 45% 52% / 0.2;
+    /* Secondary - subtle elevation */
+    --secondary: 215 15% 14%;
+    --secondary-foreground: 218 15% 93%;
+    
+    /* Muted tones */
+    --muted: 215 15% 12%;
+    --muted-foreground: 215 12% 60%;
+    
+    /* Borders - very subtle */
+    --border: 0 0% 100% / 0.06;
+    --border-softer: 0 0% 100% / 0.03;
+    --input: 215 15% 14%;
+    
+    /* Text hierarchy */
+    --text-primary: 218 15% 93%;
+    --text-secondary: 215 12% 60%;
+    --text-tertiary: 215 10% 45%;
+    
+    /* Sidebar */
+    --sidebar-background: 215 20% 8%;
+    --sidebar-foreground: 218 15% 93%;
+    --sidebar-primary: 35 65% 50%;
+    --sidebar-primary-foreground: 215 22% 6%;
+    --sidebar-accent: 215 15% 12%;
+    --sidebar-accent-foreground: 218 15% 93%;
+    --sidebar-border: 0 0% 100% / 0.06;
+    --sidebar-ring: 35 65% 50%;
+    
+    /* Success/Warning/Destructive - lower saturation */
+    --success: 160 45% 50%;
+    --success-foreground: 215 22% 6%;
+    --warning: 35 70% 55%;
+    --warning-foreground: 215 22% 6%;
+    --destructive: 0 55% 55%;
+    --destructive-foreground: 0 0% 98%;
   }
 }
 
@@ -461,70 +491,158 @@ All colors MUST be HSL.
     transform: translateX(100%);
   }
 
-  /* Glow effects */
+  /* Glow effects - subtle elevation */
   .chrome-glow {
-    box-shadow: 0 0 20px rgba(246, 250, 255, 0.1), 0 0 40px rgba(246, 250, 255, 0.05);
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.12),
+      0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   .chrome-glow-strong {
-    box-shadow: 0 0 30px rgba(246, 250, 255, 0.2), 0 0 60px rgba(246, 250, 255, 0.1);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.16),
+      0 8px 24px rgba(0, 0, 0, 0.12);
   }
 
-  /* Staff gold-bronze accent box shadows - subtle glow around all boxes */
+  /* Staff theme - Premium stealth wealth card styling */
+  .staff-theme .chrome-surface,
   .staff-theme .chrome-glow,
+  .staff-theme .staff-card {
+    background: hsl(215 18% 10%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .staff-theme .chrome-glow-strong,
+  .staff-theme .staff-card-elevated {
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.25),
+      0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Remove heavy gold borders/glows from all elements */
   .staff-theme [class*="rounded"],
   .staff-theme .card,
   .staff-theme [class*="Card"] {
-    box-shadow: 
-      0 0 0 1px hsl(42 45% 52% / 0.12),
-      0 1px 3px hsl(42 45% 52% / 0.08),
-      0 4px 12px hsl(42 45% 52% / 0.06);
+    box-shadow: none;
   }
 
-  .staff-theme .chrome-glow-strong {
-    box-shadow: 
-      0 0 0 1px hsl(42 45% 52% / 0.2),
-      0 2px 8px hsl(42 45% 52% / 0.15),
-      0 8px 24px hsl(42 45% 52% / 0.1);
-  }
-
-  /* Gold-bronze border accent on inputs and interactive elements */
+  /* Focus states - subtle gold ring */
   .staff-theme input:focus,
   .staff-theme select:focus,
   .staff-theme textarea:focus,
   .staff-theme button:focus-visible {
-    box-shadow: 
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(42 45% 52% / 0.35);
+    box-shadow: 0 0 0 2px hsl(35 65% 50% / 0.25);
+    outline: none;
   }
 
-  /* Staff brushed gold-bronze sheen effect */
+  /* Staff theme sheen - disabled for cleaner look */
   .staff-theme .chrome-sheen::after {
-    background: linear-gradient(45deg, transparent 30%, hsl(42 45% 58% / 0.2) 50%, transparent 70%);
+    display: none;
   }
 
   .staff-theme .chrome-surface::before {
-    background: linear-gradient(135deg, hsl(45 38% 65% / 0.1) 0%, hsl(42 45% 52% / 0.08) 100%);
+    display: none;
   }
 
-  /* Brushed gold-bronze texture overlay - champagne chrome */
-  .brushed-bronze {
-    background-image: 
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 1px, rgba(255,255,255,0) 1px 5px),
-      linear-gradient(120deg, hsl(38 38% 18%) 0%, hsl(40 42% 32%) 30%, hsl(42 45% 52%) 55%, hsl(45 38% 62%) 75%, hsl(48 35% 75%) 100%);
+  /* Ambient glow - top-left warm radial */
+  .staff-theme-ambient {
+    position: relative;
+  }
+  
+  .staff-theme-ambient::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: -10%;
+    width: 50%;
+    height: 60%;
+    background: radial-gradient(
+      ellipse at center,
+      hsl(35 50% 40% / 0.08) 0%,
+      hsl(35 50% 40% / 0.03) 40%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
   }
 
-  .bronze-glow {
-    box-shadow: 
-      0 0 0 1px hsl(42 45% 52% / 0.15),
-      0 0 16px hsl(42 45% 52% / 0.12),
-      0 0 32px hsl(42 45% 52% / 0.06);
+  /* Status chips - flat, low saturation */
+  .staff-theme .status-pending {
+    background: hsl(35 40% 45% / 0.15);
+    border: 1px solid hsl(35 40% 45% / 0.25);
+    color: hsl(35 50% 65%);
+  }
+  
+  .staff-theme .status-confirmed,
+  .staff-theme .status-in-progress {
+    background: hsl(200 40% 45% / 0.15);
+    border: 1px solid hsl(200 40% 45% / 0.25);
+    color: hsl(200 50% 65%);
+  }
+  
+  .staff-theme .status-completed {
+    background: hsl(160 35% 40% / 0.15);
+    border: 1px solid hsl(160 35% 40% / 0.25);
+    color: hsl(160 45% 60%);
+  }
+  
+  .staff-theme .status-cancelled {
+    background: hsl(0 40% 45% / 0.15);
+    border: 1px solid hsl(0 40% 45% / 0.25);
+    color: hsl(0 50% 65%);
   }
 
-  /* Gold-bronze accent border utility */
-  .staff-theme .border,
-  .staff-theme [class*="border-"] {
-    border-color: hsl(42 45% 52% / 0.15);
+  /* Typography refinements for staff */
+  .staff-theme .page-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: hsl(218 15% 93%);
+  }
+  
+  .staff-theme .section-header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: hsl(218 15% 93%);
+  }
+  
+  .staff-theme .label-muted {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: hsl(215 12% 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .staff-theme .kpi-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: hsl(218 15% 93%);
+    line-height: 1;
+  }
+
+  /* Dividers */
+  .staff-theme .divider {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Nav active state - gold underline */
+  .staff-theme .nav-active {
+    position: relative;
+  }
+  
+  .staff-theme .nav-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, hsl(47 90% 75%), hsl(35 65% 50%));
+    border-radius: 1px;
   }
 }
 

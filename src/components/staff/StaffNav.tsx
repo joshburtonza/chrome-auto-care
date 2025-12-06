@@ -1,11 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Calendar, Users, Settings, LogOut, Package, Store, ShoppingBag, ListTodo } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
-
 import { MobileStaffNav } from './MobileStaffNav';
+import { cn } from '@/lib/utils';
 
 export const StaffNav = () => {
   const location = useLocation();
@@ -27,39 +26,51 @@ export const StaffNav = () => {
       <MobileStaffNav />
       
       {/* Desktop Navigation */}
-      <nav className="bg-card/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 hidden md:block">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-8">
-              <Link to="/staff/dashboard" className="chrome-label text-primary hover:text-primary/80 transition-colors">
-                STAFF PORTAL
+      <nav className="hidden md:block sticky top-0 z-50 border-b border-white/[0.06] bg-[hsl(215,20%,8%)]/95 backdrop-blur-md">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center gap-10">
+              <Link 
+                to="/staff/dashboard" 
+                className="text-[11px] font-medium uppercase tracking-[0.15em] text-[hsl(215,12%,60%)] hover:text-[hsl(218,15%,93%)] transition-colors"
+              >
+                Staff Portal
               </Link>
-              <div className="flex gap-1">
+              <div className="flex items-center gap-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
                   return (
                     <Link key={item.path} to={item.path}>
-                      <Button
-                        variant={isActive ? 'default' : 'ghost'}
-                        size="sm"
-                        className="gap-2"
+                      <button
+                        className={cn(
+                          "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md",
+                          isActive 
+                            ? "text-[hsl(218,15%,93%)]" 
+                            : "text-[hsl(215,12%,55%)] hover:text-[hsl(218,15%,80%)] hover:bg-white/[0.03]"
+                        )}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-4 h-4" strokeWidth={1.5} />
                         <span className="hidden lg:inline">{item.label}</span>
-                      </Button>
+                        {isActive && (
+                          <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-[hsl(47,90%,75%)] to-[hsl(35,65%,50%)] rounded-full" />
+                        )}
+                      </button>
                     </Link>
                   );
                 })}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <ThemeToggle />
               <NotificationBell />
-              <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-                <LogOut className="w-4 h-4" />
+              <button 
+                onClick={signOut} 
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[hsl(215,12%,55%)] hover:text-[hsl(218,15%,80%)] hover:bg-white/[0.03] transition-colors rounded-md"
+              >
+                <LogOut className="w-4 h-4" strokeWidth={1.5} />
                 <span className="hidden lg:inline">Logout</span>
-              </Button>
+              </button>
             </div>
           </div>
         </div>

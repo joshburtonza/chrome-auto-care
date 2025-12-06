@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { StaffNav } from '@/components/staff/StaffNav';
-import { ChromeSurface } from '@/components/chrome/ChromeSurface';
-import { ChromeButton } from '@/components/chrome/ChromeButton';
-import { StatusBadge } from '@/components/chrome/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, Users, Clock, AlertCircle, Activity, CheckCircle } from 'lucide-react';
+import { Calendar, Users, Clock, AlertCircle, Activity, CheckCircle, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export default function StaffDashboard() {
   const [stats, setStats] = useState({
@@ -141,122 +139,201 @@ export default function StaffDashboard() {
     }
   };
 
-  const statCards = [
-    { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, color: 'primary' },
-    { label: 'Pending', value: stats.pendingBookings, icon: Clock, color: 'warning' },
-    { label: 'In Progress', value: stats.activeBookings, icon: Clock, color: 'info' },
-    { label: 'Total Customers', value: stats.totalCustomers, icon: Users, color: 'success' },
-  ];
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-[hsl(35,40%,45%)]/15 border-[hsl(35,40%,45%)]/25 text-[hsl(35,50%,65%)]';
+      case 'confirmed':
+      case 'in_progress':
+        return 'bg-[hsl(200,40%,45%)]/15 border-[hsl(200,40%,45%)]/25 text-[hsl(200,50%,65%)]';
+      case 'completed':
+        return 'bg-[hsl(160,35%,40%)]/15 border-[hsl(160,35%,40%)]/25 text-[hsl(160,45%,60%)]';
+      case 'cancelled':
+        return 'bg-[hsl(0,40%,45%)]/15 border-[hsl(0,40%,45%)]/25 text-[hsl(0,50%,65%)]';
+      default:
+        return 'bg-white/5 border-white/10 text-[hsl(215,12%,60%)]';
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   return (
-    <div className="min-h-screen bg-background staff-theme">
+    <div className="min-h-screen bg-[hsl(215,22%,6%)] staff-theme staff-theme-ambient">
       <StaffNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
-        <div className="mb-4 sm:mb-6 md:mb-8">
-          <h1 className="chrome-heading text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">STAFF DASHBOARD</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Overview of bookings and customer activity</p>
+      
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl relative z-10">
+        {/* Page Header */}
+        <div className="mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-[28px] font-semibold tracking-[-0.01em] text-[hsl(218,15%,93%)] mb-1">
+            Staff Dashboard
+          </h1>
+          <p className="text-sm text-[hsl(215,12%,55%)]">
+            Overview of bookings and customer activity
+          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
-          <Link to="/staff/bookings">
-            <ChromeSurface className="p-4 sm:p-5 md:p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 bg-primary/10 rounded-lg shrink-0">
-                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+        {/* Overview Card - Primary KPIs grouped */}
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-[hsl(215,18%,10%)] rounded-2xl border border-white/[0.06] p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)]">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold text-[hsl(218,15%,93%)]">Overview</h2>
+              <Link 
+                to="/staff/bookings"
+                className="text-xs font-medium text-[hsl(35,65%,50%)] hover:text-[hsl(47,90%,75%)] transition-colors flex items-center gap-1"
+              >
+                View all
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+              <Link to="/staff/bookings" className="group">
+                <div className="space-y-1">
+                  <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                    Pending
+                  </div>
+                  <div className="text-[28px] sm:text-[32px] font-bold text-[hsl(218,15%,93%)] leading-none group-hover:text-[hsl(35,65%,50%)] transition-colors">
+                    {stats.pendingBookings}
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.pendingBookings}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Pending Bookings</div>
+              </Link>
+              <Link to="/staff/bookings" className="group">
+                <div className="space-y-1">
+                  <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                    In Progress
+                  </div>
+                  <div className="text-[28px] sm:text-[32px] font-bold text-[hsl(218,15%,93%)] leading-none group-hover:text-[hsl(35,65%,50%)] transition-colors">
+                    {stats.activeBookings}
+                  </div>
+                </div>
+              </Link>
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                  Completed
+                </div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-[hsl(218,15%,93%)] leading-none">
+                  {stats.completedBookings}
                 </div>
               </div>
-            </ChromeSurface>
-          </Link>
-
-          <Link to="/staff/bookings">
-            <ChromeSurface className="p-4 sm:p-5 md:p-6 hover:border-primary transition-colors cursor-pointer chrome-sheen" glow>
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 bg-primary/10 rounded-lg shrink-0">
-                  <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                  Customers
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.activeBookings}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">In Progress</div>
+                <div className="text-[28px] sm:text-[32px] font-bold text-[hsl(218,15%,93%)] leading-none">
+                  {stats.totalCustomers}
                 </div>
-              </div>
-            </ChromeSurface>
-          </Link>
-
-          <ChromeSurface className="p-4 sm:p-5 md:p-6 chrome-sheen sm:col-span-2 md:col-span-1" glow>
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-success/10 rounded-lg shrink-0">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.completedBookings}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Completed</div>
               </div>
             </div>
-          </ChromeSurface>
+          </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8 animate-fade-in">
-          {statCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <ChromeSurface key={stat.label} className="p-3 sm:p-4 md:p-6 chrome-sheen" glow>
-                <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
-                  <div className="chrome-label text-xs sm:text-sm truncate pr-2">{stat.label}</div>
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                </div>
-                <div className="chrome-heading text-xl sm:text-2xl md:text-3xl">{stat.value}</div>
-              </ChromeSurface>
-            );
-          })}
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-[hsl(215,18%,10%)] rounded-xl border border-white/[0.06] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                Total Bookings
+              </span>
+              <Calendar className="w-4 h-4 text-[hsl(215,12%,45%)]" strokeWidth={1.5} />
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-[hsl(218,15%,93%)]">
+              {stats.totalBookings}
+            </div>
+          </div>
+          <div className="bg-[hsl(215,18%,10%)] rounded-xl border border-white/[0.06] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                Pending
+              </span>
+              <Clock className="w-4 h-4 text-[hsl(35,50%,55%)]" strokeWidth={1.5} />
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-[hsl(218,15%,93%)]">
+              {stats.pendingBookings}
+            </div>
+          </div>
+          <div className="bg-[hsl(215,18%,10%)] rounded-xl border border-white/[0.06] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                In Progress
+              </span>
+              <Activity className="w-4 h-4 text-[hsl(200,50%,55%)]" strokeWidth={1.5} />
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-[hsl(218,15%,93%)]">
+              {stats.activeBookings}
+            </div>
+          </div>
+          <div className="bg-[hsl(215,18%,10%)] rounded-xl border border-white/[0.06] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-medium uppercase tracking-[0.05em] text-[hsl(215,12%,55%)]">
+                Total Customers
+              </span>
+              <Users className="w-4 h-4 text-[hsl(160,40%,50%)]" strokeWidth={1.5} />
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-[hsl(218,15%,93%)]">
+              {stats.totalCustomers}
+            </div>
+          </div>
         </div>
 
         {/* Recent Bookings */}
-        <ChromeSurface className="p-3 sm:p-4 md:p-6" glow>
-          <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6 gap-2">
-            <h2 className="chrome-heading text-lg sm:text-xl md:text-2xl">RECENT BOOKINGS</h2>
-            <Link to="/staff/bookings">
-              <ChromeButton variant="outline" size="sm" className="text-xs sm:text-sm">View All</ChromeButton>
+        <div className="bg-[hsl(215,18%,10%)] rounded-2xl border border-white/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)] overflow-hidden">
+          <div className="flex items-center justify-between p-5 sm:p-6 border-b border-white/[0.06]">
+            <h2 className="text-sm font-semibold text-[hsl(218,15%,93%)]">Recent Bookings</h2>
+            <Link 
+              to="/staff/bookings"
+              className="text-xs font-medium text-[hsl(35,65%,50%)] hover:text-[hsl(47,90%,75%)] transition-colors flex items-center gap-1"
+            >
+              View all
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="space-y-2 sm:space-y-3 md:space-y-4">
+          
+          <div className="divide-y divide-white/[0.06]">
             {recentBookings.length === 0 ? (
-              <div className="text-center py-6 sm:py-8 text-text-tertiary chrome-label text-xs sm:text-sm">NO BOOKINGS YET</div>
+              <div className="text-center py-12 text-[hsl(215,12%,50%)]">
+                <Calendar className="w-10 h-10 mx-auto mb-3 opacity-40" strokeWidth={1} />
+                <p className="text-sm">No bookings yet</p>
+              </div>
             ) : (
               recentBookings.map((booking) => (
                 <Link
                   key={booking.id}
                   to="/staff/bookings"
                   state={{ selectedBookingId: booking.id }}
+                  className="block"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-border rounded-lg hover:border-primary transition-colors chrome-sheen cursor-pointer gap-2 sm:gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm sm:text-base mb-1 text-foreground truncate">
+                  <div className="flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-white/[0.02] transition-colors">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <div className="font-medium text-sm text-[hsl(218,15%,93%)] truncate mb-0.5">
                         {booking.profiles?.full_name || 'Customer'}
                       </div>
-                      <div className="text-xs sm:text-sm text-text-secondary truncate">
+                      <div className="text-xs text-[hsl(215,12%,55%)] truncate">
                         {booking.services?.title}
                       </div>
-                      <div className="text-xs text-text-tertiary mt-1">
-                        {new Date(booking.booking_date).toLocaleDateString()} at {booking.booking_time}
+                      <div className="text-[11px] text-[hsl(215,12%,45%)] mt-1">
+                        {new Date(booking.booking_date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })} • {booking.booking_time}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-center">
-                      <StatusBadge status={booking.status} />
-                      <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary hidden sm:block" />
+                    <div className="flex items-center gap-3">
+                      <span className={cn(
+                        "px-2.5 py-1 text-[11px] font-medium rounded-full border",
+                        getStatusStyle(booking.status)
+                      )}>
+                        {formatStatus(booking.status)}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-[hsl(215,12%,40%)]" />
                     </div>
                   </div>
                 </Link>
               ))
             )}
           </div>
-        </ChromeSurface>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
