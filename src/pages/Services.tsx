@@ -214,54 +214,54 @@ const Services = () => {
   return (
     <div className="min-h-screen bg-background">
       <ClientNav />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="chrome-title text-4xl mb-2">OUR SERVICES</h1>
-          <p className="text-text-secondary">Premium automotive protection and enhancement solutions</p>
+        <div className="mb-6 sm:mb-12">
+          <h1 className="chrome-title text-2xl sm:text-4xl mb-1 sm:mb-2">OUR SERVICES</h1>
+          <p className="text-text-secondary text-sm sm:text-base">Premium automotive protection and enhancement solutions</p>
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {services.map((service) => {
             const ServiceIcon = getServiceIcon(service.category);
             return (
-              <ChromeSurface key={service.id} className="p-8 chrome-sheen group hover:chrome-glow-strong transition-all duration-300" glow>
-                <div className="mb-6 inline-flex p-4 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <ServiceIcon className="w-8 h-8 text-primary" strokeWidth={1.4} />
+              <ChromeSurface key={service.id} className="p-4 sm:p-8 chrome-sheen group hover:chrome-glow-strong transition-all duration-300" glow>
+                <div className="mb-4 sm:mb-6 inline-flex p-3 sm:p-4 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <ServiceIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.4} />
                 </div>
 
-                <div className="mb-4">
-                  <div className="chrome-label text-[10px] text-text-tertiary mb-2">{service.category}</div>
-                  <h3 className="text-xl font-light text-foreground mb-2">{service.title}</h3>
-                  <p className="text-text-secondary text-sm leading-relaxed">{service.description}</p>
+                <div className="mb-3 sm:mb-4">
+                  <div className="chrome-label text-[9px] sm:text-[10px] text-text-tertiary mb-1 sm:mb-2">{service.category}</div>
+                  <h3 className="text-lg sm:text-xl font-light text-foreground mb-1 sm:mb-2">{service.title}</h3>
+                  <p className="text-text-secondary text-xs sm:text-sm leading-relaxed">{service.description}</p>
                 </div>
 
                 {service.features && service.features.length > 0 && (
-                  <div className="space-y-2 mb-6 pb-6 border-b border-border/50">
+                  <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
                     {service.features.map((feature: string, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-text-secondary">
-                        <div className="w-1 h-1 rounded-full bg-primary" />
+                      <div key={idx} className="flex items-center gap-2 text-xs sm:text-sm text-text-secondary">
+                        <div className="w-1 h-1 rounded-full bg-primary flex-shrink-0" />
                         {feature}
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-4 text-sm text-text-secondary mb-2">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-text-secondary">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" strokeWidth={1.4} />
                         {service.duration}
                       </span>
-                    <span className="flex items-center gap-1">
-                      <DollarSign className="w-3 h-3" strokeWidth={1.4} />
-                      From R{service.price_from}
-                    </span>
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="w-3 h-3" strokeWidth={1.4} />
+                        From R{service.price_from}
+                      </span>
                     </div>
                   </div>
-                  <ChromeButton size="sm" onClick={() => setSelectedService(service)}>
+                  <ChromeButton size="sm" className="w-full sm:w-auto" onClick={() => setSelectedService(service)}>
                     Book Now
                   </ChromeButton>
                 </div>
@@ -273,7 +273,7 @@ const Services = () => {
 
       {/* Booking Modal */}
       <Dialog open={!!selectedService} onOpenChange={resetBookingModal}>
-        <DialogContent className="bg-card border-border max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto p-4 sm:p-6">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="chrome-title text-2xl">Book Service</DialogTitle>
