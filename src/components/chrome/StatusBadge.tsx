@@ -7,15 +7,15 @@ interface StatusBadgeProps {
 }
 
 const statusStyles = {
-  available: "bg-success/20 text-success border-success/30",
-  limited: "bg-warning/20 text-warning border-warning/30",
-  full: "bg-destructive/20 text-destructive border-destructive/30",
-  unavailable: "bg-muted/20 text-muted-foreground border-border",
-  pending: "bg-warning/20 text-warning border-warning/30",
-  confirmed: "bg-primary/20 text-primary border-primary/30",
-  in_progress: "bg-info/20 text-info border-info/30",
-  completed: "bg-success/20 text-success border-success/30",
-  cancelled: "bg-destructive/20 text-destructive border-destructive/30",
+  available: "bg-[hsl(160,35%,40%)]/15 text-[hsl(160,45%,60%)] border-[hsl(160,35%,40%)]/25",
+  limited: "bg-[hsl(35,40%,45%)]/15 text-[hsl(35,50%,65%)] border-[hsl(35,40%,45%)]/25",
+  full: "bg-[hsl(0,40%,45%)]/15 text-[hsl(0,50%,65%)] border-[hsl(0,40%,45%)]/25",
+  unavailable: "bg-white/5 text-[hsl(215,12%,55%)] border-white/10",
+  pending: "bg-[hsl(35,40%,45%)]/15 text-[hsl(35,50%,65%)] border-[hsl(35,40%,45%)]/25",
+  confirmed: "bg-[hsl(200,40%,45%)]/15 text-[hsl(200,50%,65%)] border-[hsl(200,40%,45%)]/25",
+  in_progress: "bg-[hsl(200,40%,45%)]/15 text-[hsl(200,50%,65%)] border-[hsl(200,40%,45%)]/25",
+  completed: "bg-[hsl(160,35%,40%)]/15 text-[hsl(160,45%,60%)] border-[hsl(160,35%,40%)]/25",
+  cancelled: "bg-[hsl(0,40%,45%)]/15 text-[hsl(0,50%,65%)] border-[hsl(0,40%,45%)]/25",
 };
 
 const statusLabels = {
@@ -33,15 +33,14 @@ const statusLabels = {
 export const StatusBadge = ({ status, children, className }: StatusBadgeProps) => {
   const displayText = children || statusLabels[status];
   return (
-    <div
+    <span
       className={cn(
-        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border chrome-label text-xs",
+        "inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-medium",
         statusStyles[status],
         className
       )}
     >
-      <div className="w-1.5 h-1.5 rounded-full bg-current" />
       {displayText}
-    </div>
+    </span>
   );
 };
