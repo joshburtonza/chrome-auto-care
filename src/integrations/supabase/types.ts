@@ -165,6 +165,7 @@ export type Database = {
           priority: string | null
           service_id: string
           status: Database["public"]["Enums"]["booking_status"] | null
+          template_id: string | null
           updated_at: string | null
           user_id: string
           vehicle_id: string | null
@@ -185,6 +186,7 @@ export type Database = {
           priority?: string | null
           service_id: string
           status?: Database["public"]["Enums"]["booking_status"] | null
+          template_id?: string | null
           updated_at?: string | null
           user_id: string
           vehicle_id?: string | null
@@ -205,6 +207,7 @@ export type Database = {
           priority?: string | null
           service_id?: string
           status?: Database["public"]["Enums"]["booking_status"] | null
+          template_id?: string | null
           updated_at?: string | null
           user_id?: string
           vehicle_id?: string | null
@@ -217,6 +220,13 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "process_templates"
             referencedColumns: ["id"]
           },
           {
@@ -259,6 +269,44 @@ export type Database = {
             columns: ["merchandise_id"]
             isOneToOne: false
             referencedRelation: "merchandise"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          manager_id: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          manager_id?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          manager_id?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "staff_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -401,6 +449,51 @@ export type Database = {
           price?: number
           stock_quantity?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          in_app_enabled: boolean | null
+          notify_booking_confirmations: boolean | null
+          notify_eta_updates: boolean | null
+          notify_promotions: boolean | null
+          notify_ready_for_pickup: boolean | null
+          notify_stage_updates: boolean | null
+          push_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+          whatsapp_enabled: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          in_app_enabled?: boolean | null
+          notify_booking_confirmations?: boolean | null
+          notify_eta_updates?: boolean | null
+          notify_promotions?: boolean | null
+          notify_ready_for_pickup?: boolean | null
+          notify_stage_updates?: boolean | null
+          push_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          whatsapp_enabled?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          in_app_enabled?: boolean | null
+          notify_booking_confirmations?: boolean | null
+          notify_eta_updates?: boolean | null
+          notify_promotions?: boolean | null
+          notify_ready_for_pickup?: boolean | null
+          notify_stage_updates?: boolean | null
+          push_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          whatsapp_enabled?: boolean | null
         }
         Relationships: []
       }
@@ -551,6 +644,91 @@ export type Database = {
         }
         Relationships: []
       }
+      process_template_stages: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          requires_photo: boolean | null
+          stage_name: string
+          stage_order: number
+          template_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          requires_photo?: boolean | null
+          stage_name: string
+          stage_order: number
+          template_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          requires_photo?: boolean | null
+          stage_name?: string
+          stage_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "process_template_stages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "process_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      process_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          service_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          service_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          service_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "process_templates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -575,6 +753,39 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string | null
+          device_info: string | null
+          endpoint: string
+          expires_at: string | null
+          id: string
+          p256dh_key: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string | null
+          device_info?: string | null
+          endpoint: string
+          expires_at?: string | null
+          id?: string
+          p256dh_key: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string | null
+          device_info?: string | null
+          endpoint?: string
+          expires_at?: string | null
+          id?: string
+          p256dh_key?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -659,6 +870,7 @@ export type Database = {
         Row: {
           created_at: string
           department: string | null
+          department_id: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           id: string
@@ -673,6 +885,7 @@ export type Database = {
         Insert: {
           created_at?: string
           department?: string | null
+          department_id?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
@@ -687,6 +900,7 @@ export type Database = {
         Update: {
           created_at?: string
           department?: string | null
+          department_id?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
@@ -698,7 +912,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "staff_profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
