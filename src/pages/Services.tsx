@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Shield, Sparkles, Car, Clock, TestTube } from "lucide-react";
+import { Shield, Sparkles, Car, Clock } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
@@ -10,8 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClientNav } from "@/components/client/ClientNav";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -46,7 +44,7 @@ const Services = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [bookingStep, setBookingStep] = useState<'calendar' | 'time' | 'details'>('calendar');
-  const [testMode, setTestMode] = useState(true);
+  
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
@@ -184,7 +182,7 @@ const Services = () => {
             bookingId: booking.id,
             amount: selectedService.price_from,
             currency: 'ZAR',
-            testMode: testMode,
+            testMode: false,
           },
         }
       );
@@ -325,21 +323,7 @@ const Services = () => {
       <Dialog open={!!selectedService} onOpenChange={resetBookingModal}>
         <DialogContent className="bg-card/95 backdrop-blur-md border-border/50 max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto p-4 sm:p-6">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-semibold">Book Service</DialogTitle>
-              <div className="flex items-center gap-2">
-                <TestTube className={`w-4 h-4 ${testMode ? 'text-amber-500' : 'text-emerald-500'}`} />
-                <Label htmlFor="test-mode" className="text-sm font-normal cursor-pointer text-muted-foreground">
-                  {testMode ? 'Test Mode' : 'Live Mode'}
-                </Label>
-                <Switch
-                  id="test-mode"
-                  checked={testMode}
-                  onCheckedChange={setTestMode}
-                  className="data-[state=checked]:bg-amber-500"
-                />
-              </div>
-            </div>
+            <DialogTitle className="text-xl font-semibold">Book Service</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 mt-2">
             {selectedService && (
@@ -396,12 +380,6 @@ const Services = () => {
                       <div className="text-[10px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
                         Booking Details
                       </div>
-                      {testMode && (
-                        <div className="mb-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
-                          <TestTube className="w-4 h-4 text-amber-500" />
-                          <span className="text-xs text-amber-500">Test Mode Active - No real charges will be made</span>
-                        </div>
-                      )}
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Date:</span>
