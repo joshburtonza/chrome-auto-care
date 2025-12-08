@@ -263,6 +263,111 @@ export type Database = {
           },
         ]
       }
+      inventory: {
+        Row: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          cost_per_unit: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_consumable: boolean | null
+          last_restocked_at: string | null
+          location: string | null
+          min_stock_level: number | null
+          name: string
+          quantity: number
+          sku: string | null
+          supplier: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          cost_per_unit?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_consumable?: boolean | null
+          last_restocked_at?: string | null
+          location?: string | null
+          min_stock_level?: number | null
+          name: string
+          quantity?: number
+          sku?: string | null
+          supplier?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["inventory_category"]
+          cost_per_unit?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_consumable?: boolean | null
+          last_restocked_at?: string | null
+          location?: string | null
+          min_stock_level?: number | null
+          name?: string
+          quantity?: number
+          sku?: string | null
+          supplier?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_transactions: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          inventory_id: string
+          notes: string | null
+          performed_by: string
+          quantity: number
+          transaction_type: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          inventory_id: string
+          notes?: string | null
+          performed_by: string
+          quantity: number
+          transaction_type: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          inventory_id?: string
+          notes?: string | null
+          performed_by?: string
+          quantity?: number
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transactions_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchandise: {
         Row: {
           category: string
@@ -550,6 +655,48 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_profiles: {
+        Row: {
+          created_at: string
+          department: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          id: string
+          job_title: string | null
+          notes: string | null
+          skills: string[] | null
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          job_title?: string | null
+          notes?: string | null
+          skills?: string[] | null
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          job_title?: string | null
+          notes?: string | null
+          skills?: string[] | null
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -636,6 +783,16 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      inventory_category:
+        | "ppf_film"
+        | "vinyl"
+        | "adhesives"
+        | "cleaning_supplies"
+        | "polishing_compounds"
+        | "tools"
+        | "equipment"
+        | "safety_gear"
+        | "other"
       stage_type:
         | "vehicle_checkin"
         | "stripping"
@@ -781,6 +938,17 @@ export const Constants = {
         "in_progress",
         "completed",
         "cancelled",
+      ],
+      inventory_category: [
+        "ppf_film",
+        "vinyl",
+        "adhesives",
+        "cleaning_supplies",
+        "polishing_compounds",
+        "tools",
+        "equipment",
+        "safety_gear",
+        "other",
       ],
       stage_type: [
         "vehicle_checkin",
