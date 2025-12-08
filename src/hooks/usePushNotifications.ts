@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -7,7 +7,11 @@ interface PushSubscriptionState {
   isSubscribed: boolean;
   isLoading: boolean;
   permission: NotificationPermission | 'default';
+  iosInstructions: boolean;
 }
+
+// Cache for VAPID key
+let cachedVapidKey: string | null = null;
 
 export const usePushNotifications = () => {
   const { user } = useAuth();
@@ -16,22 +20,94 @@ export const usePushNotifications = () => {
     isSubscribed: false,
     isLoading: true,
     permission: 'default',
+    iosInstructions: false,
   });
+
+  // Fetch VAPID public key from edge function
+  const getVapidKey = useCallback(async (): Promise<string | null> => {
+    if (cachedVapidKey) return cachedVapidKey;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('get-vapid-key');
+      if (error || !data?.publicKey) {
+        console.error('[Push] Failed to get VAPID key:', error);
+        return null;
+      }
+      cachedVapidKey = data.publicKey;
+      return data.publicKey;
+    } catch (error) {
+      console.error('[Push] Error fetching VAPID key:', error);
+      return null;
+    }
+  }, []);
+
+  // Detect iOS
+  const isIOS = useCallback(() => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }, []);
+
+  // Check if running as installed PWA
+  const isInstalledPWA = useCallback(() => {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           (window.navigator as any).standalone === true;
+  }, []);
 
   // Check if push notifications are supported
   const checkSupport = useCallback(() => {
-    const isSupported =
-      'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window;
+    const hasServiceWorker = 'serviceWorker' in navigator;
+    const hasPushManager = 'PushManager' in window;
+    const hasNotification = 'Notification' in window;
     
-    return isSupported;
+    // iOS requires PWA to be installed for push to work
+    if (isIOS() && !isInstalledPWA()) {
+      console.log('[Push] iOS detected but not installed as PWA');
+      return false;
+    }
+    
+    return hasServiceWorker && hasPushManager && hasNotification;
+  }, [isIOS, isInstalledPWA]);
+
+  // Register push service worker
+  const registerPushServiceWorker = useCallback(async () => {
+    try {
+      // First check if there's an existing service worker
+      const existingReg = await navigator.serviceWorker.getRegistration();
+      if (existingReg) {
+        console.log('[Push] Using existing service worker');
+        return existingReg;
+      }
+      
+      // Register the push-specific service worker
+      const registration = await navigator.serviceWorker.register('/sw-push.js', {
+        scope: '/'
+      });
+      
+      console.log('[Push] Service worker registered:', registration);
+      return registration;
+    } catch (error) {
+      console.error('[Push] Service worker registration failed:', error);
+      throw error;
+    }
   }, []);
 
   // Check current subscription status
   const checkSubscription = useCallback(async () => {
-    if (!user || !checkSupport()) {
-      setState(prev => ({ ...prev, isLoading: false, isSupported: checkSupport() }));
+    if (!user) {
+      setState(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+
+    const isSupported = checkSupport();
+    const showIosInstructions = isIOS() && !isInstalledPWA();
+    
+    if (!isSupported) {
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        isSupported: false,
+        iosInstructions: showIosInstructions,
+      }));
       return;
     }
 
@@ -49,16 +125,25 @@ export const usePushNotifications = () => {
         isSubscribed: (subscriptions?.length ?? 0) > 0,
         isLoading: false,
         permission,
+        iosInstructions: false,
       });
     } catch (error) {
       console.error('Error checking push subscription:', error);
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [user, checkSupport]);
+  }, [user, checkSupport, isIOS, isInstalledPWA]);
 
   // Subscribe to push notifications
   const subscribe = useCallback(async (): Promise<boolean> => {
-    if (!user || !checkSupport()) return false;
+    if (!user) return false;
+    
+    // Show iOS instructions if needed
+    if (isIOS() && !isInstalledPWA()) {
+      setState(prev => ({ ...prev, iosInstructions: true }));
+      return false;
+    }
+    
+    if (!checkSupport()) return false;
 
     try {
       setState(prev => ({ ...prev, isLoading: true }));
@@ -70,12 +155,13 @@ export const usePushNotifications = () => {
         return false;
       }
 
-      // Get service worker registration
-      const registration = await navigator.serviceWorker.ready;
+      // Register/get service worker
+      const registration = await registerPushServiceWorker();
+      await navigator.serviceWorker.ready;
 
-      // Get VAPID public key from environment
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidPublicKey) {
+      // Get VAPID key from edge function
+      const vapidKey = await getVapidKey();
+      if (!vapidKey) {
         console.error('VAPID public key not configured');
         setState(prev => ({ ...prev, isLoading: false }));
         return false;
@@ -84,7 +170,7 @@ export const usePushNotifications = () => {
       // Subscribe to push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
       const subscriptionJson = subscription.toJSON();
@@ -118,6 +204,7 @@ export const usePushNotifications = () => {
         isSubscribed: true,
         isLoading: false,
         permission: 'granted',
+        iosInstructions: false,
       });
 
       return true;
@@ -126,7 +213,7 @@ export const usePushNotifications = () => {
       setState(prev => ({ ...prev, isLoading: false }));
       return false;
     }
-  }, [user, checkSupport]);
+  }, [user, checkSupport, isIOS, isInstalledPWA, registerPushServiceWorker]);
 
   // Unsubscribe from push notifications
   const unsubscribe = useCallback(async (): Promise<boolean> => {
@@ -171,6 +258,11 @@ export const usePushNotifications = () => {
     }
   }, [user]);
 
+  // Dismiss iOS instructions
+  const dismissIosInstructions = useCallback(() => {
+    setState(prev => ({ ...prev, iosInstructions: false }));
+  }, []);
+
   useEffect(() => {
     checkSubscription();
   }, [checkSubscription]);
@@ -180,6 +272,9 @@ export const usePushNotifications = () => {
     subscribe,
     unsubscribe,
     refresh: checkSubscription,
+    dismissIosInstructions,
+    isIOS: isIOS(),
+    isInstalledPWA: isInstalledPWA(),
   };
 };
 
