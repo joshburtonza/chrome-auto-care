@@ -9,6 +9,7 @@ import { ClientNav } from "@/components/client/ClientNav";
 import { AddVehicleDialog } from "@/components/garage/AddVehicleDialog";
 import { EditVehicleDialog } from "@/components/garage/EditVehicleDialog";
 import { motion } from "framer-motion";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 interface Vehicle {
   id: string;
@@ -41,6 +42,9 @@ const Garage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
+  // Enable swipe navigation on mobile
+  useSwipeNavigation();
 
   useEffect(() => {
     if (user) {

@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -33,6 +34,9 @@ const Dashboard = () => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [stages, setStages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Enable swipe navigation on mobile
+  useSwipeNavigation();
 
   useEffect(() => {
     if (user) {
