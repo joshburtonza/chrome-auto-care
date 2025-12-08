@@ -31,14 +31,14 @@ export const ClientNav = () => {
       <MobileNav />
       
       {/* Desktop Navigation */}
-      <nav className="bg-card/50 backdrop-blur-md border-b border-border/30 sticky top-0 z-50 hidden md:block">
-        <div className="container mx-auto px-4">
+      <nav className="bg-card/80 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50 hidden md:block">
+        <div className="container mx-auto px-6 max-w-4xl">
           <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-6">
-              <Link to="/dashboard" className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors tracking-wide">
+            <div className="flex items-center gap-8">
+              <Link to="/dashboard" className="text-sm font-semibold text-foreground tracking-tight">
                 RACE TECHNIK
               </Link>
-              <div className="flex gap-0.5">
+              <div className="flex gap-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -48,13 +48,13 @@ export const ClientNav = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={`gap-1.5 relative px-3 h-9 text-xs font-medium transition-colors ${
+                        className={`gap-2 relative px-3 h-9 text-xs font-medium rounded-lg transition-all ${
                           isActive 
-                            ? 'text-primary bg-primary/5' 
+                            ? 'text-foreground bg-muted/80' 
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                         }`}
                       >
-                        <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        <Icon className="w-4 h-4" strokeWidth={1.5} />
                         <span className="hidden lg:inline">{item.label}</span>
                         {showBadge && (
                           <Badge 
@@ -77,9 +77,9 @@ export const ClientNav = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={signOut} 
-                className="gap-1.5 h-9 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                className="gap-2 h-9 px-3 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg"
               >
-                <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <LogOut className="w-4 h-4" strokeWidth={1.5} />
                 <span className="hidden lg:inline">Logout</span>
               </Button>
             </div>

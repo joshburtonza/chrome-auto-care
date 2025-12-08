@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Shield, Sparkles, Car, Clock, DollarSign, TestTube } from "lucide-react";
+import { Shield, Sparkles, Car, Clock, TestTube } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
@@ -222,36 +222,27 @@ const Services = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-background">
       <ClientNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl relative">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-4xl">
         {/* Header */}
         <motion.div 
-          className="mb-6 sm:mb-10"
-          initial={{ opacity: 0, y: -20 }}
+          className="mb-8"
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-              Our Services
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
-            Premium automotive protection and enhancement solutions
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1">
+            Our Services
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Premium automotive protection and enhancement
           </p>
         </motion.div>
 
         {/* Services Grid */}
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+          className="space-y-4"
           variants={staggerContainer}
           initial="initial"
           animate="animate"
@@ -264,44 +255,44 @@ const Services = () => {
                 variants={fadeInUp}
                 transition={{ delay: index * 0.05 }}
               >
-                <ChromeSurface className="p-5 sm:p-6 bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/70 hover:border-primary/20 transition-all duration-300 group">
-                  <div className="mb-4 inline-flex p-3 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                    <ServiceIcon className="w-6 h-6 text-primary" strokeWidth={1.5} />
-                  </div>
-
-                  <div className="mb-4">
-                    <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
-                      {service.category}
+                <ChromeSurface className="p-5 sm:p-6" sheen>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-2xl bg-muted/50">
+                      <ServiceIcon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-lg font-medium text-foreground mb-1.5">{service.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{service.description}</p>
-                  </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        {service.category}
+                      </div>
+                      <h3 className="text-base font-semibold text-foreground mb-1">{service.title}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">{service.description}</p>
 
-                  {service.features && service.features.length > 0 && (
-                    <div className="space-y-1.5 mb-5 pb-5 border-b border-border/30">
-                      {service.features.map((feature: string, idx: number) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="w-1 h-1 rounded-full bg-primary flex-shrink-0" />
-                          {feature}
+                      {service.features && service.features.length > 0 && (
+                        <div className="space-y-1.5 mb-4">
+                          {service.features.map((feature: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-1 h-1 rounded-full bg-muted-foreground/50 flex-shrink-0" />
+                              {feature}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      )}
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        {service.duration}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <DollarSign className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        From R{service.price_from}
-                      </span>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border/30">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" strokeWidth={1.5} />
+                            {service.duration}
+                          </span>
+                          <span className="font-medium text-foreground">
+                            From R{service.price_from}
+                          </span>
+                        </div>
+                        <ChromeButton size="sm" className="w-full sm:w-auto" onClick={() => setSelectedService(service)}>
+                          Book Now
+                        </ChromeButton>
+                      </div>
                     </div>
-                    <ChromeButton size="sm" className="w-full sm:w-auto" onClick={() => setSelectedService(service)}>
-                      Book Now
-                    </ChromeButton>
                   </div>
                 </ChromeSurface>
               </motion.div>

@@ -2,7 +2,7 @@ import { ClientNav } from "@/components/client/ClientNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { Calendar, Car, Package, User, Clock, AlertCircle, ArrowRight, Sparkles } from "lucide-react";
+import { Calendar, Car, Package, User, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -204,30 +204,21 @@ const Dashboard = () => {
   const progress = calculateProgress();
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Ambient background glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 -right-20 w-64 h-64 bg-primary/3 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-background">
       <ClientNav />
       
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl relative">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-4xl">
         {/* Header */}
         <motion.div 
-          className="mb-6 sm:mb-8"
-          initial={{ opacity: 0, y: -20 }}
+          className="mb-8"
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-              Dashboard
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1">
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground text-sm">
             Track your services and manage your garage
           </p>
         </motion.div>
@@ -252,7 +243,7 @@ const Dashboard = () => {
                 }
               }}
             >
-              <SelectTrigger className="w-full bg-card/50 border-border/50 backdrop-blur-sm">
+            <SelectTrigger className="w-full bg-card border-border/50 rounded-xl">
                 <SelectValue placeholder="Select a booking" />
               </SelectTrigger>
               <SelectContent>
@@ -273,7 +264,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <ChromeSurface className="p-4 sm:p-6 mb-4 sm:mb-6 bg-card/60 backdrop-blur-sm border-border/40">
+            <ChromeSurface className="p-5 sm:p-6 mb-6" glow>
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                 <div>
                   <div className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
@@ -405,7 +396,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <ChromeSurface className="p-6 sm:p-8 mb-4 sm:mb-6 text-center bg-card/60 backdrop-blur-sm border-border/40">
+            <ChromeSurface className="p-8 sm:p-10 mb-6 text-center" glow>
               <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/50 mx-auto mb-3" />
               <h3 className="text-lg font-medium text-foreground mb-2">No Active Bookings</h3>
               <p className="text-muted-foreground text-sm mb-4">You don't have any active bookings at the moment.</p>
@@ -421,7 +412,7 @@ const Dashboard = () => {
 
         {/* Quick Actions Grid */}
         <motion.div 
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 sm:mb-6"
+          className="grid grid-cols-2 gap-3 sm:gap-4 mb-6"
           variants={staggerContainer}
           initial="initial"
           animate="animate"
@@ -438,9 +429,9 @@ const Dashboard = () => {
               transition={{ delay: index * 0.05 }}
             >
               <Link to={action.to}>
-                <ChromeSurface className="p-4 sm:p-5 bg-card/40 backdrop-blur-sm border-border/30 hover:bg-card/60 hover:border-primary/20 transition-all duration-300 cursor-pointer group">
-                  <action.icon className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                  <div className="text-xs sm:text-sm font-medium text-foreground">{action.label}</div>
+                <ChromeSurface className="p-5 sm:p-6 hover:scale-[1.02] transition-transform cursor-pointer" sheen>
+                  <action.icon className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
+                  <div className="text-sm font-medium text-foreground">{action.label}</div>
                 </ChromeSurface>
               </Link>
             </motion.div>
@@ -450,28 +441,28 @@ const Dashboard = () => {
         {/* Upcoming Bookings */}
         {upcomingBookings.length > 0 && (
           <motion.div 
-            className="mb-4 sm:mb-6"
+            className="mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <h2 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-foreground mb-3">
               Upcoming Bookings
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-3">
               {upcomingBookings.map((booking) => (
-                <ChromeSurface key={booking.id} className="p-4 bg-card/40 backdrop-blur-sm border-border/30">
-                  <div className="flex items-start justify-between gap-2">
+                <ChromeSurface key={booking.id} className="p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-foreground mb-1 truncate">
+                      <div className="text-sm font-medium text-foreground mb-1">
                         {booking.services?.title}
                       </div>
                       <div className="text-xs text-muted-foreground flex items-center gap-2">
-                        <Car className="w-3 h-3 flex-shrink-0" strokeWidth={1.5} />
-                        <span className="truncate">{booking.vehicles?.year} {booking.vehicles?.make}</span>
+                        <Car className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.5} />
+                        <span>{booking.vehicles?.year} {booking.vehicles?.make}</span>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground whitespace-nowrap">
+                    <div className="text-xs text-muted-foreground whitespace-nowrap font-medium">
                       {new Date(booking.booking_date).toLocaleDateString()}
                     </div>
                   </div>
@@ -486,14 +477,14 @@ const Dashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
           >
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <h2 className="text-sm font-medium text-foreground">
                 My Garage
               </h2>
               <ChromeButton variant="ghost" size="sm" asChild>
-                <Link to="/garage" className="text-xs">
+                <Link to="/garage" className="text-xs text-muted-foreground hover:text-foreground">
                   View All
                   <ArrowRight className="ml-1 w-3 h-3" strokeWidth={1.5} />
                 </Link>
@@ -501,12 +492,12 @@ const Dashboard = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {vehicles.map((vehicle) => (
-                <ChromeSurface key={vehicle.id} className="p-4 bg-card/40 backdrop-blur-sm border-border/30">
-                  <Car className="w-5 h-5 text-primary mb-2" strokeWidth={1.5} />
-                  <div className="text-sm font-medium text-foreground mb-0.5 truncate">
+                <ChromeSurface key={vehicle.id} className="p-4 sm:p-5">
+                  <Car className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
+                  <div className="text-sm font-medium text-foreground mb-0.5">
                     {vehicle.year} {vehicle.make}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{vehicle.model}</div>
+                  <div className="text-xs text-muted-foreground">{vehicle.model}</div>
                 </ChromeSurface>
               ))}
             </div>

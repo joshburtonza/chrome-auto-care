@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { User, Mail, Phone, MapPin, Calendar, CreditCard, LogOut, Sparkles } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, CreditCard, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,45 +95,37 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-background">
       <ClientNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl relative">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-2xl">
         {/* Header */}
         <motion.div 
-          className="mb-6 sm:mb-8"
-          initial={{ opacity: 0, y: -20 }}
+          className="mb-8"
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-              Profile
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
-            Manage your account information and preferences
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1">
+            Profile
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage your account information
           </p>
         </motion.div>
 
         {/* Profile Card */}
         <motion.div {...fadeInUp}>
-          <ChromeSurface className="p-5 sm:p-6 mb-4 sm:mb-5 bg-card/60 backdrop-blur-sm border-border/40">
+          <ChromeSurface className="p-6 mb-4" glow>
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                  <User className="w-7 h-7 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
+                <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center">
+                  <User className="w-7 h-7 text-muted-foreground" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h2 className="text-lg sm:text-xl font-medium text-foreground mb-0.5">
+                  <h2 className="text-lg font-medium text-foreground mb-0.5">
                     {profile.full_name || 'Client'}
                   </h2>
-                  <div className="text-xs sm:text-sm text-muted-foreground">{user?.email}</div>
+                  <div className="text-sm text-muted-foreground">{user?.email}</div>
                 </div>
               </div>
               <ChromeButton
@@ -151,10 +143,10 @@ const Profile = () => {
                 { icon: Phone, label: "Phone", value: profile.phone, field: 'phone' },
                 { icon: MapPin, label: "Address", value: profile.address, field: 'address' },
               ].map((field) => (
-                <div key={field.label} className="flex items-start gap-3 pb-4 border-b border-border/20 last:border-0 last:pb-0">
-                  <field.icon className="w-4 h-4 text-primary mt-1" strokeWidth={1.5} />
+                <div key={field.label} className="flex items-start gap-3 pb-4 border-b border-border/30 last:border-0 last:pb-0">
+                  <field.icon className="w-5 h-5 text-muted-foreground mt-0.5" strokeWidth={1.5} />
                   <div className="flex-1">
-                    <div className="text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wider">
+                    <div className="text-xs text-muted-foreground mb-1.5">
                       {field.label}
                     </div>
                     {isEditing && !field.disabled ? (
@@ -162,7 +154,7 @@ const Profile = () => {
                         type="text"
                         value={field.value}
                         onChange={(e) => setProfile({ ...profile, [field.field]: e.target.value })}
-                        className="w-full bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                        className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                     ) : (
                       <div className="text-sm text-foreground">{field.value || 'Not set'}</div>
@@ -176,23 +168,23 @@ const Profile = () => {
 
         {/* Quick Actions */}
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 sm:mb-5"
+          className="grid grid-cols-2 gap-3 mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
         >
           <Link to="/bookings">
-            <ChromeSurface className="p-4 sm:p-5 bg-card/40 backdrop-blur-sm border-border/30 cursor-pointer hover:bg-card/60 hover:border-primary/20 transition-all group">
-              <Calendar className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+            <ChromeSurface className="p-5" sheen>
+              <Calendar className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
               <div className="text-sm font-medium text-foreground mb-0.5">My Bookings</div>
-              <div className="text-xs text-muted-foreground">View all service appointments</div>
+              <div className="text-xs text-muted-foreground">View appointments</div>
             </ChromeSurface>
           </Link>
 
-          <ChromeSurface className="p-4 sm:p-5 bg-card/40 backdrop-blur-sm border-border/30 cursor-pointer hover:bg-card/60 hover:border-primary/20 transition-all group">
-            <CreditCard className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+          <ChromeSurface className="p-5" sheen>
+            <CreditCard className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
             <div className="text-sm font-medium text-foreground mb-0.5">Payment Methods</div>
-            <div className="text-xs text-muted-foreground">Manage saved payment options</div>
+            <div className="text-xs text-muted-foreground">Manage payments</div>
           </ChromeSurface>
         </motion.div>
 
@@ -200,16 +192,16 @@ const Profile = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <ChromeSurface className="p-4 sm:p-5 bg-card/40 backdrop-blur-sm border-border/30">
+          <ChromeSurface className="p-5">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-foreground mb-0.5">Sign Out</div>
                 <div className="text-xs text-muted-foreground">End your current session</div>
               </div>
               <ChromeButton variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 w-3.5 h-3.5" strokeWidth={1.5} />
+                <LogOut className="mr-2 w-4 h-4" strokeWidth={1.5} />
                 Logout
               </ChromeButton>
             </div>
