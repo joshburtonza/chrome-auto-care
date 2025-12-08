@@ -644,6 +644,16 @@ All colors MUST be HSL.
   }
 }
 
+/* iOS Safe Area utilities */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
