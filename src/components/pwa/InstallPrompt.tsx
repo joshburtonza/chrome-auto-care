@@ -51,8 +51,8 @@ export const InstallPrompt = () => {
   return (
     <>
       {/* Install Banner */}
-      <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
-        <div className="bg-surface-dark/95 backdrop-blur-lg border border-chrome-400/30 rounded-xl p-4 shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="bg-surface-dark/95 backdrop-blur-lg border border-chrome-400/30 rounded-xl p-5 shadow-2xl w-full max-w-sm">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-accent-red to-accent-red/60 rounded-xl flex items-center justify-center">
               <Download className="w-6 h-6 text-white" />
