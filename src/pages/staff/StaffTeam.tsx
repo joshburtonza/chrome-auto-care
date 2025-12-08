@@ -351,12 +351,12 @@ export default function StaffTeam() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[hsl(215,20%,8%)] staff-theme">
+      <div className="min-h-screen bg-background staff-theme">
         <StaffNav />
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-32 w-full bg-white/5" />
+              <Skeleton key={i} className="h-32 w-full bg-muted" />
             ))}
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function StaffTeam() {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(215,20%,8%)] staff-theme">
+    <div className="min-h-screen bg-background staff-theme pb-24 md:pb-8">
       <StaffNav />
       
       <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
@@ -377,17 +377,17 @@ export default function StaffTeam() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-semibold text-[hsl(218,15%,93%)] flex items-center gap-3">
-                <Users className="w-7 h-7 text-[hsl(35,65%,50%)]" strokeWidth={1.5} />
+              <h1 className="text-2xl sm:text-3xl font-semibold text-foreground flex items-center gap-3">
+                <Users className="w-7 h-7 text-primary" strokeWidth={1.5} />
                 Staff Team
               </h1>
-              <p className="text-[hsl(215,12%,55%)] text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 Manage staff profiles, skills, and departments
               </p>
             </div>
             <Button
               onClick={() => setIsAddDialogOpen(true)}
-              className="bg-[hsl(35,65%,50%)] hover:bg-[hsl(35,65%,45%)] text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <UserPlus className="w-4 h-4 mr-2" />
               Add Staff Member
@@ -401,19 +401,19 @@ export default function StaffTeam() {
           {...fadeInUp}
         >
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(215,12%,50%)]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search by name, title, or skill..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)] placeholder:text-[hsl(215,12%,45%)]"
+              className="pl-10 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
           <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-full sm:w-48 bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]">
+            <SelectTrigger className="w-full sm:w-48 bg-muted/50 border-border text-foreground">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
-            <SelectContent className="bg-[hsl(215,20%,12%)] border-white/[0.08]">
+            <SelectContent className="bg-card border-border">
               <SelectItem value="all">All Departments</SelectItem>
               {departments.map(dept => (
                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
@@ -426,7 +426,7 @@ export default function StaffTeam() {
         <div className="grid gap-4">
           {filteredMembers.length === 0 ? (
             <motion.div 
-              className="text-center py-12 text-[hsl(215,12%,50%)]"
+              className="text-center py-12 text-muted-foreground"
               {...fadeInUp}
             >
               <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -439,12 +439,12 @@ export default function StaffTeam() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 sm:p-5 hover:bg-white/[0.03] transition-colors"
+                className="bg-card border border-border rounded-xl p-4 sm:p-5 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   {/* Avatar */}
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[hsl(35,65%,50%)] to-[hsl(35,65%,35%)] flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-semibold text-white">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent-dark flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-semibold text-primary-foreground">
                       {member.profile?.full_name?.charAt(0) || '?'}
                     </span>
                   </div>
@@ -452,24 +452,24 @@ export default function StaffTeam() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                      <h3 className="text-lg font-semibold text-[hsl(218,15%,93%)]">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {member.profile?.full_name || 'Unnamed Staff'}
                       </h3>
                       {member.department && (
-                        <Badge variant="outline" className="w-fit border-[hsl(35,65%,50%)]/30 text-[hsl(35,65%,60%)] text-xs">
+                        <Badge variant="outline" className="w-fit border-primary/30 text-primary text-xs">
                           {member.department}
                         </Badge>
                       )}
                     </div>
 
                     {member.job_title && (
-                      <div className="flex items-center gap-2 text-sm text-[hsl(215,12%,55%)] mb-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                         <Briefcase className="w-4 h-4" strokeWidth={1.5} />
                         {member.job_title}
                       </div>
                     )}
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[hsl(215,12%,50%)] mb-3">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
                       {member.profile?.phone && (
                         <span className="flex items-center gap-1.5">
                           <Phone className="w-3.5 h-3.5" />
@@ -491,7 +491,7 @@ export default function StaffTeam() {
                           <Badge 
                             key={skill} 
                             variant="secondary" 
-                            className="bg-white/[0.05] text-[hsl(215,12%,70%)] text-xs"
+                            className="bg-muted text-muted-foreground text-xs"
                           >
                             <Award className="w-3 h-3 mr-1" />
                             {skill}

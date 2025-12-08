@@ -174,16 +174,16 @@ export default function StaffDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(215,22%,6%)] staff-theme">
+    <div className="min-h-screen bg-background staff-theme">
       {/* Ambient background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full bg-[hsl(35,50%,20%)] opacity-[0.03] blur-[120px]" />
-        <div className="absolute -bottom-[30%] -right-[20%] w-[60%] h-[60%] rounded-full bg-[hsl(200,40%,15%)] opacity-[0.02] blur-[100px]" />
+        <div className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full bg-primary opacity-[0.03] blur-[120px]" />
+        <div className="absolute -bottom-[30%] -right-[20%] w-[60%] h-[60%] rounded-full bg-accent opacity-[0.02] blur-[100px]" />
       </div>
       
       <StaffNav />
       
-      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl relative z-10">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl relative z-10 pb-24 md:pb-8">
         {/* Page Header */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
@@ -192,14 +192,14 @@ export default function StaffDashboard() {
           className="mb-8 sm:mb-10"
         >
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-[hsl(35,60%,50%)] to-[hsl(25,55%,35%)] shadow-lg shadow-[hsl(35,60%,30%)]/20">
-              <Sparkles className="w-5 h-5 text-white" strokeWidth={1.5} />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent-dark shadow-lg shadow-primary/20">
+              <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.5} />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[hsl(218,15%,95%)]">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
               Dashboard
             </h1>
           </div>
-          <p className="text-sm text-[hsl(215,12%,50%)] ml-[52px]">
+          <p className="text-sm text-muted-foreground ml-[52px]">
             Real-time overview of your workspace
           </p>
         </motion.div>
@@ -211,18 +211,18 @@ export default function StaffDashboard() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mb-6 sm:mb-8"
         >
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(215,18%,11%)] to-[hsl(215,20%,8%)] border border-white/[0.08] p-6 sm:p-8 shadow-2xl shadow-black/20">
+          <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 sm:p-8 shadow-2xl shadow-foreground/5">
             {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(35,50%,50%)]/[0.03] to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent pointer-events-none" />
             
             <div className="relative flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[hsl(35,60%,55%)]" strokeWidth={1.5} />
-                <h2 className="text-sm font-medium text-[hsl(218,15%,85%)]">Overview</h2>
+                <TrendingUp className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <h2 className="text-sm font-medium text-foreground">Overview</h2>
               </div>
               <Link 
                 to="/staff/bookings"
-                className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-xs font-medium text-[hsl(35,60%,60%)] hover:text-[hsl(47,90%,75%)] transition-all"
+                className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 border border-border text-xs font-medium text-primary hover:text-accent-soft transition-all"
               >
                 View all
                 <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -236,22 +236,22 @@ export default function StaffDashboard() {
               className="relative grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8"
             >
               {[
-                { label: 'Pending', value: stats.pendingBookings, color: 'hsl(35,60%,55%)', link: true },
-                { label: 'In Progress', value: stats.activeBookings, color: 'hsl(200,50%,55%)', link: true },
-                { label: 'Completed', value: stats.completedBookings, color: 'hsl(160,45%,50%)', link: false },
-                { label: 'Customers', value: stats.totalCustomers, color: 'hsl(280,40%,55%)', link: false },
+                { label: 'Pending', value: stats.pendingBookings, colorClass: 'bg-warning', link: true },
+                { label: 'In Progress', value: stats.activeBookings, colorClass: 'bg-blue-500', link: true },
+                { label: 'Completed', value: stats.completedBookings, colorClass: 'bg-success', link: false },
+                { label: 'Customers', value: stats.totalCustomers, colorClass: 'bg-purple-500', link: false },
               ].map((stat, i) => (
                 <motion.div key={stat.label} variants={fadeInUp}>
                   {stat.link ? (
                     <Link to="/staff/bookings" className="group block">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stat.color }} />
-                          <span className="text-xs font-medium text-[hsl(215,12%,50%)] uppercase tracking-wider">
+                          <div className={cn("w-1.5 h-1.5 rounded-full", stat.colorClass)} />
+                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             {stat.label}
                           </span>
                         </div>
-                        <div className="text-[32px] sm:text-[40px] font-bold text-[hsl(218,15%,95%)] leading-none tracking-tight group-hover:text-[hsl(35,60%,60%)] transition-colors">
+                        <div className="text-[32px] sm:text-[40px] font-bold text-foreground leading-none tracking-tight group-hover:text-primary transition-colors">
                           {stat.value}
                         </div>
                       </div>
@@ -259,12 +259,12 @@ export default function StaffDashboard() {
                   ) : (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stat.color }} />
-                        <span className="text-xs font-medium text-[hsl(215,12%,50%)] uppercase tracking-wider">
+                        <div className={cn("w-1.5 h-1.5 rounded-full", stat.colorClass)} />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           {stat.label}
                         </span>
                       </div>
-                      <div className="text-[32px] sm:text-[40px] font-bold text-[hsl(218,15%,95%)] leading-none tracking-tight">
+                      <div className="text-[32px] sm:text-[40px] font-bold text-foreground leading-none tracking-tight">
                         {stat.value}
                       </div>
                     </div>
@@ -283,26 +283,26 @@ export default function StaffDashboard() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
           {[
-            { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, iconColor: 'hsl(215,30%,60%)' },
-            { label: 'Pending', value: stats.pendingBookings, icon: Clock, iconColor: 'hsl(35,55%,55%)' },
-            { label: 'Active', value: stats.activeBookings, icon: Activity, iconColor: 'hsl(200,50%,55%)' },
-            { label: 'Customers', value: stats.totalCustomers, icon: Users, iconColor: 'hsl(160,45%,50%)' },
+            { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, iconClass: 'text-muted-foreground' },
+            { label: 'Pending', value: stats.pendingBookings, icon: Clock, iconClass: 'text-warning' },
+            { label: 'Active', value: stats.activeBookings, icon: Activity, iconClass: 'text-blue-500' },
+            { label: 'Customers', value: stats.totalCustomers, icon: Users, iconClass: 'text-success' },
           ].map((stat) => (
             <motion.div
               key={stat.label}
               variants={fadeInUp}
-              className="group relative overflow-hidden rounded-xl bg-[hsl(215,18%,10%)] border border-white/[0.06] p-4 sm:p-5 shadow-lg shadow-black/10 hover:border-white/[0.1] transition-all hover:shadow-xl hover:shadow-black/20"
+              className="group relative overflow-hidden rounded-xl bg-card border border-border p-4 sm:p-5 shadow-lg shadow-foreground/5 hover:border-primary/20 transition-all hover:shadow-xl"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative flex items-center justify-between mb-4">
-                <span className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.08em] text-[hsl(215,12%,50%)]">
+                <span className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                   {stat.label}
                 </span>
-                <div className="p-1.5 rounded-lg bg-white/[0.05]">
-                  <stat.icon className="w-3.5 h-3.5" style={{ color: stat.iconColor }} strokeWidth={1.5} />
+                <div className="p-1.5 rounded-lg bg-muted">
+                  <stat.icon className={cn("w-3.5 h-3.5", stat.iconClass)} strokeWidth={1.5} />
                 </div>
               </div>
-              <div className="relative text-2xl sm:text-3xl font-bold text-[hsl(218,15%,95%)] tracking-tight">
+              <div className="relative text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
                 {stat.value}
               </div>
             </motion.div>
@@ -314,29 +314,29 @@ export default function StaffDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="rounded-2xl bg-[hsl(215,18%,10%)] border border-white/[0.06] shadow-2xl shadow-black/20 overflow-hidden"
+          className="rounded-2xl bg-card border border-border shadow-2xl shadow-foreground/5 overflow-hidden"
         >
-          <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/[0.06] bg-gradient-to-r from-white/[0.02] to-transparent">
+          <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-border bg-gradient-to-r from-muted/50 to-transparent">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[hsl(215,20%,50%)]" strokeWidth={1.5} />
-              <h2 className="text-sm font-medium text-[hsl(218,15%,90%)]">Recent Bookings</h2>
+              <Calendar className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+              <h2 className="text-sm font-medium text-foreground">Recent Bookings</h2>
             </div>
             <Link 
               to="/staff/bookings"
-              className="group flex items-center gap-1.5 text-xs font-medium text-[hsl(35,60%,55%)] hover:text-[hsl(47,90%,75%)] transition-colors"
+              className="group flex items-center gap-1.5 text-xs font-medium text-primary hover:text-accent-soft transition-colors"
             >
               View all
               <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
           
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-border">
             {recentBookings.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/[0.03] flex items-center justify-center">
-                  <Calendar className="w-7 h-7 text-[hsl(215,12%,40%)]" strokeWidth={1} />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+                  <Calendar className="w-7 h-7 text-muted-foreground" strokeWidth={1} />
                 </div>
-                <p className="text-sm text-[hsl(215,12%,45%)]">No bookings yet</p>
+                <p className="text-sm text-muted-foreground">No bookings yet</p>
               </div>
             ) : (
               recentBookings.map((booking, index) => (
@@ -351,23 +351,23 @@ export default function StaffDashboard() {
                     state={{ selectedBookingId: booking.id }}
                     className="block"
                   >
-                    <div className="group flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-white/[0.02] transition-all">
+                    <div className="group flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-muted/50 transition-all">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         {/* Avatar placeholder */}
-                        <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(215,20%,18%)] to-[hsl(215,18%,14%)] items-center justify-center border border-white/[0.06] flex-shrink-0">
-                          <span className="text-sm font-semibold text-[hsl(215,15%,60%)]">
+                        <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-muted items-center justify-center border border-border flex-shrink-0">
+                          <span className="text-sm font-semibold text-muted-foreground">
                             {(booking.profiles?.full_name || 'C')[0].toUpperCase()}
                           </span>
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-[hsl(218,15%,92%)] truncate mb-0.5 group-hover:text-[hsl(35,60%,65%)] transition-colors">
+                          <div className="font-medium text-sm text-foreground truncate mb-0.5 group-hover:text-primary transition-colors">
                             {booking.profiles?.full_name || 'Customer'}
                           </div>
-                          <div className="text-xs text-[hsl(215,12%,50%)] truncate">
+                          <div className="text-xs text-muted-foreground truncate">
                             {booking.services?.title}
                           </div>
-                          <div className="text-[11px] text-[hsl(215,12%,40%)] mt-1">
+                          <div className="text-[11px] text-muted-foreground/70 mt-1">
                             {new Date(booking.booking_date).toLocaleDateString('en-US', { 
                               month: 'short', 
                               day: 'numeric' 
@@ -383,7 +383,7 @@ export default function StaffDashboard() {
                         )}>
                           {formatStatus(booking.status)}
                         </span>
-                        <ChevronRight className="w-4 h-4 text-[hsl(215,12%,35%)] transition-transform group-hover:translate-x-1 group-hover:text-[hsl(35,50%,50%)]" />
+                        <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
                       </div>
                     </div>
                   </Link>
