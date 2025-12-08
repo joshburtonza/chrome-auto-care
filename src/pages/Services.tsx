@@ -105,7 +105,7 @@ const Services = () => {
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
       toast.success('Payment successful! Your booking is confirmed.');
-      navigate('/services', { replace: true });
+      navigate('/bookings', { replace: true });
     } else if (paymentStatus === 'failed') {
       toast.error('Payment failed. Please try again.');
       navigate('/services', { replace: true });
