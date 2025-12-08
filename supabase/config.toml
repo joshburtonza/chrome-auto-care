@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.remove-staff-member]
 verify_jwt = true
+
+[functions.send-inventory-alerts]
+verify_jwt = false
