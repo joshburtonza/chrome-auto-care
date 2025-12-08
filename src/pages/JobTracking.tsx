@@ -67,6 +67,39 @@ const JobTracking = () => {
         )
         .subscribe();
 
+      // Subscribe to stage images for real-time updates
+      const imagesChannel = supabase
+        .channel(`stage-images-${selectedBooking.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'booking_stage_images'
+          },
+          (payload) => {
+            if (payload.new) {
+              const newImage = payload.new as any;
+              // Check if this image belongs to one of our stages
+              const stageIds = stages.map(s => s.id);
+              if (stageIds.includes(newImage.booking_stage_id)) {
+                setStageImages(prev => ({
+                  ...prev,
+                  [newImage.booking_stage_id]: [
+                    ...(prev[newImage.booking_stage_id] || []),
+                    newImage
+                  ]
+                }));
+                toast.info('New Progress Photo Added! 📸', {
+                  description: 'Staff uploaded a new image',
+                  duration: 4000,
+                });
+              }
+            }
+          }
+        )
+        .subscribe();
+
       const bookingChannel = supabase
         .channel('booking-update')
         .on(
@@ -103,6 +136,7 @@ const JobTracking = () => {
       return () => {
         supabase.removeChannel(stagesChannel);
         supabase.removeChannel(bookingChannel);
+        supabase.removeChannel(imagesChannel);
       };
     }
   }, [selectedBooking]);
