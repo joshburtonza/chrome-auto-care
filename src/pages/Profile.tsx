@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ClientNav } from "@/components/client/ClientNav";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -24,6 +25,9 @@ const Profile = () => {
     phone: "",
     address: "",
   });
+  
+  // Enable swipe navigation on mobile
+  useSwipeNavigation();
 
   useEffect(() => {
     if (user) {

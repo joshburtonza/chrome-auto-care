@@ -13,6 +13,7 @@ import { ClientNav } from "@/components/client/ClientNav";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -42,6 +43,9 @@ const Services = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [bookingStep, setBookingStep] = useState<'calendar' | 'time' | 'details'>('calendar');
   const [testMode, setTestMode] = useState(true);
+  
+  // Enable swipe navigation on mobile
+  useSwipeNavigation();
 
   // Generate mock availability (90 days forward)
   const generateAvailability = () => {

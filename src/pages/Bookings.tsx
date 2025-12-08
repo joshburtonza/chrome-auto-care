@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/client/ClientNav";
 import { motion } from "framer-motion";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -26,6 +27,9 @@ const Bookings = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Enable swipe navigation on mobile
+  useSwipeNavigation();
 
   useEffect(() => {
     if (user) {
