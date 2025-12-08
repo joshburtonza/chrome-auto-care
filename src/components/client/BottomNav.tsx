@@ -2,6 +2,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Package, Calendar, Car, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Haptic feedback utility
+const triggerHaptic = () => {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(10); // Short 10ms vibration
+  }
+};
+
 export const BottomNav = () => {
   const location = useLocation();
 
@@ -29,30 +36,37 @@ export const BottomNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={triggerHaptic}
                 className="flex flex-col items-center justify-center flex-1 py-2 relative"
               >
-                <div className="relative">
-                  {isActive && (
-                    <motion.div
-                      layoutId="bottomNavIndicator"
-                      className="absolute -inset-2 bg-primary/10 rounded-xl"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                <motion.div 
+                  className="relative flex flex-col items-center"
+                  whileTap={{ scale: 0.85 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <div className="relative">
+                    {isActive && (
+                      <motion.div
+                        layoutId="bottomNavIndicator"
+                        className="absolute -inset-2 bg-primary/10 rounded-xl"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <Icon 
+                      className={`w-5 h-5 relative z-10 transition-colors ${
+                        isActive ? 'text-primary' : 'text-muted-foreground'
+                      }`}
+                      strokeWidth={isActive ? 2 : 1.5}
                     />
-                  )}
-                  <Icon 
-                    className={`w-5 h-5 relative z-10 transition-colors ${
+                  </div>
+                  <span 
+                    className={`text-[10px] mt-1 font-medium transition-colors ${
                       isActive ? 'text-primary' : 'text-muted-foreground'
                     }`}
-                    strokeWidth={isActive ? 2 : 1.5}
-                  />
-                </div>
-                <span 
-                  className={`text-[10px] mt-1 font-medium transition-colors ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  {item.label}
-                </span>
+                  >
+                    {item.label}
+                  </span>
+                </motion.div>
               </Link>
             );
           })}
