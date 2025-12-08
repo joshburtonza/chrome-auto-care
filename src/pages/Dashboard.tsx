@@ -4,13 +4,15 @@ import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
 import { Calendar, Car, Package, User, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -28,6 +30,7 @@ const staggerContainer = {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [allBookings, setAllBookings] = useState<any[]>([]);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
@@ -37,6 +40,12 @@ const Dashboard = () => {
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
+  
+  // Pull to refresh handler
+  const handleRefresh = useCallback(async () => {
+    await loadDashboardData();
+    toast.success('Data refreshed');
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -207,11 +216,8 @@ const Dashboard = () => {
 
   const progress = calculateProgress();
 
-  return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
-      
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
+  const content = (
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
         {/* Header */}
         <motion.div 
           className="mb-8"
@@ -508,6 +514,18 @@ const Dashboard = () => {
           </motion.div>
         )}
       </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <ClientNav />
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh}>
+          {content}
+        </PullToRefresh>
+      ) : (
+        content
+      )}
     </div>
   );
 };

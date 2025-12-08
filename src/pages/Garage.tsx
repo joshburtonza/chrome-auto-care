@@ -1,7 +1,7 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { Car, Plus, Pencil } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import { AddVehicleDialog } from "@/components/garage/AddVehicleDialog";
 import { EditVehicleDialog } from "@/components/garage/EditVehicleDialog";
 import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Vehicle {
   id: string;
@@ -38,6 +40,7 @@ const staggerContainer = {
 
 const Garage = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -45,6 +48,12 @@ const Garage = () => {
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
+  
+  // Pull to refresh handler
+  const handleRefresh = useCallback(async () => {
+    await loadVehicles();
+    toast.success('Vehicles refreshed');
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -89,10 +98,8 @@ const Garage = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
+  const content = (
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
         <motion.div 
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
           initial={{ opacity: 0, y: -10 }}
@@ -196,6 +203,18 @@ const Garage = () => {
           </motion.div>
         )}
       </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <ClientNav />
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh}>
+          {content}
+        </PullToRefresh>
+      ) : (
+        content
+      )}
 
       <EditVehicleDialog
         vehicle={selectedVehicle}

@@ -1,7 +1,7 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { User, Mail, Phone, MapPin, Calendar, CreditCard, LogOut } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { ClientNav } from "@/components/client/ClientNav";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -18,6 +20,7 @@ const fadeInUp = {
 
 const Profile = () => {
   const { user, signOut } = useAuth();
+  const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
@@ -28,6 +31,12 @@ const Profile = () => {
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
+  
+  // Pull to refresh handler
+  const handleRefresh = useCallback(async () => {
+    await loadProfile();
+    toast.success('Profile refreshed');
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -98,10 +107,8 @@ const Profile = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-2xl">
+  const content = (
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-2xl">
         {/* Header */}
         <motion.div 
           className="mb-8"
@@ -212,6 +219,18 @@ const Profile = () => {
           </ChromeSurface>
         </motion.div>
       </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <ClientNav />
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh}>
+          {content}
+        </PullToRefresh>
+      ) : (
+        content
+      )}
     </div>
   );
 };
