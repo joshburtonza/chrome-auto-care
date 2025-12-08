@@ -25,7 +25,13 @@ export const InstallPrompt = () => {
     // Show banner if installable or on iOS (not installed)
     if ((isInstallable || isIOS) && !isInstalled) {
       // Delay showing to not interrupt initial experience
-      const timer = setTimeout(() => setShowBanner(true), 3000);
+      const timer = setTimeout(() => {
+        setShowBanner(true);
+        // Trigger haptic feedback on mobile
+        if ('vibrate' in navigator) {
+          navigator.vibrate(10);
+        }
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [isInstallable, isInstalled, isIOS]);
