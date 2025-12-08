@@ -17,7 +17,9 @@ import {
   Award,
   UserPlus,
   Loader2,
-  UserMinus
+  UserMinus,
+  Shield,
+  Crown
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -28,12 +30,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Database } from '@/integrations/supabase/types';
+
+type StaffRole = Database['public']['Enums']['staff_role'];
 
 interface StaffMember {
   id: string;
   user_id: string;
   job_title: string | null;
   department: string | null;
+  staff_role: StaffRole | null;
   start_date: string | null;
   skills: string[] | null;
   notes: string | null;
@@ -55,6 +61,15 @@ const departments = [
   'Quality Control',
   'Management',
   'Customer Service'
+];
+
+const staffRoles: { value: StaffRole; label: string; icon: typeof Shield }[] = [
+  { value: 'technician', label: 'Technician', icon: Users },
+  { value: 'senior_technician', label: 'Senior Technician', icon: Award },
+  { value: 'team_lead', label: 'Team Lead', icon: Shield },
+  { value: 'supervisor', label: 'Supervisor', icon: Shield },
+  { value: 'manager', label: 'Manager', icon: Crown },
+  { value: 'director', label: 'Director', icon: Crown }
 ];
 
 const commonSkills = [
@@ -79,6 +94,7 @@ export default function StaffTeam() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -90,6 +106,7 @@ export default function StaffTeam() {
   const [formData, setFormData] = useState({
     job_title: '',
     department: '',
+    staff_role: 'technician' as StaffRole,
     start_date: '',
     skills: [] as string[],
     notes: '',
@@ -100,6 +117,29 @@ export default function StaffTeam() {
 
   useEffect(() => {
     loadStaffMembers();
+    
+    // Real-time subscription
+    const channel = supabase
+      .channel('staff-profiles-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'staff_profiles'
+      }, () => {
+        loadStaffMembers();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_roles'
+      }, () => {
+        loadStaffMembers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadStaffMembers = async () => {
@@ -146,6 +186,7 @@ export default function StaffTeam() {
           user_id: userId,
           job_title: staffProfile?.job_title || null,
           department: staffProfile?.department || null,
+          staff_role: staffProfile?.staff_role || null,
           start_date: staffProfile?.start_date || null,
           skills: staffProfile?.skills || null,
           notes: staffProfile?.notes || null,
@@ -173,6 +214,7 @@ export default function StaffTeam() {
     setFormData({
       job_title: member.job_title || '',
       department: member.department || '',
+      staff_role: member.staff_role || 'technician',
       start_date: member.start_date || '',
       skills: member.skills || [],
       notes: member.notes || '',
@@ -196,6 +238,7 @@ export default function StaffTeam() {
           .update({
             job_title: formData.job_title || null,
             department: formData.department || null,
+            staff_role: formData.staff_role,
             start_date: formData.start_date || null,
             skills: formData.skills.length > 0 ? formData.skills : null,
             notes: formData.notes || null,
@@ -213,6 +256,7 @@ export default function StaffTeam() {
             user_id: selectedMember.user_id,
             job_title: formData.job_title || null,
             department: formData.department || null,
+            staff_role: formData.staff_role,
             start_date: formData.start_date || null,
             skills: formData.skills.length > 0 ? formData.skills : null,
             notes: formData.notes || null,
@@ -345,8 +389,9 @@ export default function StaffTeam() {
       member.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesDepartment = selectedDepartment === 'all' || member.department === selectedDepartment;
+    const matchesRole = selectedRole === 'all' || member.staff_role === selectedRole;
     
-    return matchesSearch && matchesDepartment;
+    return matchesSearch && matchesDepartment && matchesRole;
   });
 
   if (loading) {
@@ -410,13 +455,24 @@ export default function StaffTeam() {
             />
           </div>
           <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-full sm:w-48 bg-muted/50 border-border text-foreground">
+            <SelectTrigger className="w-full sm:w-40 bg-muted/50 border-border text-foreground">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border">
               <SelectItem value="all">All Departments</SelectItem>
               {departments.map(dept => (
                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <SelectTrigger className="w-full sm:w-40 bg-muted/50 border-border text-foreground">
+              <SelectValue placeholder="All Roles" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="all">All Roles</SelectItem>
+              {staffRoles.map(role => (
+                <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -455,8 +511,13 @@ export default function StaffTeam() {
                       <h3 className="text-lg font-semibold text-foreground">
                         {member.profile?.full_name || 'Unnamed Staff'}
                       </h3>
+                      {member.staff_role && (
+                        <Badge className="w-fit bg-primary/20 text-primary text-xs">
+                          {staffRoles.find(r => r.value === member.staff_role)?.label || member.staff_role}
+                        </Badge>
+                      )}
                       {member.department && (
-                        <Badge variant="outline" className="w-fit border-primary/30 text-primary text-xs">
+                        <Badge variant="outline" className="w-fit border-border text-muted-foreground text-xs">
                           {member.department}
                         </Badge>
                       )}
@@ -581,6 +642,23 @@ export default function StaffTeam() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Role Level</Label>
+              <Select 
+                value={formData.staff_role} 
+                onValueChange={(val: StaffRole) => setFormData(prev => ({ ...prev, staff_role: val }))}
+              >
+                <SelectTrigger className="bg-muted/50 border-border text-foreground">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  {staffRoles.map(role => (
+                    <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

@@ -30,6 +30,7 @@ import StaffMerchandise from "./pages/staff/StaffMerchandise";
 import StaffOrders from "./pages/staff/StaffOrders";
 import StaffWorkQueue from "./pages/staff/StaffWorkQueue";
 import StaffTeam from "./pages/staff/StaffTeam";
+import StaffInventory from "./pages/staff/StaffInventory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -180,6 +181,14 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRoles={['admin']}>
                         <StaffTeam />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/inventory"
+                    element={
+                      <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                        <StaffInventory />
                       </ProtectedRoute>
                     }
                   />
