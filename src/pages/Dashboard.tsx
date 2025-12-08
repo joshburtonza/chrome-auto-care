@@ -207,7 +207,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <ClientNav />
       
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
         {/* Header */}
         <motion.div 
           className="mb-8"

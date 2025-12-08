@@ -106,7 +106,7 @@ const Orders = () => {
   return (
     <div className="min-h-screen bg-background">
       <ClientNav />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-8 pb-24 md:pb-8 max-w-6xl">
         <div className="mb-8">
           <h1 className="chrome-title text-4xl mb-2">ORDER HISTORY</h1>
           <p className="text-text-secondary">View your past orders and their status</p>

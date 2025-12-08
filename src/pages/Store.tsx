@@ -103,7 +103,7 @@ const Store = () => {
       </div>
 
       <ClientNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-6xl relative">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8 max-w-6xl relative">
         <motion.div 
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 sm:mb-8"
           initial={{ opacity: 0, y: -20 }}
