@@ -156,16 +156,16 @@ export default function StaffDashboard() {
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-[hsl(35,40%,45%)]/15 border-[hsl(35,40%,45%)]/25 text-[hsl(35,50%,65%)]';
+        return 'bg-warning/15 border-warning/25 text-warning';
       case 'confirmed':
       case 'in_progress':
-        return 'bg-[hsl(200,40%,45%)]/15 border-[hsl(200,40%,45%)]/25 text-[hsl(200,50%,65%)]';
+        return 'bg-blue-500/15 border-blue-500/25 text-blue-500';
       case 'completed':
-        return 'bg-[hsl(160,35%,40%)]/15 border-[hsl(160,35%,40%)]/25 text-[hsl(160,45%,60%)]';
+        return 'bg-success/15 border-success/25 text-success';
       case 'cancelled':
-        return 'bg-[hsl(0,40%,45%)]/15 border-[hsl(0,40%,45%)]/25 text-[hsl(0,50%,65%)]';
+        return 'bg-destructive/15 border-destructive/25 text-destructive';
       default:
-        return 'bg-white/5 border-white/10 text-[hsl(215,12%,60%)]';
+        return 'bg-muted border-border text-muted-foreground';
     }
   };
 

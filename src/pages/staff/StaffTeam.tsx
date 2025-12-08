@@ -507,7 +507,7 @@ export default function StaffTeam() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleEditMember(member)}
-                      className="border-white/[0.08] text-[hsl(215,12%,70%)] hover:text-[hsl(218,15%,93%)] hover:bg-white/[0.05]"
+                      className="border-border text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
                       <Edit2 className="w-4 h-4 sm:mr-1.5" />
                       <span className="hidden sm:inline">Edit</span>
@@ -520,7 +520,7 @@ export default function StaffTeam() {
                           setSelectedMember(member);
                           setIsDeleteDialogOpen(true);
                         }}
-                        className="border-white/[0.08] text-[hsl(215,12%,70%)] hover:text-[hsl(218,15%,93%)] hover:bg-white/[0.05]"
+                        className="border-border text-muted-foreground hover:text-foreground hover:bg-muted"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -532,7 +532,7 @@ export default function StaffTeam() {
                         setSelectedMember(member);
                         setIsRemoveDialogOpen(true);
                       }}
-                      className="border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      className="border-destructive/20 text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <UserMinus className="w-4 h-4 sm:mr-1.5" />
                       <span className="hidden sm:inline">Remove</span>
@@ -547,9 +547,9 @@ export default function StaffTeam() {
 
       {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[hsl(215,20%,10%)] border-white/[0.08] max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-[hsl(218,15%,93%)]">
+            <DialogTitle className="text-foreground">
               Edit Staff Profile
             </DialogTitle>
           </DialogHeader>
@@ -557,24 +557,24 @@ export default function StaffTeam() {
           <div className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[hsl(215,12%,70%)]">Job Title</Label>
+                <Label className="text-muted-foreground">Job Title</Label>
                 <Input
                   value={formData.job_title}
                   onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
                   placeholder="e.g. Senior Installer"
-                  className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                  className="bg-muted/50 border-border text-foreground"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[hsl(215,12%,70%)]">Department</Label>
+                <Label className="text-muted-foreground">Department</Label>
                 <Select 
                   value={formData.department} 
                   onValueChange={(val) => setFormData(prev => ({ ...prev, department: val }))}
                 >
-                  <SelectTrigger className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]">
+                  <SelectTrigger className="bg-muted/50 border-border text-foreground">
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[hsl(215,20%,12%)] border-white/[0.08]">
+                  <SelectContent className="bg-card border-border">
                     {departments.map(dept => (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                     ))}
@@ -584,23 +584,23 @@ export default function StaffTeam() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[hsl(215,12%,70%)]">Start Date</Label>
+              <Label className="text-muted-foreground">Start Date</Label>
               <Input
                 type="date"
                 value={formData.start_date}
                 onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                className="bg-muted/50 border-border text-foreground"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[hsl(215,12%,70%)]">Skills</Label>
+              <Label className="text-muted-foreground">Skills</Label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {formData.skills.map(skill => (
                   <Badge 
                     key={skill}
                     variant="secondary"
-                    className="bg-[hsl(35,65%,50%)]/20 text-[hsl(35,65%,60%)] cursor-pointer hover:bg-[hsl(35,65%,50%)]/30"
+                    className="bg-primary/20 text-primary cursor-pointer hover:bg-primary/30"
                     onClick={() => removeSkill(skill)}
                   >
                     {skill}
@@ -610,10 +610,10 @@ export default function StaffTeam() {
               </div>
               <div className="flex gap-2">
                 <Select onValueChange={addSkill}>
-                  <SelectTrigger className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]">
+                  <SelectTrigger className="bg-muted/50 border-border text-foreground">
                     <SelectValue placeholder="Add skill..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-[hsl(215,20%,12%)] border-white/[0.08]">
+                  <SelectContent className="bg-card border-border">
                     {commonSkills.filter(s => !formData.skills.includes(s)).map(skill => (
                       <SelectItem key={skill} value={skill}>{skill}</SelectItem>
                     ))}
@@ -625,14 +625,14 @@ export default function StaffTeam() {
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
                   placeholder="Custom skill..."
-                  className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                  className="bg-muted/50 border-border text-foreground"
                   onKeyDown={(e) => e.key === 'Enter' && addSkill(newSkill)}
                 />
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => addSkill(newSkill)}
-                  className="border-white/[0.08]"
+                  className="border-border"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -641,32 +641,32 @@ export default function StaffTeam() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[hsl(215,12%,70%)]">Emergency Contact</Label>
+                <Label className="text-muted-foreground">Emergency Contact</Label>
                 <Input
                   value={formData.emergency_contact_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
                   placeholder="Contact name"
-                  className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                  className="bg-muted/50 border-border text-foreground"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[hsl(215,12%,70%)]">Emergency Phone</Label>
+                <Label className="text-muted-foreground">Emergency Phone</Label>
                 <Input
                   value={formData.emergency_contact_phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
                   placeholder="Phone number"
-                  className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                  className="bg-muted/50 border-border text-foreground"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[hsl(215,12%,70%)]">Notes</Label>
+              <Label className="text-muted-foreground">Notes</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Additional notes..."
-                className="bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)] min-h-[80px]"
+                className="bg-muted/50 border-border text-foreground min-h-[80px]"
               />
             </div>
 
@@ -674,13 +674,13 @@ export default function StaffTeam() {
               <Button
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
-                className="flex-1 border-white/[0.08]"
+                className="flex-1 border-border"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
-                className="flex-1 bg-[hsl(35,65%,50%)] hover:bg-[hsl(35,65%,45%)] text-white"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 Save Changes
               </Button>
@@ -691,21 +691,21 @@ export default function StaffTeam() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[hsl(215,20%,10%)] border-white/[0.08]">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[hsl(218,15%,93%)]">
+            <AlertDialogTitle className="text-foreground">
               Delete Staff Profile?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[hsl(215,12%,55%)]">
+            <AlertDialogDescription className="text-muted-foreground">
               This will remove the extended staff profile data (job title, skills, etc.). 
               The user account and basic profile will remain.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/[0.08]">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteProfile}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Delete Profile
             </AlertDialogAction>
@@ -715,30 +715,30 @@ export default function StaffTeam() {
 
       {/* Add Staff Member Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="bg-[hsl(215,20%,10%)] border-white/[0.08] max-w-md">
+        <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[hsl(218,15%,93%)] flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-[hsl(35,65%,50%)]" />
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary" />
               Add Staff Member
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
-            <p className="text-sm text-[hsl(215,12%,55%)]">
+            <p className="text-sm text-muted-foreground">
               Enter the email address of an existing user to add them as a staff member. 
               They must have already created an account.
             </p>
 
             <div className="space-y-2">
-              <Label className="text-[hsl(215,12%,70%)]">Email Address</Label>
+              <Label className="text-muted-foreground">Email Address</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(215,12%,50%)]" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="email"
                   value={newStaffEmail}
                   onChange={(e) => setNewStaffEmail(e.target.value)}
                   placeholder="staff@example.com"
-                  className="pl-10 bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                  className="pl-10 bg-muted/50 border-border text-foreground"
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStaffMember()}
                 />
               </div>
@@ -751,7 +751,7 @@ export default function StaffTeam() {
                   setIsAddDialogOpen(false);
                   setNewStaffEmail('');
                 }}
-                className="flex-1 border-white/[0.08]"
+                className="flex-1 border-border"
                 disabled={addingStaff}
               >
                 Cancel
@@ -759,7 +759,7 @@ export default function StaffTeam() {
               <Button
                 onClick={handleAddStaffMember}
                 disabled={addingStaff || !newStaffEmail.trim()}
-                className="flex-1 bg-[hsl(35,65%,50%)] hover:bg-[hsl(35,65%,45%)] text-white"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {addingStaff ? (
                   <>
@@ -780,21 +780,21 @@ export default function StaffTeam() {
 
       {/* Remove Staff Member Confirmation */}
       <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
-        <AlertDialogContent className="bg-[hsl(215,20%,10%)] border-white/[0.08]">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[hsl(218,15%,93%)] flex items-center gap-2">
-              <UserMinus className="w-5 h-5 text-red-400" />
+            <AlertDialogTitle className="text-foreground flex items-center gap-2">
+              <UserMinus className="w-5 h-5 text-destructive" />
               Remove Staff Member?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[hsl(215,12%,55%)]">
-              This will remove <span className="text-[hsl(218,15%,93%)] font-medium">{selectedMember?.profile?.full_name || 'this user'}</span> from the staff team. 
+            <AlertDialogDescription className="text-muted-foreground">
+              This will remove <span className="text-foreground font-medium">{selectedMember?.profile?.full_name || 'this user'}</span> from the staff team. 
               They will lose access to the staff portal and their staff profile will be deleted. 
               Their user account will remain active as a client.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="border-white/[0.08]"
+              className="border-border"
               disabled={removingStaff}
             >
               Cancel
@@ -802,7 +802,7 @@ export default function StaffTeam() {
             <AlertDialogAction
               onClick={handleRemoveStaffRole}
               disabled={removingStaff}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               {removingStaff ? (
                 <>
