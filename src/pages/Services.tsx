@@ -1,7 +1,7 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { Shield, Sparkles, Car, Clock, TestTube } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
 import { TimeSlotPicker } from "@/components/booking/TimeSlotPicker";
@@ -14,6 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -32,6 +34,7 @@ const staggerContainer = {
 const Services = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const [services, setServices] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -46,6 +49,13 @@ const Services = () => {
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
+  
+  // Pull to refresh handler
+  const handleRefresh = useCallback(async () => {
+    await loadServices();
+    await loadVehicles();
+    toast.success('Services refreshed');
+  }, []);
 
   // Generate mock availability (90 days forward)
   const generateAvailability = () => {
@@ -225,10 +235,8 @@ const Services = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
+  const content = (
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
         {/* Header */}
         <motion.div 
           className="mb-8"
@@ -304,6 +312,18 @@ const Services = () => {
           })}
         </motion.div>
       </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <ClientNav />
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh}>
+          {content}
+        </PullToRefresh>
+      ) : (
+        content
+      )}
 
       {/* Booking Modal */}
       <Dialog open={!!selectedService} onOpenChange={resetBookingModal}>

@@ -1,13 +1,15 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
 import { Car, Calendar, CreditCard, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/client/ClientNav";
 import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -25,11 +27,18 @@ const staggerContainer = {
 
 const Bookings = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
+  
+  // Pull to refresh handler
+  const handleRefresh = useCallback(async () => {
+    await loadBookings();
+    toast.success('Bookings refreshed');
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -94,14 +103,12 @@ const Bookings = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background relative">
+  const content = (
+    <div className="relative">
       {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
-
-      <ClientNav />
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8 max-w-5xl relative">
         <motion.div 
           className="mb-6 sm:mb-8"
@@ -186,6 +193,19 @@ const Bookings = () => {
           </motion.div>
         )}
       </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <ClientNav />
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh}>
+          {content}
+        </PullToRefresh>
+      ) : (
+        content
+      )}
     </div>
   );
 };
