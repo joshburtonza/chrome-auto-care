@@ -8,56 +8,57 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Light Mode - Race Technik Clean Chrome */
-    --background: 0 0% 98%;
-    --background-alt: 220 15% 95%;
-    --foreground: 220 15% 10%;
+    /* Light Mode - Bevel-inspired Clean & Minimal */
+    --background: 30 15% 97%;
+    --background-alt: 30 10% 94%;
+    --foreground: 220 15% 15%;
 
-    /* Chrome surfaces */
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 10%;
-    --card-gradient-start: 0 0% 100%;
-    --card-gradient-end: 220 15% 96%;
+    /* Soft card surfaces with warm undertones */
+    --card: 30 20% 99%;
+    --card-foreground: 220 15% 15%;
+    --card-gradient-start: 40 25% 98%;
+    --card-gradient-end: 30 15% 95%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 10%;
+    --popover-foreground: 220 15% 15%;
 
-    /* Primary - dark metallic */
-    --primary: 218 18% 15%;
-    --primary-foreground: 0 0% 98%;
+    /* Primary - soft dark for contrast */
+    --primary: 220 15% 20%;
+    --primary-foreground: 0 0% 99%;
 
-    /* Secondary */
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 15% 15%;
+    /* Secondary - very soft warm gray */
+    --secondary: 30 10% 94%;
+    --secondary-foreground: 220 15% 20%;
 
-    /* Muted tones */
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 45%;
+    /* Muted tones - warm grays */
+    --muted: 30 8% 92%;
+    --muted-foreground: 220 8% 50%;
 
-    /* Accent */
-    --accent: 218 18% 15%;
-    --accent-foreground: 0 0% 98%;
-    --accent-soft: 220 15% 85%;
-    --accent-dark: 218 18% 25%;
+    /* Accent - subtle warm */
+    --accent: 30 15% 92%;
+    --accent-foreground: 220 15% 15%;
+    --accent-soft: 30 12% 88%;
+    --accent-dark: 220 12% 30%;
 
-    /* Success - teal */
-    --success: 165 68% 40%;
-    --success-foreground: 0 0% 98%;
+    /* Success - soft green */
+    --success: 145 50% 42%;
+    --success-foreground: 0 0% 99%;
 
-    /* Warning - orange */
-    --warning: 30 100% 50%;
-    --warning-foreground: 0 0% 8%;
+    /* Warning - soft amber */
+    --warning: 35 85% 55%;
+    --warning-foreground: 0 0% 10%;
 
-    /* Destructive - red */
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 98%;
+    /* Destructive - soft red */
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 0% 99%;
 
-    /* Border and input */
-    --border: 220 15% 88%;
-    --input: 220 15% 92%;
-    --ring: 218 18% 15%;
+    /* Border and input - very subtle */
+    --border: 30 10% 88%;
+    --input: 30 10% 93%;
+    --ring: 220 15% 25%;
 
-    --radius: 0.75rem;
+    /* Premium radius for cards */
+    --radius: 1.25rem;
 
     /* Chrome gradient stops */
     --chrome-start: 220 15% 95%;
@@ -441,61 +442,58 @@ All colors MUST be HSL.
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Chrome typography styles */
+  /* Bevel-inspired typography styles */
   .chrome-label {
-    @apply text-[11px] uppercase tracking-[2px] font-light text-muted-foreground;
+    @apply text-[11px] tracking-[0.5px] font-medium text-muted-foreground;
   }
 
   .chrome-title {
-    @apply text-2xl font-light tracking-wide text-foreground;
+    @apply text-2xl font-semibold tracking-tight text-foreground;
   }
 
   .chrome-heading {
-    @apply text-4xl font-light tracking-wider text-foreground;
+    @apply text-3xl font-semibold tracking-tight text-foreground;
   }
 
-  /* Chrome gradient background utilities */
+  /* Bevel-inspired soft surfaces */
   .chrome-surface {
-    background: linear-gradient(135deg, hsl(var(--card-gradient-start)), hsl(var(--card-gradient-end)));
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+    border: 1px solid hsl(var(--border) / 0.5);
     position: relative;
   }
 
+  /* Subtle inner highlight for depth */
   .chrome-surface::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.6) 0%, transparent 40%);
     pointer-events: none;
     border-radius: inherit;
   }
 
-  /* Metallic sheen effect */
+  /* Clean hover effect */
   .chrome-sheen {
     position: relative;
-    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+
+  .chrome-sheen:hover {
+    box-shadow: 
+      0 4px 20px hsl(var(--foreground) / 0.06),
+      0 1px 4px hsl(var(--foreground) / 0.04);
   }
 
   .chrome-sheen::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    bottom: -50%;
-    left: -50%;
-    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
+    display: none;
   }
 
-  .chrome-sheen:hover::after {
-    transform: translateX(100%);
-  }
-
-  /* Glow effects - subtle elevation */
+  /* Bevel-style soft elevation */
   .chrome-glow {
     box-shadow: 
-      0 1px 3px rgba(0, 0, 0, 0.12),
-      0 4px 12px rgba(0, 0, 0, 0.08);
+      0 1px 2px hsl(var(--foreground) / 0.04),
+      0 4px 16px hsl(var(--foreground) / 0.04);
   }
 
   .chrome-glow-strong {

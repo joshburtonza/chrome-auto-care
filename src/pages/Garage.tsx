@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Car, Plus, Pencil, Sparkles } from "lucide-react";
+import { Car, Plus, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,29 +86,20 @@ const Garage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-0 w-72 h-72 bg-primary/3 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-background">
       <ClientNav />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-5xl relative">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-4xl">
         <motion.div 
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 sm:mb-8"
-          initial={{ opacity: 0, y: -20 }}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" strokeWidth={1.5} />
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-                My Garage
-              </h1>
-            </div>
-            <p className="text-muted-foreground text-sm sm:text-base ml-9 sm:ml-11">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1">
+              My Garage
+            </h1>
+            <p className="text-muted-foreground text-sm">
               Manage your vehicle collection
             </p>
           </div>
@@ -122,10 +113,10 @@ const Garage = () => {
 
         {vehicles.length === 0 ? (
           <motion.div {...fadeInUp}>
-            <ChromeSurface className="p-8 sm:p-12 text-center bg-card/60 backdrop-blur-sm border-border/40">
-              <Car className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/30 mx-auto mb-4" strokeWidth={1.5} />
-              <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">No Vehicles Yet</h3>
-              <p className="text-muted-foreground text-sm mb-5">Add your first vehicle to get started</p>
+            <ChromeSurface className="p-10 sm:p-16 text-center" glow>
+              <Car className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" strokeWidth={1.5} />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Vehicles Yet</h3>
+              <p className="text-muted-foreground text-sm mb-6">Add your first vehicle to get started</p>
               <AddVehicleDialog onVehicleAdded={loadVehicles} trigger={
                 <ChromeButton>
                   <Plus className="mr-2 w-4 h-4" strokeWidth={1.5} />
@@ -136,7 +127,7 @@ const Garage = () => {
           </motion.div>
         ) : (
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
@@ -148,7 +139,8 @@ const Garage = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <ChromeSurface 
-                  className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/40 cursor-pointer group hover:bg-card/70 hover:border-primary/20 transition-all duration-300" 
+                  className="overflow-hidden cursor-pointer group" 
+                  sheen
                   onClick={() => handleVehicleClick(vehicle)}
                 >
                   {/* Vehicle Image */}
@@ -162,45 +154,36 @@ const Garage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-video w-full bg-muted/20 flex items-center justify-center">
-                        <Car className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/20" strokeWidth={1.5} />
+                      <div className="aspect-video w-full bg-muted/30 flex items-center justify-center">
+                        <Car className="w-10 h-10 text-muted-foreground/20" strokeWidth={1.5} />
                       </div>
                     )}
                     {/* Edit indicator */}
-                    <div className="absolute top-2 sm:top-3 right-2 sm:right-3 p-1.5 sm:p-2 bg-background/70 backdrop-blur-sm rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Pencil className="w-3 h-3 sm:w-4 sm:h-4 text-foreground" />
+                    <div className="absolute top-3 right-3 p-2 bg-card/80 backdrop-blur-sm rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Pencil className="w-4 h-4 text-foreground" />
                     </div>
                   </div>
                   
                   {/* Vehicle Details */}
-                  <div className="p-4 sm:p-5">
+                  <div className="p-5">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Car className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                      <div className="p-2.5 rounded-xl bg-muted/50">
+                        <Car className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-medium text-foreground mb-0.5 truncate">
+                        <h3 className="text-base font-medium text-foreground mb-0.5">
                           {vehicle.year} {vehicle.make}
                         </h3>
-                        <div className="text-xs text-muted-foreground mb-2">{vehicle.model}</div>
+                        <div className="text-sm text-muted-foreground mb-3">{vehicle.model}</div>
                         <div className="space-y-1 text-xs text-muted-foreground">
                           {vehicle.color && (
                             <div className="flex items-center justify-between">
-                              <span>Color:</span>
+                              <span>Color</span>
                               <span className="text-foreground">{vehicle.color}</span>
-                            </div>
-                          )}
-                          {vehicle.vin && (
-                            <div className="flex items-center justify-between">
-                              <span>VIN:</span>
-                              <span className="font-mono text-[10px] text-foreground truncate max-w-[100px]">{vehicle.vin}</span>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-border/20 text-center">
-                      <span className="text-[10px] text-muted-foreground">Tap to edit</span>
                     </div>
                   </div>
                 </ChromeSurface>
