@@ -16,7 +16,8 @@ import {
   Trash2,
   Award,
   UserPlus,
-  Loader2
+  Loader2,
+  UserMinus
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -81,7 +82,9 @@ export default function StaffTeam() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [addingStaff, setAddingStaff] = useState(false);
+  const [removingStaff, setRemovingStaff] = useState(false);
   const [newStaffEmail, setNewStaffEmail] = useState('');
   const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
   const [formData, setFormData] = useState({
@@ -247,6 +250,35 @@ export default function StaffTeam() {
     } catch (error) {
       console.error('Error deleting staff profile:', error);
       toast.error('Failed to delete staff profile');
+    }
+  };
+
+  const handleRemoveStaffRole = async () => {
+    if (!selectedMember?.user_id) return;
+
+    setRemovingStaff(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('remove-staff-member', {
+        body: { userId: selectedMember.user_id }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      toast.success('Staff member removed');
+      setIsRemoveDialogOpen(false);
+      setSelectedMember(null);
+      loadStaffMembers();
+    } catch (error: any) {
+      console.error('Error removing staff member:', error);
+      toast.error(error.message || 'Failed to remove staff member');
+    } finally {
+      setRemovingStaff(false);
     }
   };
 
@@ -488,11 +520,23 @@ export default function StaffTeam() {
                           setSelectedMember(member);
                           setIsDeleteDialogOpen(true);
                         }}
-                        className="border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="border-white/[0.08] text-[hsl(215,12%,70%)] hover:text-[hsl(218,15%,93%)] hover:bg-white/[0.05]"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setIsRemoveDialogOpen(true);
+                      }}
+                      className="border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    >
+                      <UserMinus className="w-4 h-4 sm:mr-1.5" />
+                      <span className="hidden sm:inline">Remove</span>
+                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -733,6 +777,45 @@ export default function StaffTeam() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Remove Staff Member Confirmation */}
+      <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+        <AlertDialogContent className="bg-[hsl(215,20%,10%)] border-white/[0.08]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[hsl(218,15%,93%)] flex items-center gap-2">
+              <UserMinus className="w-5 h-5 text-red-400" />
+              Remove Staff Member?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[hsl(215,12%,55%)]">
+              This will remove <span className="text-[hsl(218,15%,93%)] font-medium">{selectedMember?.profile?.full_name || 'this user'}</span> from the staff team. 
+              They will lose access to the staff portal and their staff profile will be deleted. 
+              Their user account will remain active as a client.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="border-white/[0.08]"
+              disabled={removingStaff}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveStaffRole}
+              disabled={removingStaff}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {removingStaff ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                'Remove from Staff'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
