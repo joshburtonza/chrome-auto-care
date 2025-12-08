@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { StoreSkeleton } from "@/components/skeletons/PageSkeletons";
 
 interface Product {
   id: string;
@@ -79,17 +80,7 @@ const Store = () => {
     return (
       <div className="min-h-screen bg-background">
         <ClientNav />
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="flex items-center justify-center h-64">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-primary font-medium tracking-wider"
-            >
-              Loading...
-            </motion.div>
-          </div>
-        </div>
+        <StoreSkeleton />
       </div>
     );
   }
