@@ -9,6 +9,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
 import Index from "./pages/Index";
 import ClientLogin from "./pages/auth/ClientLogin";
 import StaffLogin from "./pages/auth/StaffLogin";
@@ -31,6 +32,8 @@ import StaffOrders from "./pages/staff/StaffOrders";
 import StaffWorkQueue from "./pages/staff/StaffWorkQueue";
 import StaffTeam from "./pages/staff/StaffTeam";
 import StaffInventory from "./pages/staff/StaffInventory";
+import StaffProcessTemplates from "./pages/staff/StaffProcessTemplates";
+import StaffDepartments from "./pages/staff/StaffDepartments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -192,11 +195,28 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/staff/process-templates"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <StaffProcessTemplates />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/departments"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <StaffDepartments />
+                      </ProtectedRoute>
+                    }
+                  />
                   
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <InstallPrompt />
+                <PushNotificationPrompt />
               </CartProvider>
             </NotificationProvider>
           </AuthProvider>

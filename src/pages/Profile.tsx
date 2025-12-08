@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { User, Mail, Phone, MapPin, Calendar, CreditCard, LogOut } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, CreditCard, LogOut, Bell } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,8 @@ import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -188,11 +190,43 @@ const Profile = () => {
             </ChromeSurface>
           </Link>
 
+          <Dialog>
+            <DialogTrigger asChild>
+              <ChromeSurface className="p-5 cursor-pointer" sheen>
+                <Bell className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
+                <div className="text-sm font-medium text-foreground mb-0.5">Notifications</div>
+                <div className="text-xs text-muted-foreground">Manage alerts</div>
+              </ChromeSurface>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Notification Settings</DialogTitle>
+              </DialogHeader>
+              <NotificationSettings />
+            </DialogContent>
+          </Dialog>
+        </motion.div>
+
+        {/* Quick Actions Row 2 */}
+        <motion.div 
+          className="grid grid-cols-2 gap-3 mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+        >
           <ChromeSurface className="p-5" sheen>
             <CreditCard className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
             <div className="text-sm font-medium text-foreground mb-0.5">Payment Methods</div>
             <div className="text-xs text-muted-foreground">Manage payments</div>
           </ChromeSurface>
+
+          <Link to="/orders">
+            <ChromeSurface className="p-5" sheen>
+              <MapPin className="w-5 h-5 text-muted-foreground mb-3" strokeWidth={1.5} />
+              <div className="text-sm font-medium text-foreground mb-0.5">Order History</div>
+              <div className="text-xs text-muted-foreground">Past purchases</div>
+            </ChromeSurface>
+          </Link>
         </motion.div>
 
         {/* Logout */}
