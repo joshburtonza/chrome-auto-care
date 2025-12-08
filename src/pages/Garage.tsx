@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { GarageSkeleton } from "@/components/skeletons/PageSkeletons";
 
 interface Vehicle {
   id: string;
@@ -86,14 +87,9 @@ const Garage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-primary font-medium tracking-wider"
-        >
-          Loading...
-        </motion.div>
+      <div className="min-h-screen bg-background">
+        <ClientNav />
+        <GarageSkeleton />
       </div>
     );
   }

@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BookingsSkeleton } from "@/components/skeletons/PageSkeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -91,14 +92,9 @@ const Bookings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-primary font-medium tracking-wider"
-        >
-          Loading...
-        </motion.div>
+      <div className="min-h-screen bg-background">
+        <ClientNav />
+        <BookingsSkeleton />
       </div>
     );
   }

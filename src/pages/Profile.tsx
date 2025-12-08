@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -95,14 +96,9 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-primary font-medium tracking-wider"
-        >
-          Loading...
-        </motion.div>
+      <div className="min-h-screen bg-background">
+        <ClientNav />
+        <ProfileSkeleton />
       </div>
     );
   }
