@@ -27,13 +27,13 @@ export const StaffNav = () => {
       <MobileStaffNav />
       
       {/* Desktop Navigation */}
-      <nav className="hidden md:block sticky top-0 z-50 border-b border-white/[0.06] bg-[hsl(215,20%,8%)]/95 backdrop-blur-md">
+      <nav className="hidden md:block sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-10">
               <Link 
                 to="/staff/dashboard" 
-                className="text-[11px] font-medium uppercase tracking-[0.15em] text-[hsl(215,12%,60%)] hover:text-[hsl(218,15%,93%)] transition-colors"
+                className="text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors"
               >
                 Staff Portal
               </Link>
@@ -47,14 +47,14 @@ export const StaffNav = () => {
                         className={cn(
                           "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md",
                           isActive 
-                            ? "text-[hsl(218,15%,93%)]" 
-                            : "text-[hsl(215,12%,55%)] hover:text-[hsl(218,15%,80%)] hover:bg-white/[0.03]"
+                            ? "text-foreground" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         )}
                       >
                         <Icon className="w-4 h-4" strokeWidth={1.5} />
                         <span className="hidden lg:inline">{item.label}</span>
                         {isActive && (
-                          <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-[hsl(47,90%,75%)] to-[hsl(35,65%,50%)] rounded-full" />
+                          <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-accent-soft to-primary rounded-full" />
                         )}
                       </button>
                     </Link>
@@ -67,7 +67,7 @@ export const StaffNav = () => {
               <NotificationBell />
               <button 
                 onClick={signOut} 
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[hsl(215,12%,55%)] hover:text-[hsl(218,15%,80%)] hover:bg-white/[0.03] transition-colors rounded-md"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors rounded-md"
               >
                 <LogOut className="w-4 h-4" strokeWidth={1.5} />
                 <span className="hidden lg:inline">Logout</span>

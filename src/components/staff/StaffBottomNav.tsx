@@ -22,8 +22,8 @@ export const StaffBottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-      {/* Frosted glass background with staff theme */}
-      <div className="absolute inset-0 bg-[hsl(215,20%,8%)]/95 backdrop-blur-xl border-t border-white/[0.06]" />
+      {/* Frosted glass background */}
+      <div className="absolute inset-0 bg-card/95 backdrop-blur-xl border-t border-border" />
       
       {/* Safe area padding for iOS */}
       <div className="relative px-2 pb-safe">
@@ -48,20 +48,20 @@ export const StaffBottomNav = () => {
                     {isActive && (
                       <motion.div
                         layoutId="staffBottomNavIndicator"
-                        className="absolute -inset-2 bg-[hsl(35,65%,50%)]/15 rounded-xl"
+                        className="absolute -inset-2 bg-primary/15 rounded-xl"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
                     <Icon 
                       className={`w-5 h-5 relative z-10 transition-colors ${
-                        isActive ? 'text-[hsl(35,65%,50%)]' : 'text-[hsl(215,12%,55%)]'
+                        isActive ? 'text-primary' : 'text-muted-foreground'
                       }`}
                       strokeWidth={isActive ? 2 : 1.5}
                     />
                   </div>
                   <span 
                     className={`text-[10px] mt-1 font-medium transition-colors ${
-                      isActive ? 'text-[hsl(35,65%,50%)]' : 'text-[hsl(215,12%,55%)]'
+                      isActive ? 'text-primary' : 'text-muted-foreground'
                     }`}
                   >
                     {item.label}
