@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo, UsersRound } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { MobileStaffNav } from './MobileStaffNav';
@@ -18,6 +18,7 @@ export const StaffNav = () => {
     { path: '/staff/services', label: 'Services', icon: Package },
     { path: '/staff/merchandise', label: 'Merchandise', icon: Store },
     { path: '/staff/orders', label: 'Orders', icon: ShoppingBag },
+    { path: '/staff/team', label: 'Team', icon: UsersRound },
   ];
 
   return (
