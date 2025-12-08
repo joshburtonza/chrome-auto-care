@@ -665,6 +665,7 @@ export type Database = {
           job_title: string | null
           notes: string | null
           skills: string[] | null
+          staff_role: Database["public"]["Enums"]["staff_role"] | null
           start_date: string | null
           updated_at: string
           user_id: string
@@ -678,6 +679,7 @@ export type Database = {
           job_title?: string | null
           notes?: string | null
           skills?: string[] | null
+          staff_role?: Database["public"]["Enums"]["staff_role"] | null
           start_date?: string | null
           updated_at?: string
           user_id: string
@@ -691,6 +693,7 @@ export type Database = {
           job_title?: string | null
           notes?: string | null
           skills?: string[] | null
+          staff_role?: Database["public"]["Enums"]["staff_role"] | null
           start_date?: string | null
           updated_at?: string
           user_id?: string
@@ -793,6 +796,13 @@ export type Database = {
         | "equipment"
         | "safety_gear"
         | "other"
+      staff_role:
+        | "technician"
+        | "senior_technician"
+        | "team_lead"
+        | "supervisor"
+        | "manager"
+        | "director"
       stage_type:
         | "vehicle_checkin"
         | "stripping"
@@ -949,6 +959,14 @@ export const Constants = {
         "equipment",
         "safety_gear",
         "other",
+      ],
+      staff_role: [
+        "technician",
+        "senior_technician",
+        "team_lead",
+        "supervisor",
+        "manager",
+        "director",
       ],
       stage_type: [
         "vehicle_checkin",
