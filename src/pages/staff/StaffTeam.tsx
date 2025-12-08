@@ -14,7 +14,9 @@ import {
   X,
   Edit2,
   Trash2,
-  Award
+  Award,
+  UserPlus,
+  Loader2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -78,6 +80,9 @@ export default function StaffTeam() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [addingStaff, setAddingStaff] = useState(false);
+  const [newStaffEmail, setNewStaffEmail] = useState('');
   const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
   const [formData, setFormData] = useState({
     job_title: '',
@@ -262,6 +267,45 @@ export default function StaffTeam() {
     }));
   };
 
+  const handleAddStaffMember = async () => {
+    if (!newStaffEmail.trim()) {
+      toast.error('Please enter an email address');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newStaffEmail.trim())) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setAddingStaff(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('add-staff-member', {
+        body: { email: newStaffEmail.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      toast.success(`${data.user?.full_name || data.user?.email} added as staff member`);
+      setIsAddDialogOpen(false);
+      setNewStaffEmail('');
+      loadStaffMembers();
+    } catch (error: any) {
+      console.error('Error adding staff member:', error);
+      toast.error(error.message || 'Failed to add staff member');
+    } finally {
+      setAddingStaff(false);
+    }
+  };
+
   const filteredMembers = staffMembers.filter(member => {
     const matchesSearch = 
       member.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -309,6 +353,13 @@ export default function StaffTeam() {
                 Manage staff profiles, skills, and departments
               </p>
             </div>
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              className="bg-[hsl(35,65%,50%)] hover:bg-[hsl(35,65%,45%)] text-white"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Add Staff Member
+            </Button>
           </div>
         </motion.div>
 
@@ -617,6 +668,71 @@ export default function StaffTeam() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Staff Member Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="bg-[hsl(215,20%,10%)] border-white/[0.08] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[hsl(218,15%,93%)] flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-[hsl(35,65%,50%)]" />
+              Add Staff Member
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            <p className="text-sm text-[hsl(215,12%,55%)]">
+              Enter the email address of an existing user to add them as a staff member. 
+              They must have already created an account.
+            </p>
+
+            <div className="space-y-2">
+              <Label className="text-[hsl(215,12%,70%)]">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(215,12%,50%)]" />
+                <Input
+                  type="email"
+                  value={newStaffEmail}
+                  onChange={(e) => setNewStaffEmail(e.target.value)}
+                  placeholder="staff@example.com"
+                  className="pl-10 bg-white/[0.03] border-white/[0.08] text-[hsl(218,15%,93%)]"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddStaffMember()}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsAddDialogOpen(false);
+                  setNewStaffEmail('');
+                }}
+                className="flex-1 border-white/[0.08]"
+                disabled={addingStaff}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddStaffMember}
+                disabled={addingStaff || !newStaffEmail.trim()}
+                className="flex-1 bg-[hsl(35,65%,50%)] hover:bg-[hsl(35,65%,45%)] text-white"
+              >
+                {addingStaff ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Add as Staff
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
