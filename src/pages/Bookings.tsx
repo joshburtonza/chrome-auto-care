@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { Car, Calendar, CreditCard, Sparkles } from "lucide-react";
+import { Car, Calendar, CreditCard, Sparkles, Trash2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,18 @@ import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BookingsSkeleton } from "@/components/skeletons/PageSkeletons";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -66,6 +78,23 @@ const Bookings = () => {
       toast.error('Failed to load bookings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+      
+      setBookings(prev => prev.filter(b => b.id !== bookingId));
+      toast.success('Booking deleted successfully');
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      toast.error('Failed to delete booking');
     }
   };
 
@@ -156,6 +185,37 @@ const Bookings = () => {
                             <CreditCard className="w-3 h-3 inline mr-1" strokeWidth={1.5} />
                             {booking.payment_status}
                           </StatusBadge>
+                        )}
+                        {booking.status === 'cancelled' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this cancelled booking? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteBooking(booking.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                       <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5 truncate">
