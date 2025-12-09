@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Shield, Sparkles, Car, Clock } from "lucide-react";
+import { Shield, Sparkles, Car, Clock, Check, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
@@ -30,16 +30,27 @@ const staggerContainer = {
   }
 };
 
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price_from: number;
+  duration: string;
+  features: string[] | null;
+}
+
 const Services = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
@@ -131,6 +142,33 @@ const Services = () => {
   // Check if we're in development/test environment
   const isTestEnvironment = import.meta.env.DEV || window.location.hostname === 'localhost';
 
+  const toggleServiceSelection = (service: Service) => {
+    setSelectedServices(prev => {
+      const isSelected = prev.some(s => s.id === service.id);
+      if (isSelected) {
+        return prev.filter(s => s.id !== service.id);
+      } else {
+        return [...prev, service];
+      }
+    });
+  };
+
+  const isServiceSelected = (serviceId: string) => {
+    return selectedServices.some(s => s.id === serviceId);
+  };
+
+  const getTotalPrice = () => {
+    return selectedServices.reduce((sum, s) => sum + s.price_from, 0);
+  };
+
+  const openBookingModal = () => {
+    if (selectedServices.length === 0) {
+      toast.error('Please select at least one service');
+      return;
+    }
+    setShowBookingModal(true);
+  };
+
   const handleBooking = async () => {
     if (!user) {
       toast.error('Please sign in to book a service');
@@ -143,25 +181,46 @@ const Services = () => {
       return;
     }
 
+    if (selectedServices.length === 0) {
+      toast.error('Please select at least one service');
+      return;
+    }
+
     setProcessingPayment(true);
 
     try {
+      const totalAmount = getTotalPrice();
+      
+      // Create booking with first service as primary (for backwards compatibility)
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           user_id: user.id,
-          service_id: selectedService.id,
+          service_id: selectedServices[0].id,
           vehicle_id: selectedVehicle,
           booking_date: selectedDate,
           booking_time: selectedTime,
           status: isTestEnvironment ? 'confirmed' : 'pending',
           payment_status: isTestEnvironment ? 'paid' : 'pending',
-          payment_amount: selectedService.price_from,
+          payment_amount: totalAmount,
         })
         .select()
         .single();
 
       if (bookingError) throw bookingError;
+
+      // Insert all services into booking_services junction table
+      const bookingServicesData = selectedServices.map(service => ({
+        booking_id: booking.id,
+        service_id: service.id,
+        price: service.price_from,
+      }));
+
+      const { error: servicesError } = await supabase
+        .from('booking_services')
+        .insert(bookingServicesData);
+
+      if (servicesError) throw servicesError;
 
       // Skip payment in test environment
       if (isTestEnvironment) {
@@ -176,7 +235,7 @@ const Services = () => {
         {
           body: {
             bookingId: booking.id,
-            amount: selectedService.price_from,
+            amount: totalAmount,
             currency: 'ZAR',
             testMode: false,
           },
@@ -198,7 +257,8 @@ const Services = () => {
   };
 
   const resetBookingModal = () => {
-    setSelectedService(null);
+    setShowBookingModal(false);
+    setSelectedServices([]);
     setSelectedDate(null);
     setSelectedTime(null);
     setSelectedVehicle('');
@@ -238,9 +298,53 @@ const Services = () => {
             Our Services
           </h1>
           <p className="text-muted-foreground text-sm">
-            Premium automotive protection and enhancement
+            Select one or more services for your vehicle
           </p>
         </motion.div>
+
+        {/* Selected Services Summary */}
+        {selectedServices.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <ChromeSurface className="p-4" sheen>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Selected Services ({selectedServices.length})
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedServices.map(service => (
+                      <span
+                        key={service.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm"
+                      >
+                        {service.title}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleServiceSelection(service);
+                          }}
+                          className="hover:bg-primary/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="text-sm text-foreground font-medium mt-2">
+                    Total: R{getTotalPrice().toLocaleString()}
+                  </div>
+                </div>
+                <ChromeButton onClick={openBookingModal} className="w-full sm:w-auto">
+                  Book Selected Services
+                </ChromeButton>
+              </div>
+            </ChromeSurface>
+          </motion.div>
+        )}
 
         {/* Services Grid */}
         <motion.div 
@@ -251,16 +355,27 @@ const Services = () => {
         >
           {services.map((service, index) => {
             const ServiceIcon = getServiceIcon(service.category);
+            const isSelected = isServiceSelected(service.id);
             return (
               <motion.div
                 key={service.id}
                 variants={fadeInUp}
                 transition={{ delay: index * 0.05 }}
               >
-                <ChromeSurface className="p-5 sm:p-6" sheen>
+                <ChromeSurface 
+                  className={`p-5 sm:p-6 cursor-pointer transition-all ${
+                    isSelected ? 'ring-2 ring-primary/50 bg-primary/5' : ''
+                  }`} 
+                  sheen
+                  onClick={() => toggleServiceSelection(service)}
+                >
                   <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-2xl bg-muted/50">
-                      <ServiceIcon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
+                    <div className={`p-3 rounded-2xl ${isSelected ? 'bg-primary/20' : 'bg-muted/50'}`}>
+                      {isSelected ? (
+                        <Check className="w-5 h-5 text-primary" strokeWidth={2} />
+                      ) : (
+                        <ServiceIcon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">
@@ -290,9 +405,9 @@ const Services = () => {
                             From R{service.price_from}
                           </span>
                         </div>
-                        <ChromeButton size="sm" className="w-full sm:w-auto" onClick={() => setSelectedService(service)}>
-                          Book Now
-                        </ChromeButton>
+                        <div className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {isSelected ? '✓ Selected' : 'Tap to select'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -316,125 +431,129 @@ const Services = () => {
       )}
 
       {/* Booking Modal */}
-      <Dialog open={!!selectedService} onOpenChange={resetBookingModal}>
+      <Dialog open={showBookingModal} onOpenChange={(open) => !open && resetBookingModal()}>
         <DialogContent className="bg-card/95 backdrop-blur-md border-border/50 max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Book Service</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Book Services</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 mt-2">
-            {selectedService && (
+            <ChromeSurface className="p-4 bg-muted/30 border-border/30">
+              <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
+                Selected Services ({selectedServices.length})
+              </div>
+              <div className="space-y-2">
+                {selectedServices.map(service => (
+                  <div key={service.id} className="flex justify-between items-center">
+                    <span className="text-foreground">{service.title}</span>
+                    <span className="text-muted-foreground">R{service.price_from}</span>
+                  </div>
+                ))}
+                <div className="pt-2 border-t border-border/30 flex justify-between items-center font-medium">
+                  <span className="text-foreground">Total</span>
+                  <span className="text-foreground">R{getTotalPrice().toLocaleString()}</span>
+                </div>
+              </div>
+            </ChromeSurface>
+
+            {bookingStep === 'calendar' && (
+              <AvailabilityCalendar
+                availability={availability}
+                selectedDate={selectedDate}
+                onSelectDate={(date) => {
+                  setSelectedDate(date);
+                  setBookingStep('time');
+                }}
+              />
+            )}
+
+            {bookingStep === 'time' && selectedDate && (
               <>
                 <ChromeSurface className="p-4 bg-muted/30 border-border/30">
                   <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
-                    Selected Service
+                    Selected Date
                   </div>
-                  <div className="text-base font-medium text-foreground">{selectedService.title}</div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Duration: {selectedService.duration} • From R{selectedService.price_from}
+                  <div className="text-foreground mb-4">
+                    {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                  </div>
+                  <TimeSlotPicker
+                    selectedTime={selectedTime}
+                    onSelectTime={(time) => {
+                      setSelectedTime(time);
+                      setBookingStep('details');
+                    }}
+                    availableSlots={[]}
+                  />
+                </ChromeSurface>
+
+                <ChromeButton variant="outline" onClick={() => setBookingStep('calendar')}>
+                  ← Change Date
+                </ChromeButton>
+              </>
+            )}
+
+            {bookingStep === 'details' && selectedDate && selectedTime && (
+              <>
+                <ChromeSurface className="p-4 bg-muted/30 border-border/30">
+                  <div className="text-[10px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                    Booking Details
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Date:</span>
+                      <span className="text-foreground">{new Date(selectedDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Time:</span>
+                      <span className="text-foreground">{selectedTime}</span>
+                    </div>
                   </div>
                 </ChromeSurface>
 
-                {bookingStep === 'calendar' && (
-                  <AvailabilityCalendar
-                    availability={availability}
-                    selectedDate={selectedDate}
-                    onSelectDate={(date) => {
-                      setSelectedDate(date);
-                      setBookingStep('time');
-                    }}
-                  />
-                )}
-
-                {bookingStep === 'time' && selectedDate && (
-                  <>
-                    <ChromeSurface className="p-4 bg-muted/30 border-border/30">
-                      <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
-                        Selected Date
-                      </div>
-                      <div className="text-foreground mb-4">
-                        {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                      </div>
-                      <TimeSlotPicker
-                        selectedTime={selectedTime}
-                        onSelectTime={(time) => {
-                          setSelectedTime(time);
-                          setBookingStep('details');
-                        }}
-                        availableSlots={[]}
-                      />
-                    </ChromeSurface>
-
-                    <ChromeButton variant="outline" onClick={() => setBookingStep('calendar')}>
-                      ← Change Date
-                    </ChromeButton>
-                  </>
-                )}
-
-                {bookingStep === 'details' && selectedDate && selectedTime && (
-                  <>
-                    <ChromeSurface className="p-4 bg-muted/30 border-border/30">
-                      <div className="text-[10px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-                        Booking Details
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Date:</span>
-                          <span className="text-foreground">{new Date(selectedDate).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Time:</span>
-                          <span className="text-foreground">{selectedTime}</span>
-                        </div>
-                      </div>
-                    </ChromeSurface>
-
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-                        Select Vehicle
-                      </div>
-                      {vehicles.length > 0 ? (
-                        <div className="space-y-2">
-                          {vehicles.map((vehicle) => (
-                            <button
-                              key={vehicle.id}
-                              onClick={() => setSelectedVehicle(vehicle.id)}
-                              className={`w-full p-3.5 rounded-lg border transition-all text-left ${
-                                selectedVehicle === vehicle.id
-                                  ? 'bg-primary/10 border-primary/50'
-                                  : 'bg-muted/20 border-border/50 hover:border-primary/30'
-                              }`}
-                            >
-                              <div className="text-foreground font-medium">
-                                {vehicle.year} {vehicle.make} {vehicle.model}
-                              </div>
-                              <div className="text-sm text-muted-foreground">{vehicle.color}</div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <ChromeSurface className="p-5 text-center bg-muted/30 border-border/30">
-                          <p className="text-muted-foreground text-sm mb-4">No vehicles in your garage</p>
-                          <ChromeButton variant="outline" onClick={() => navigate('/garage')}>
-                            Add Vehicle
-                          </ChromeButton>
-                        </ChromeSurface>
-                      )}
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                    Select Vehicle
+                  </div>
+                  {vehicles.length > 0 ? (
+                    <div className="space-y-2">
+                      {vehicles.map((vehicle) => (
+                        <button
+                          key={vehicle.id}
+                          onClick={() => setSelectedVehicle(vehicle.id)}
+                          className={`w-full p-3.5 rounded-lg border transition-all text-left ${
+                            selectedVehicle === vehicle.id
+                              ? 'bg-primary/10 border-primary/50'
+                              : 'bg-muted/20 border-border/50 hover:border-primary/30'
+                          }`}
+                        >
+                          <div className="text-foreground font-medium">
+                            {vehicle.year} {vehicle.make} {vehicle.model}
+                          </div>
+                          <div className="text-sm text-muted-foreground">{vehicle.color}</div>
+                        </button>
+                      ))}
                     </div>
+                  ) : (
+                    <ChromeSurface className="p-5 text-center bg-muted/30 border-border/30">
+                      <p className="text-muted-foreground text-sm mb-4">No vehicles in your garage</p>
+                      <ChromeButton variant="outline" onClick={() => navigate('/garage')}>
+                        Add Vehicle
+                      </ChromeButton>
+                    </ChromeSurface>
+                  )}
+                </div>
 
-                    <div className="flex gap-3 pt-2">
-                      <ChromeButton variant="outline" onClick={() => setBookingStep('time')} disabled={processingPayment}>
-                        ← Back
-                      </ChromeButton>
-                      <ChromeButton
-                        className="flex-1"
-                        onClick={handleBooking}
-                        disabled={!selectedVehicle || processingPayment}
-                      >
-                        {processingPayment ? 'Processing...' : isTestEnvironment ? 'Confirm Booking' : 'Proceed to Payment'}
-                      </ChromeButton>
-                    </div>
-                  </>
-                )}
+                <div className="flex gap-3 pt-2">
+                  <ChromeButton variant="outline" onClick={() => setBookingStep('time')} disabled={processingPayment}>
+                    ← Back
+                  </ChromeButton>
+                  <ChromeButton
+                    className="flex-1"
+                    onClick={handleBooking}
+                    disabled={!selectedVehicle || processingPayment}
+                  >
+                    {processingPayment ? 'Processing...' : isTestEnvironment ? 'Confirm Booking' : 'Proceed to Payment'}
+                  </ChromeButton>
+                </div>
               </>
             )}
           </div>
