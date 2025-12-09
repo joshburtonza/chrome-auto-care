@@ -56,7 +56,7 @@ const Services = () => {
     toast.success('Services refreshed');
   }, []);
 
-  // Generate mock availability (90 days forward)
+  // Generate availability (90 days forward) - all dates available
   const generateAvailability = () => {
     const availability: Record<string, any> = {};
     const today = new Date();
@@ -66,28 +66,11 @@ const Services = () => {
       date.setDate(today.getDate() + i);
       const dateString = date.toISOString().split('T')[0];
 
-      const hash = dateString.split('-').reduce((acc, part) => acc + parseInt(part), 0);
-      const availableSlots = (hash % 4) + 1;
-      const bookedSlots = hash % availableSlots;
-
-      let status: 'available' | 'limited' | 'full' | 'unavailable';
-      if (date.getDay() === 0) {
-        status = 'unavailable';
-      } else if (bookedSlots === 0) {
-        status = 'available';
-      } else if (bookedSlots >= availableSlots) {
-        status = 'full';
-      } else if (availableSlots - bookedSlots <= 1) {
-        status = 'limited';
-      } else {
-        status = 'available';
-      }
-
       availability[dateString] = {
         date: dateString,
-        status,
-        availableSlots: availableSlots - bookedSlots,
-        bookedSlots,
+        status: 'available',
+        availableSlots: 4,
+        bookedSlots: 0,
       };
     }
 
