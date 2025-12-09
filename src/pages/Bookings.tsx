@@ -61,7 +61,8 @@ const Bookings = () => {
 
   const loadBookings = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch bookings with primary service and vehicle
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
@@ -71,8 +72,37 @@ const Bookings = () => {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setBookings(data || []);
+      if (bookingsError) throw bookingsError;
+
+      // Fetch all booking services for these bookings
+      if (bookingsData && bookingsData.length > 0) {
+        const bookingIds = bookingsData.map(b => b.id);
+        const { data: bookingServices, error: servicesError } = await supabase
+          .from('booking_services')
+          .select(`
+            booking_id,
+            price,
+            services (id, title)
+          `)
+          .in('booking_id', bookingIds);
+
+        if (servicesError) throw servicesError;
+
+        // Merge booking services into bookings
+        const bookingsWithServices = bookingsData.map(booking => {
+          const services = bookingServices?.filter(bs => bs.booking_id === booking.id) || [];
+          return {
+            ...booking,
+            all_services: services.length > 0 
+              ? services.map(s => s.services?.title).filter(Boolean)
+              : [booking.services?.title].filter(Boolean),
+          };
+        });
+
+        setBookings(bookingsWithServices);
+      } else {
+        setBookings([]);
+      }
     } catch (error) {
       console.error('Error loading bookings:', error);
       toast.error('Failed to load bookings');
@@ -218,8 +248,10 @@ const Bookings = () => {
                           </AlertDialog>
                         )}
                       </div>
-                      <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5 truncate">
-                        {booking.services?.title}
+                      <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5">
+                        {booking.all_services?.length > 1 
+                          ? booking.all_services.join(' + ')
+                          : booking.all_services?.[0] || booking.services?.title}
                       </h3>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                         {booking.vehicles && (
