@@ -7,8 +7,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Calendar } from 'lucide-react';
+import { Plus, Edit, Palette } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+const PRESET_COLORS = [
+  '#3b82f6', // Blue
+  '#8b5cf6', // Purple
+  '#10b981', // Green
+  '#f59e0b', // Amber
+  '#ef4444', // Red
+  '#ec4899', // Pink
+  '#06b6d4', // Cyan
+  '#84cc16', // Lime
+  '#f97316', // Orange
+  '#6366f1', // Indigo
+  '#14b8a6', // Teal
+  '#6b7280', // Gray
+];
 
 export default function StaffServices() {
   const [services, setServices] = useState<any[]>([]);
@@ -20,6 +36,7 @@ export default function StaffServices() {
     category: '',
     price_from: 0,
     duration: '',
+    color: '#3b82f6',
   });
   const { toast } = useToast();
 
@@ -79,6 +96,7 @@ export default function StaffServices() {
       category: service.category,
       price_from: service.price_from,
       duration: service.duration,
+      color: service.color || '#3b82f6',
     });
     setShowDialog(true);
   };
@@ -91,6 +109,7 @@ export default function StaffServices() {
       category: '',
       price_from: 0,
       duration: '',
+      color: '#3b82f6',
     });
     setShowDialog(true);
   };
@@ -136,6 +155,7 @@ export default function StaffServices() {
       category: '',
       price_from: 0,
       duration: '',
+      color: '#3b82f6',
     });
   };
 
@@ -159,37 +179,50 @@ export default function StaffServices() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {services.map((service) => (
-            <ChromeSurface key={service.id} className="p-4 sm:p-5 md:p-6">
-              <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
-                <div className="chrome-label text-xs sm:text-sm truncate">{service.category}</div>
-                <Switch
-                  checked={service.is_active}
-                  onCheckedChange={() => handleToggleActive(service.id, service.is_active)}
-                />
-              </div>
-              <h3 className="chrome-heading text-base sm:text-lg md:text-xl mb-2">{service.title}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
-                {service.description}
-              </p>
-              <div className="flex items-center justify-between text-sm">
-                <div>
-                  <div className="chrome-label text-[10px] sm:text-xs">PRICE</div>
-                  <div className="font-semibold text-sm sm:text-base">From R{service.price_from}</div>
+            <ChromeSurface key={service.id} className="p-4 sm:p-5 md:p-6 relative overflow-hidden">
+              {/* Service color indicator */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-1.5"
+                style={{ backgroundColor: service.color || '#6b7280' }}
+              />
+              <div className="pl-2">
+                <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: service.color || '#6b7280' }}
+                    />
+                    <div className="chrome-label text-xs sm:text-sm truncate">{service.category}</div>
+                  </div>
+                  <Switch
+                    checked={service.is_active}
+                    onCheckedChange={() => handleToggleActive(service.id, service.is_active)}
+                  />
                 </div>
-                <div className="text-right">
-                  <div className="chrome-label text-[10px] sm:text-xs">DURATION</div>
-                  <div className="font-semibold text-sm sm:text-base">{service.duration}</div>
+                <h3 className="chrome-heading text-base sm:text-lg md:text-xl mb-2">{service.title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
+                  {service.description}
+                </p>
+                <div className="flex items-center justify-between text-sm">
+                  <div>
+                    <div className="chrome-label text-[10px] sm:text-xs">PRICE</div>
+                    <div className="font-semibold text-sm sm:text-base">From R{service.price_from}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="chrome-label text-[10px] sm:text-xs">DURATION</div>
+                    <div className="font-semibold text-sm sm:text-base">{service.duration}</div>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  className="w-full mt-3 sm:mt-4"
+                  size="sm"
+                  onClick={() => handleEdit(service)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                className="w-full mt-3 sm:mt-4"
-                size="sm"
-                onClick={() => handleEdit(service)}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
             </ChromeSurface>
           ))}
         </div>
@@ -255,6 +288,56 @@ export default function StaffServices() {
                   />
                 </div>
               </div>
+              
+              {/* Color Picker */}
+              <div>
+                <label className="chrome-label text-xs mb-1 sm:mb-2 block">SERVICE COLOR</label>
+                <div className="flex items-center gap-3">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2"
+                        size="sm"
+                      >
+                        <div 
+                          className="w-5 h-5 rounded-full border border-border"
+                          style={{ backgroundColor: formData.color }}
+                        />
+                        <span className="text-sm">{formData.color}</span>
+                        <Palette className="w-4 h-4 ml-auto text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3" align="start">
+                      <div className="space-y-3">
+                        <div className="text-xs font-medium text-muted-foreground">Preset Colors</div>
+                        <div className="grid grid-cols-6 gap-2">
+                          {PRESET_COLORS.map((color) => (
+                            <button
+                              key={color}
+                              className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${
+                                formData.color === color ? 'border-foreground ring-2 ring-offset-2 ring-primary' : 'border-transparent'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => setFormData({ ...formData, color })}
+                            />
+                          ))}
+                        </div>
+                        <div className="pt-2 border-t border-border">
+                          <div className="text-xs font-medium text-muted-foreground mb-2">Custom Color</div>
+                          <Input
+                            type="color"
+                            value={formData.color}
+                            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                            className="w-full h-8 p-1 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
               <Button className="w-full" size="sm" onClick={handleSaveService}>
                 {editingService ? 'Update Service' : 'Create Service'}
               </Button>
