@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Users, 
   Plus, 
@@ -114,8 +116,15 @@ export default function StaffTeam() {
     emergency_contact_phone: ''
   });
   const [newSkill, setNewSkill] = useState('');
+  const { userRole } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Redirect non-admin users
+    if (userRole && userRole !== 'admin') {
+      navigate('/staff/dashboard');
+      return;
+    }
     loadStaffMembers();
     
     // Real-time subscription
