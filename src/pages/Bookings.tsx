@@ -91,11 +91,15 @@ const Bookings = () => {
         // Merge booking services into bookings
         const bookingsWithServices = bookingsData.map(booking => {
           const services = bookingServices?.filter(bs => bs.booking_id === booking.id) || [];
+          const totalPrice = services.length > 0 
+            ? services.reduce((sum, s) => sum + (s.price || 0), 0)
+            : booking.payment_amount || 0;
           return {
             ...booking,
             all_services: services.length > 0 
               ? services.map(s => s.services?.title).filter(Boolean)
               : [booking.services?.title].filter(Boolean),
+            total_price: totalPrice,
           };
         });
 
@@ -266,10 +270,10 @@ const Bookings = () => {
                           <Calendar className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
                           {new Date(booking.booking_date).toLocaleDateString()} {booking.booking_time}
                         </span>
-                        {booking.payment_amount && (
+                        {(booking.total_price > 0 || booking.payment_amount) && (
                           <span className="flex items-center gap-2 text-primary font-medium">
                             <CreditCard className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                            R{booking.payment_amount}
+                            R{(booking.total_price || booking.payment_amount || 0).toLocaleString()}
                           </span>
                         )}
                       </div>
