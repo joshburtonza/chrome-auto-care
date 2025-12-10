@@ -78,6 +78,7 @@ export default function StaffBookings() {
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [bookingServices, setBookingServices] = useState<BookingService[]>([]);
   const [selectedServiceToAdd, setSelectedServiceToAdd] = useState<string>('');
+  const [customServicePrice, setCustomServicePrice] = useState<string>('');
 
   useEffect(() => {
     fetchBookings();
@@ -311,11 +312,21 @@ export default function StaffBookings() {
     }
   };
 
+  const handleServiceSelect = (serviceId: string) => {
+    setSelectedServiceToAdd(serviceId);
+    const service = allServices.find(s => s.id === serviceId);
+    if (service) {
+      setCustomServicePrice(service.price_from.toString());
+    }
+  };
+
   const handleAddService = async () => {
     if (!selectedBooking || !selectedServiceToAdd) return;
     
     const service = allServices.find(s => s.id === selectedServiceToAdd);
     if (!service) return;
+    
+    const price = parseFloat(customServicePrice) || service.price_from;
     
     try {
       const { error } = await supabase
@@ -323,17 +334,18 @@ export default function StaffBookings() {
         .insert({
           booking_id: selectedBooking.id,
           service_id: selectedServiceToAdd,
-          price: service.price_from
+          price: price
         });
 
       if (error) throw error;
       
       toast({
         title: 'Success',
-        description: `Added ${service.title} to booking`,
+        description: `Added ${service.title} to booking (R${price.toLocaleString()})`,
       });
       
       setSelectedServiceToAdd('');
+      setCustomServicePrice('');
       fetchBookingServices(selectedBooking.id);
     } catch (error) {
       console.error('Error adding service:', error);
@@ -386,6 +398,7 @@ export default function StaffBookings() {
     setUploadingImages({});
     setBookingServices([]);
     setSelectedServiceToAdd('');
+    setCustomServicePrice('');
   };
 
   const handleDialogOpenChange = (open: boolean) => {
@@ -772,30 +785,48 @@ export default function StaffBookings() {
                   </div>
                   
                   {/* Add Service */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Select value={selectedServiceToAdd} onValueChange={setSelectedServiceToAdd}>
-                      <SelectTrigger className="flex-1 h-9 text-xs sm:text-sm">
-                        <SelectValue placeholder="Select a service to add..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allServices
-                          .filter(s => !bookingServices.some(bs => bs.service_id === s.id))
-                          .map((service) => (
-                            <SelectItem key={service.id} value={service.id}>
-                              {service.title} - R{service.price_from.toLocaleString()}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleAddService}
-                      disabled={!selectedServiceToAdd}
-                      size="sm"
-                      className="gap-1 h-9"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add
-                    </Button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Select value={selectedServiceToAdd} onValueChange={handleServiceSelect}>
+                        <SelectTrigger className="flex-1 h-9 text-xs sm:text-sm">
+                          <SelectValue placeholder="Select a service to add..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allServices
+                            .filter(s => !bookingServices.some(bs => bs.service_id === s.id))
+                            .map((service) => (
+                              <SelectItem key={service.id} value={service.id}>
+                                {service.title} - R{service.price_from.toLocaleString()}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedServiceToAdd && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Price:</span>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-muted-foreground">R</span>
+                            <Input
+                              type="number"
+                              value={customServicePrice}
+                              onChange={(e) => setCustomServicePrice(e.target.value)}
+                              className="w-28 h-9 pl-6 text-xs sm:text-sm"
+                              min="0"
+                              step="0.01"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <Button
+                        onClick={handleAddService}
+                        disabled={!selectedServiceToAdd}
+                        size="sm"
+                        className="gap-1 h-9"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
