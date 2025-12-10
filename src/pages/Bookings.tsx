@@ -1,6 +1,6 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { Car, Calendar, CreditCard, Sparkles, Trash2 } from "lucide-react";
+import { Car, Calendar, CreditCard, Sparkles, Trash2, FileText } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BookingsSkeleton } from "@/components/skeletons/PageSkeletons";
 import { Button } from "@/components/ui/button";
+import { generateBookingInvoice } from "@/lib/generateInvoice";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +44,7 @@ const Bookings = () => {
   const isMobile = useIsMobile();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
@@ -56,8 +58,24 @@ const Bookings = () => {
   useEffect(() => {
     if (user) {
       loadBookings();
+      loadProfile();
     }
   }, [user]);
+
+  const loadProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, phone, address')
+        .eq('id', user?.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
 
   const loadBookings = async () => {
     try {
@@ -90,15 +108,18 @@ const Bookings = () => {
 
         // Merge booking services into bookings
         const bookingsWithServices = bookingsData.map(booking => {
-          const services = bookingServices?.filter(bs => bs.booking_id === booking.id) || [];
-          const totalPrice = services.length > 0 
-            ? services.reduce((sum, s) => sum + (s.price || 0), 0)
+          const bookingServicesList = bookingServices?.filter(bs => bs.booking_id === booking.id) || [];
+          const totalPrice = bookingServicesList.length > 0 
+            ? bookingServicesList.reduce((sum, s) => sum + (s.price || 0), 0)
             : booking.payment_amount || 0;
           return {
             ...booking,
-            all_services: services.length > 0 
-              ? services.map(s => s.services?.title).filter(Boolean)
+            all_services: bookingServicesList.length > 0 
+              ? bookingServicesList.map(s => s.services?.title).filter(Boolean)
               : [booking.services?.title].filter(Boolean),
+            services_with_prices: bookingServicesList.length > 0
+              ? bookingServicesList.map(s => ({ title: s.services?.title || '', price: s.price || 0 }))
+              : [{ title: booking.services?.title || '', price: booking.payment_amount || 0 }],
             total_price: totalPrice,
           };
         });
@@ -151,6 +172,11 @@ const Bookings = () => {
       refunded: 'full',
     };
     return statusMap[paymentStatus] || 'limited';
+  };
+
+  const handleDownloadInvoice = (booking: any) => {
+    generateBookingInvoice(booking, profile || {}, booking.services_with_prices || []);
+    toast.success('Invoice downloaded');
   };
 
   if (loading) {
@@ -251,6 +277,15 @@ const Bookings = () => {
                             </AlertDialogContent>
                           </AlertDialog>
                         )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 px-2 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => handleDownloadInvoice(booking)}
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Invoice
+                        </Button>
                       </div>
                       <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5">
                         {booking.all_services?.length > 1 
