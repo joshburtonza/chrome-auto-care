@@ -524,6 +524,19 @@ const JobTracking = () => {
                     </span>
                   </div>
                 )}
+                {(() => {
+                  const approvedTotal = addonRequests
+                    .filter(r => r.status === 'approved')
+                    .reduce((sum, r) => sum + (r.requested_price || 0), 0);
+                  return approvedTotal > 0 ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 sm:col-span-2">
+                      <span className="text-muted-foreground">Approved Add-ons:</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        +R{approvedTotal.toLocaleString()}
+                      </span>
+                    </div>
+                  ) : null;
+                })()}
               </div>
             </ChromeSurface>
           </motion.div>
