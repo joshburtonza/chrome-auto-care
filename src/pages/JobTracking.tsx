@@ -1,7 +1,7 @@
 import { ClientNav } from "@/components/client/ClientNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { CheckCircle, Clock, Circle, AlertCircle, Sparkles, Plus, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, Circle, AlertCircle, Sparkles, Plus, XCircle, Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -30,6 +32,13 @@ interface AddonRequest {
   } | null;
 }
 
+interface ServiceOption {
+  id: string;
+  title: string;
+  price_from: number;
+  color: string | null;
+}
+
 const JobTracking = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
@@ -38,12 +47,81 @@ const JobTracking = () => {
   const [stageImages, setStageImages] = useState<Record<string, any[]>>({});
   const [addonRequests, setAddonRequests] = useState<AddonRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Client addon request state
+  const [availableServices, setAvailableServices] = useState<ServiceOption[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  const [requestedPrice, setRequestedPrice] = useState<string>('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchBookings();
+      fetchAvailableServices();
     }
   }, [user]);
+
+  const fetchAvailableServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, title, price_from, color')
+        .eq('is_active', true)
+        .order('title');
+      
+      if (error) throw error;
+      setAvailableServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
+
+  const handleServiceSelect = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    const service = availableServices.find(s => s.id === serviceId);
+    if (service) {
+      setRequestedPrice(service.price_from.toString());
+    }
+  };
+
+  const handleSubmitAddonRequest = async () => {
+    if (!selectedBooking || !selectedServiceId || !requestedPrice || !user) {
+      toast.error('Please select a service and enter a price');
+      return;
+    }
+
+    setSubmittingRequest(true);
+    try {
+      const { error } = await supabase
+        .from('addon_requests')
+        .insert({
+          booking_id: selectedBooking.id,
+          service_id: selectedServiceId,
+          requested_price: parseFloat(requestedPrice),
+          requested_by: user.id,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast.success('Add-on request submitted!', {
+        description: 'You will be notified when it is reviewed'
+      });
+      
+      // Reset form
+      setSelectedServiceId('');
+      setRequestedPrice('');
+      setShowRequestForm(false);
+    } catch (error: any) {
+      console.error('Error submitting addon request:', error);
+      toast.error('Failed to submit request', {
+        description: error.message
+      });
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedBooking) {
@@ -521,6 +599,100 @@ const JobTracking = () => {
                 </ChromeSurface>
               ))}
             </div>
+          </motion.div>
+        )}
+
+        {/* Request Add-on Section */}
+        {selectedBooking && selectedBooking.status === 'in_progress' && (
+          <motion.div 
+            className="mb-5"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+          >
+            {!showRequestForm ? (
+              <Button
+                variant="outline"
+                onClick={() => setShowRequestForm(true)}
+                className="w-full border-dashed border-primary/30 text-primary hover:bg-primary/5"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Request Additional Service
+              </Button>
+            ) : (
+              <ChromeSurface className="p-4 sm:p-5 bg-card/60 backdrop-blur-sm border-primary/30">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-foreground">Request Add-on Service</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowRequestForm(false);
+                      setSelectedServiceId('');
+                      setRequestedPrice('');
+                    }}
+                    className="text-muted-foreground hover:text-foreground h-8 px-2"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                      Select Service
+                    </label>
+                    <Select value={selectedServiceId} onValueChange={handleServiceSelect}>
+                      <SelectTrigger className="w-full bg-background/50">
+                        <SelectValue placeholder="Choose a service..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableServices.map((service) => (
+                          <SelectItem key={service.id} value={service.id}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="h-2.5 w-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: service.color || '#6b7280' }}
+                              />
+                              <span>{service.title}</span>
+                              <span className="text-muted-foreground ml-1">
+                                from R{service.price_from.toLocaleString()}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                      Requested Price (ZAR)
+                    </label>
+                    <Input
+                      type="number"
+                      value={requestedPrice}
+                      onChange={(e) => setRequestedPrice(e.target.value)}
+                      placeholder="Enter price"
+                      className="bg-background/50"
+                    />
+                  </div>
+                  
+                  <Button
+                    onClick={handleSubmitAddonRequest}
+                    disabled={!selectedServiceId || !requestedPrice || submittingRequest}
+                    className="w-full"
+                  >
+                    {submittingRequest ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    Submit Request
+                  </Button>
+                </div>
+              </ChromeSurface>
+            )}
           </motion.div>
         )}
 
