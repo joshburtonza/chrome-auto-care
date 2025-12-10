@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, Calendar, Car, Package, User, LogOut, Store, ClipboardCheck, ShoppingBag } from 'lucide-react';
+import { Home, Calendar, Car, Package, User, LogOut, Store, ClipboardCheck, ShoppingBag, Trophy, Users, MessageSquare, Image } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { useCart } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +21,7 @@ export const ClientNav = () => {
     { path: '/job-tracking', label: 'Tracking', icon: ClipboardCheck },
     { path: '/garage', label: 'Garage', icon: Car },
     { path: '/store', label: 'Store', icon: Store },
-    { path: '/orders', label: 'Orders', icon: ShoppingBag },
+    { path: '/rewards', label: 'Rewards', icon: Trophy },
     { path: '/profile', label: 'Profile', icon: User },
   ];
 

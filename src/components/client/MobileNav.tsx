@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Store, ClipboardCheck, ShoppingBag, LogOut, Menu, MoreHorizontal } from 'lucide-react';
+import { Store, ClipboardCheck, ShoppingBag, LogOut, Menu, MoreHorizontal, Trophy, Users, MessageSquare, Image } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { useCart } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,10 @@ export const MobileNav = () => {
     { path: '/job-tracking', label: 'Job Tracking', icon: ClipboardCheck },
     { path: '/store', label: 'Store', icon: Store },
     { path: '/orders', label: 'Orders', icon: ShoppingBag },
+    { path: '/rewards', label: 'Rewards', icon: Trophy },
+    { path: '/referrals', label: 'Refer Friends', icon: Users },
+    { path: '/gallery', label: 'Gallery', icon: Image },
+    { path: '/reviews', label: 'Reviews', icon: MessageSquare },
   ];
 
   return (
