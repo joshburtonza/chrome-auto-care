@@ -525,15 +525,30 @@ const JobTracking = () => {
                   </div>
                 )}
                 {(() => {
-                  const approvedTotal = addonRequests
-                    .filter(r => r.status === 'approved')
-                    .reduce((sum, r) => sum + (r.requested_price || 0), 0);
-                  return approvedTotal > 0 ? (
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 sm:col-span-2">
-                      <span className="text-muted-foreground">Approved Add-ons:</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                        +R{approvedTotal.toLocaleString()}
-                      </span>
+                  const approvedAddons = addonRequests.filter(r => r.status === 'approved');
+                  const approvedTotal = approvedAddons.reduce((sum, r) => sum + (r.requested_price || 0), 0);
+                  return approvedAddons.length > 0 ? (
+                    <div className="p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 sm:col-span-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-muted-foreground text-xs font-medium uppercase tracking-wide">Approved Add-ons</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                          +R{approvedTotal.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {approvedAddons.map((addon) => (
+                          <div key={addon.id} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="h-2 w-2 rounded-full shrink-0"
+                                style={{ backgroundColor: addon.services?.color || '#6b7280' }}
+                              />
+                              <span className="text-foreground">{addon.services?.title}</span>
+                            </div>
+                            <span className="text-muted-foreground">R{addon.requested_price?.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : null;
                 })()}
