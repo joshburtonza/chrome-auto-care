@@ -407,6 +407,62 @@ export type Database = {
           },
         ]
       }
+      gallery_items: {
+        Row: {
+          before_image_url: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          service_id: string | null
+          title: string
+          updated_at: string | null
+          vehicle_info: string | null
+        }
+        Insert: {
+          before_image_url?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          service_id?: string | null
+          title: string
+          updated_at?: string | null
+          vehicle_info?: string | null
+        }
+        Update: {
+          before_image_url?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          service_id?: string | null
+          title?: string
+          updated_at?: string | null
+          vehicle_info?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           category: Database["public"]["Enums"]["inventory_category"]
@@ -508,6 +564,74 @@ export type Database = {
             columns: ["inventory_id"]
             isOneToOne: false
             referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_points: {
+        Row: {
+          created_at: string | null
+          id: string
+          lifetime_points: number
+          points: number
+          tier: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lifetime_points?: number
+          points?: number
+          tier?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lifetime_points?: number
+          points?: number
+          tier?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          points: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -885,6 +1009,89 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          referral_code: string
+          referred_email: string
+          referred_user_id: string | null
+          referrer_id: string
+          reward_points: number | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          referral_code: string
+          referred_email: string
+          referred_user_id?: string | null
+          referrer_id: string
+          reward_points?: number | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_email?: string
+          referred_user_id?: string | null
+          referrer_id?: string
+          reward_points?: number | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          is_featured: boolean | null
+          is_public: boolean | null
+          rating: number
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          rating: number
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          rating?: number
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_availability: {
         Row: {
           available_slots: number | null
@@ -1116,6 +1323,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

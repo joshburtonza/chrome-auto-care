@@ -22,6 +22,9 @@ import Garage from "./pages/Garage";
 import Store from "./pages/Store";
 import Orders from "./pages/Orders";
 import Gallery from "./pages/Gallery";
+import Reviews from "./pages/Reviews";
+import Rewards from "./pages/Rewards";
+import Referrals from "./pages/Referrals";
 import JobTracking from "./pages/JobTracking";
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffBookings from "./pages/staff/StaffBookings";
@@ -55,6 +58,7 @@ const App = () => (
                   <Route path="/auth/staff-login" element={<StaffLogin />} />
                   <Route path="/auth/signup" element={<Signup />} />
                   <Route path="/gallery" element={<Gallery />} />
+                  <Route path="/reviews" element={<Reviews />} />
                   
                   {/* Protected client routes */}
                   <Route
@@ -118,6 +122,22 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRoles={['client']}>
                         <JobTracking />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/rewards"
+                    element={
+                      <ProtectedRoute allowedRoles={['client']}>
+                        <Rewards />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/referrals"
+                    element={
+                      <ProtectedRoute allowedRoles={['client']}>
+                        <Referrals />
                       </ProtectedRoute>
                     }
                   />
