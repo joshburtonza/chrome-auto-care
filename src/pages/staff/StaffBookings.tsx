@@ -740,9 +740,16 @@ export default function StaffBookings() {
 
                 {/* Services Management Section */}
                 <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="flex items-center gap-2">
-                    <Wrench className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="text-sm sm:text-base font-semibold">Services</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="text-sm sm:text-base font-semibold">Services</h3>
+                    </div>
+                    {bookingServices.length > 0 && (
+                      <div className="text-sm sm:text-base font-semibold text-primary">
+                        Total: R{bookingServices.reduce((sum, bs) => sum + bs.price, 0).toLocaleString()}
+                      </div>
+                    )}
                   </div>
                   
                   {/* Current Services */}
