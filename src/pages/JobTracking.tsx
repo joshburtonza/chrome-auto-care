@@ -603,7 +603,7 @@ const JobTracking = () => {
         )}
 
         {/* Request Add-on Section */}
-        {selectedBooking && selectedBooking.status === 'in_progress' && (
+        {selectedBooking && (selectedBooking.status === 'in_progress' || selectedBooking.status === 'confirmed') && (
           <motion.div 
             className="mb-5"
             initial={{ opacity: 0, y: 20 }}
