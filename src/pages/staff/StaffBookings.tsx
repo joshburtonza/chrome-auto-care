@@ -877,66 +877,89 @@ export default function StaffBookings() {
                   </div>
                 </div>
 
-                {/* Services Management Section */}
-                <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50">
+                {/* Services & Add-ons Section */}
+                <div className="space-y-4 p-4 sm:p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/20">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Wrench className="h-4 w-4 text-muted-foreground" />
-                      <h3 className="text-sm sm:text-base font-semibold">Services</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                        <Plus className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-bold">Services & Add-ons</h3>
+                        <p className="text-xs text-muted-foreground">Add extra services to this booking</p>
+                      </div>
                     </div>
                     {bookingServices.length > 0 && (
-                      <div className="text-sm sm:text-base font-semibold text-primary">
-                        Total: R{bookingServices.reduce((sum, bs) => sum + bs.price, 0).toLocaleString()}
+                      <div className="text-lg sm:text-xl font-bold text-primary">
+                        R{bookingServices.reduce((sum, bs) => sum + bs.price, 0).toLocaleString()}
                       </div>
                     )}
                   </div>
                   
                   {/* Current Services */}
-                  <div className="flex flex-wrap gap-2">
-                    {bookingServices.length > 0 ? (
-                      bookingServices.map((bs) => (
-                        <Badge key={bs.id} variant="secondary" className="gap-1 py-1.5 px-3">
-                          {bs.service?.title} - R{bs.price.toLocaleString()}
-                          <button
-                            onClick={() => handleRemoveService(bs.id, bs.service?.title)}
-                            className="ml-1 hover:text-destructive transition-colors"
+                  {bookingServices.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Services</span>
+                      <div className="flex flex-wrap gap-2">
+                        {bookingServices.map((bs) => (
+                          <Badge 
+                            key={bs.id} 
+                            variant="secondary" 
+                            className="gap-2 py-2 px-4 text-sm"
+                            style={{ 
+                              borderLeft: `4px solid ${getServiceColor(bs.service_id)}`,
+                              backgroundColor: `${getServiceColor(bs.service_id)}15`
+                            }}
                           >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-xs sm:text-sm text-muted-foreground">No additional services</span>
-                    )}
-                  </div>
+                            <span className="font-medium">{bs.service?.title}</span>
+                            <span className="text-muted-foreground">R{bs.price.toLocaleString()}</span>
+                            <button
+                              onClick={() => handleRemoveService(bs.id, bs.service?.title)}
+                              className="ml-1 p-0.5 rounded hover:bg-destructive/20 hover:text-destructive transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
-                  {/* Add Service */}
-                  <div className="flex flex-col gap-2">
+                  {/* Add New Service */}
+                  <div className="space-y-2 pt-2 border-t border-primary/10">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Add New Service</span>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Select value={selectedServiceToAdd} onValueChange={handleServiceSelect}>
-                        <SelectTrigger className="flex-1 h-9 text-xs sm:text-sm">
-                          <SelectValue placeholder="Select a service to add..." />
+                        <SelectTrigger className="flex-1 h-11 text-sm bg-background">
+                          <SelectValue placeholder="Select add-on service..." />
                         </SelectTrigger>
                         <SelectContent>
                           {allServices
                             .filter(s => !bookingServices.some(bs => bs.service_id === s.id))
                             .map((service) => (
                               <SelectItem key={service.id} value={service.id}>
-                                {service.title} - R{service.price_from.toLocaleString()}
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="h-3 w-3 rounded-full shrink-0" 
+                                    style={{ backgroundColor: service.color || '#6b7280' }}
+                                  />
+                                  <span>{service.title}</span>
+                                  <span className="text-muted-foreground">- R{service.price_from.toLocaleString()}</span>
+                                </div>
                               </SelectItem>
                             ))}
                         </SelectContent>
                       </Select>
                       {selectedServiceToAdd && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Price:</span>
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">Price:</span>
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-muted-foreground">R</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium">R</span>
                             <Input
                               type="number"
                               value={customServicePrice}
                               onChange={(e) => setCustomServicePrice(e.target.value)}
-                              className="w-28 h-9 pl-6 text-xs sm:text-sm"
+                              className="w-32 h-11 pl-7 text-sm font-medium bg-background"
                               min="0"
                               step="0.01"
                             />
@@ -946,11 +969,11 @@ export default function StaffBookings() {
                       <Button
                         onClick={handleAddService}
                         disabled={!selectedServiceToAdd}
-                        size="sm"
-                        className="gap-1 h-9"
+                        size="lg"
+                        className="gap-2 h-11 px-6"
                       >
-                        <Plus className="h-4 w-4" />
-                        Add
+                        <Plus className="h-5 w-5" />
+                        Add Service
                       </Button>
                     </div>
                   </div>
