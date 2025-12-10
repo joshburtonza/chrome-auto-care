@@ -869,6 +869,7 @@ export type Database = {
       services: {
         Row: {
           category: string
+          color: string | null
           created_at: string | null
           description: string | null
           duration: string
@@ -881,6 +882,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          color?: string | null
           created_at?: string | null
           description?: string | null
           duration: string
@@ -893,6 +895,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          color?: string | null
           created_at?: string | null
           description?: string | null
           duration?: string

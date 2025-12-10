@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { StatusBadge } from '@/components/chrome/StatusBadge';
@@ -10,8 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { generateBookingInvoice } from '@/lib/generateInvoice';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -20,6 +22,7 @@ interface Service {
   title: string;
   price_from: number;
   category: string;
+  color: string | null;
 }
 
 interface BookingService {
@@ -35,6 +38,7 @@ type StageType = Database['public']['Enums']['stage_type'];
 interface Booking {
   id: string;
   user_id: string;
+  service_id: string;
   booking_date: string;
   booking_time: string | null;
   status: BookingStatus;
@@ -46,6 +50,7 @@ interface Booking {
   payment_date: string | null;
   services: {
     title: string;
+    color?: string | null;
   } | null;
   profiles: {
     full_name: string | null;
@@ -71,6 +76,7 @@ interface BookingStage {
 
 export default function StaffBookings() {
   const location = useLocation();
+  const { userRole } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingStages, setBookingStages] = useState<BookingStage[]>([]);
@@ -85,6 +91,13 @@ export default function StaffBookings() {
   const [bookingServices, setBookingServices] = useState<BookingService[]>([]);
   const [selectedServiceToAdd, setSelectedServiceToAdd] = useState<string>('');
   const [customServicePrice, setCustomServicePrice] = useState<string>('');
+  
+  // Admin timestamp editing state
+  const [editingTimestamp, setEditingTimestamp] = useState<string | null>(null);
+  const [editStartedAt, setEditStartedAt] = useState<string>('');
+  const [editStartedAtTime, setEditStartedAtTime] = useState<string>('');
+
+  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     fetchBookings();
@@ -192,7 +205,7 @@ export default function StaffBookings() {
         .from('bookings')
         .select(`
           *,
-          services(title),
+          services(title, color),
           vehicles(make, model, year)
         `)
         .order('booking_date', { ascending: true });
@@ -280,7 +293,7 @@ export default function StaffBookings() {
     try {
       const { data, error } = await supabase
         .from('services')
-        .select('id, title, price_from, category')
+        .select('id, title, price_from, category, color')
         .eq('is_active', true)
         .order('title');
 
@@ -528,6 +541,60 @@ export default function StaffBookings() {
     }
   };
 
+  // Admin function to edit stage timestamps
+  const handleEditTimestamp = async (stageId: string, newStartedAt: string) => {
+    if (!isAdmin) return;
+    
+    try {
+      const { error } = await supabase
+        .from('booking_stages')
+        .update({ started_at: newStartedAt })
+        .eq('id', stageId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Timestamp updated',
+      });
+      
+      setEditingTimestamp(null);
+      setEditStartedAt('');
+      setEditStartedAtTime('');
+      
+      if (selectedBooking) {
+        await fetchBookingStages(selectedBooking.id);
+      }
+    } catch (error) {
+      console.error('Error updating timestamp:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update timestamp',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openTimestampEditor = (stageId: string, currentStartedAt: string | null) => {
+    if (!isAdmin) return;
+    setEditingTimestamp(stageId);
+    if (currentStartedAt) {
+      const date = new Date(currentStartedAt);
+      setEditStartedAt(date.toISOString().split('T')[0]);
+      setEditStartedAtTime(date.toTimeString().slice(0, 5));
+    } else {
+      const now = new Date();
+      setEditStartedAt(now.toISOString().split('T')[0]);
+      setEditStartedAtTime(now.toTimeString().slice(0, 5));
+    }
+  };
+
+  // Get service color by service ID
+  const getServiceColor = (serviceId: string): string => {
+    const service = allServices.find(s => s.id === serviceId);
+    return service?.color || '#6b7280';
+  };
+
   const handleUpdateETA = async (bookingId: string, newETA: string) => {
     try {
       const { error } = await supabase
@@ -678,8 +745,13 @@ export default function StaffBookings() {
 
         <div className="grid gap-3 sm:gap-4">
           {bookings.map((booking) => (
-            <ChromeSurface key={booking.id} className="p-3 sm:p-4 md:p-6">
-              <div className="flex flex-col gap-3 sm:gap-4">
+            <ChromeSurface key={booking.id} className="p-3 sm:p-4 md:p-6 relative overflow-hidden">
+              {/* Service color indicator bar */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-1"
+                style={{ backgroundColor: booking.services?.color || getServiceColor(booking.service_id) }}
+              />
+              <div className="flex flex-col gap-3 sm:gap-4 pl-2">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-base sm:text-lg md:text-xl font-semibold">
@@ -688,9 +760,17 @@ export default function StaffBookings() {
                     <StatusBadge status={booking.status} />
                     {getPriorityBadge(booking.priority)}
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    {booking.services?.title || 'No Service'} - {booking.vehicles?.make} {booking.vehicles?.model} ({booking.vehicles?.year})
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span 
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                      style={{ backgroundColor: booking.services?.color || getServiceColor(booking.service_id) }}
+                    >
+                      {booking.services?.title || 'No Service'}
+                    </span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      {booking.vehicles?.make} {booking.vehicles?.model} ({booking.vehicles?.year})
+                    </span>
+                  </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                     <span>📅 {new Date(booking.booking_date).toLocaleDateString()}</span>
                     {booking.booking_time && <span>🕐 {booking.booking_time}</span>}
@@ -907,10 +987,55 @@ export default function StaffBookings() {
                               </span>
                             )}
                             {stage.started_at && !stage.completed && (
-                              <span className="flex items-center gap-1 text-blue-600">
-                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                                <span className="truncate">Started {new Date(stage.started_at).toLocaleDateString()}</span>
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="flex items-center gap-1 text-blue-600">
+                                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                                  <span className="truncate">Started {new Date(stage.started_at).toLocaleString()}</span>
+                                </span>
+                                {isAdmin && (
+                                  <Popover open={editingTimestamp === stage.id} onOpenChange={(open) => !open && setEditingTimestamp(null)}>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => openTimestampEditor(stage.id, stage.started_at)}
+                                      >
+                                        <Pencil className="h-3 w-3" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-3" align="start">
+                                      <div className="space-y-2">
+                                        <div className="text-xs font-medium">Edit Started At (Admin)</div>
+                                        <div className="flex gap-2">
+                                          <Input
+                                            type="date"
+                                            value={editStartedAt}
+                                            onChange={(e) => setEditStartedAt(e.target.value)}
+                                            className="w-36 h-8 text-xs"
+                                          />
+                                          <Input
+                                            type="time"
+                                            value={editStartedAtTime}
+                                            onChange={(e) => setEditStartedAtTime(e.target.value)}
+                                            className="w-24 h-8 text-xs"
+                                          />
+                                        </div>
+                                        <Button
+                                          size="sm"
+                                          className="w-full h-7 text-xs"
+                                          onClick={() => {
+                                            const newDateTime = new Date(`${editStartedAt}T${editStartedAtTime}`);
+                                            handleEditTimestamp(stage.id, newDateTime.toISOString());
+                                          }}
+                                        >
+                                          Save
+                                        </Button>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                )}
+                              </div>
                             )}
                             {!stage.started_at && !stage.completed && (
                               <span className="text-muted-foreground">Not started</span>

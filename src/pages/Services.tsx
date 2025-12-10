@@ -38,6 +38,13 @@ interface Service {
   price_from: number;
   duration: string;
   features: string[] | null;
+  color: string | null;
+}
+
+interface ServiceAvailability {
+  service_id: string;
+  date: string;
+  booked_count: number;
 }
 
 const Services = () => {
@@ -55,7 +62,16 @@ const Services = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [bookingStep, setBookingStep] = useState<'calendar' | 'time' | 'details'>('calendar');
+  const [serviceBookings, setServiceBookings] = useState<ServiceAvailability[]>([]);
   
+  // Slots per service category (PPF has limited capacity, washes have more)
+  const SLOTS_PER_SERVICE: Record<string, number> = {
+    'Protection': 2,           // PPF jobs - limited capacity
+    'Full Body Paint Protection': 1, // Full PPF - very limited
+    'Enhancement': 3,          // Paint correction
+    'Detailing': 6,           // Washes and detailing - high capacity
+  };
+  const DEFAULT_SLOTS = 4;
   
   // Enable swipe navigation on mobile
   useSwipeNavigation();
@@ -64,11 +80,12 @@ const Services = () => {
   const handleRefresh = useCallback(async () => {
     await loadServices();
     await loadVehicles();
+    await loadServiceBookings();
     toast.success('Services refreshed');
   }, []);
 
-  // Generate availability (90 days forward) - all dates available
-  const generateAvailability = () => {
+  // Generate availability per service based on existing bookings
+  const generateAvailability = useCallback(() => {
     const availability: Record<string, any> = {};
     const today = new Date();
 
@@ -77,21 +94,49 @@ const Services = () => {
       date.setDate(today.getDate() + i);
       const dateString = date.toISOString().split('T')[0];
 
-      availability[dateString] = {
-        date: dateString,
-        status: 'available',
-        availableSlots: 4,
-        bookedSlots: 0,
-      };
+      // Check if all selected services have availability on this date
+      let allAvailable = true;
+      let lowestAvailableSlots = Infinity;
+
+      selectedServices.forEach(service => {
+        const maxSlots = SLOTS_PER_SERVICE[service.category] || DEFAULT_SLOTS;
+        const bookedForService = serviceBookings.filter(
+          sb => sb.service_id === service.id && sb.date === dateString
+        ).reduce((sum, sb) => sum + sb.booked_count, 0);
+        
+        const remainingSlots = maxSlots - bookedForService;
+        if (remainingSlots <= 0) {
+          allAvailable = false;
+        }
+        lowestAvailableSlots = Math.min(lowestAvailableSlots, remainingSlots);
+      });
+
+      // If no services selected yet, show all as available
+      if (selectedServices.length === 0) {
+        availability[dateString] = {
+          date: dateString,
+          status: 'available',
+          availableSlots: 4,
+          bookedSlots: 0,
+        };
+      } else {
+        availability[dateString] = {
+          date: dateString,
+          status: allAvailable ? (lowestAvailableSlots <= 1 ? 'limited' : 'available') : 'full',
+          availableSlots: Math.max(0, lowestAvailableSlots),
+          bookedSlots: 0,
+        };
+      }
     }
 
     return availability;
-  };
+  }, [selectedServices, serviceBookings]);
 
-  const [availability] = useState(generateAvailability());
+  const availability = generateAvailability();
 
   useEffect(() => {
     loadServices();
+    loadServiceBookings();
     if (user) {
       loadVehicles();
     }
@@ -121,6 +166,52 @@ const Services = () => {
       toast.error('Failed to load services');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load existing bookings to calculate per-service availability
+  const loadServiceBookings = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('service_id, booking_date')
+        .gte('booking_date', today)
+        .not('status', 'eq', 'cancelled');
+
+      if (error) throw error;
+      
+      // Count bookings per service per date
+      const bookingCounts: ServiceAvailability[] = [];
+      const countMap = new Map<string, number>();
+      
+      (data || []).forEach(booking => {
+        const key = `${booking.service_id}-${booking.booking_date}`;
+        countMap.set(key, (countMap.get(key) || 0) + 1);
+      });
+      
+      countMap.forEach((count, key) => {
+        const [service_id, date] = key.split('-').reduce((acc, part, i, arr) => {
+          if (i === 0) return [part];
+          if (i === arr.length - 3) return [acc[0], arr.slice(i).join('-')];
+          return acc;
+        }, [] as string[]);
+        
+        // Simpler split approach
+        const parts = key.split('-');
+        const serviceId = parts[0];
+        const bookingDate = parts.slice(1).join('-');
+        
+        bookingCounts.push({
+          service_id: serviceId,
+          date: bookingDate,
+          booked_count: count
+        });
+      });
+      
+      setServiceBookings(bookingCounts);
+    } catch (error) {
+      console.error('Error loading service bookings:', error);
     }
   };
 
