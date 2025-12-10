@@ -46,6 +46,7 @@ const JobTracking = () => {
   const [stages, setStages] = useState<any[]>([]);
   const [stageImages, setStageImages] = useState<Record<string, any[]>>({});
   const [addonRequests, setAddonRequests] = useState<AddonRequest[]>([]);
+  const [bookingServices, setBookingServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Client addon request state
@@ -127,6 +128,7 @@ const JobTracking = () => {
     if (selectedBooking) {
       fetchStages();
       fetchAddonRequests();
+      fetchBookingServices();
       
       const stagesChannel = supabase
         .channel('booking-stages-changes')
@@ -346,6 +348,25 @@ const JobTracking = () => {
     }
   };
 
+  const fetchBookingServices = async () => {
+    if (!selectedBooking) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('booking_services')
+        .select(`
+          *,
+          services:service_id (id, title, color)
+        `)
+        .eq('booking_id', selectedBooking.id);
+
+      if (error) throw error;
+      setBookingServices(data || []);
+    } catch (error) {
+      console.error('Error fetching booking services:', error);
+    }
+  };
+
   const getStageLabel = (stage: string) => {
     const labels: Record<string, string> = {
       vehicle_checkin: 'Vehicle Check-In & Photography',
@@ -524,34 +545,75 @@ const JobTracking = () => {
                     </span>
                   </div>
                 )}
-                {(() => {
-                  const approvedAddons = addonRequests.filter(r => r.status === 'approved');
-                  const approvedTotal = approvedAddons.reduce((sum, r) => sum + (r.requested_price || 0), 0);
-                  return approvedAddons.length > 0 ? (
-                    <div className="p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 sm:col-span-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-muted-foreground text-xs font-medium uppercase tracking-wide">Approved Add-ons</span>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                          +R{approvedTotal.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {approvedAddons.map((addon) => (
-                          <div key={addon.id} className="flex items-center justify-between text-sm">
+                {/* Cost Breakdown */}
+                {(bookingServices.length > 0 || addonRequests.some(r => r.status === 'approved')) && (
+                  <div className="p-3 rounded-lg bg-muted/10 border border-border/30 sm:col-span-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                      Cost Breakdown
+                    </div>
+                    
+                    {/* Base Services */}
+                    {bookingServices.length > 0 && (
+                      <div className="space-y-1.5 mb-3">
+                        {bookingServices.map((bs) => (
+                          <div key={bs.id} className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                               <div 
                                 className="h-2 w-2 rounded-full shrink-0"
-                                style={{ backgroundColor: addon.services?.color || '#6b7280' }}
+                                style={{ backgroundColor: bs.services?.color || '#6b7280' }}
                               />
-                              <span className="text-foreground">{addon.services?.title}</span>
+                              <span className="text-foreground">{bs.services?.title}</span>
                             </div>
-                            <span className="text-muted-foreground">R{addon.requested_price?.toLocaleString()}</span>
+                            <span className="text-foreground font-medium">R{bs.price?.toLocaleString()}</span>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ) : null;
-                })()}
+                    )}
+                    
+                    {/* Approved Add-ons */}
+                    {(() => {
+                      const approvedAddons = addonRequests.filter(r => r.status === 'approved');
+                      return approvedAddons.length > 0 ? (
+                        <div className="space-y-1.5 mb-3 pt-2 border-t border-border/30">
+                          <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">
+                            Approved Add-ons
+                          </div>
+                          {approvedAddons.map((addon) => (
+                            <div key={addon.id} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="h-2 w-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: addon.services?.color || '#6b7280' }}
+                                />
+                                <span className="text-foreground">{addon.services?.title}</span>
+                              </div>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                +R{addon.requested_price?.toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
+                    
+                    {/* Total */}
+                    {(() => {
+                      const baseTotal = bookingServices.reduce((sum, bs) => sum + (bs.price || 0), 0);
+                      const addonsTotal = addonRequests
+                        .filter(r => r.status === 'approved')
+                        .reduce((sum, r) => sum + (r.requested_price || 0), 0);
+                      const grandTotal = baseTotal + addonsTotal;
+                      return (
+                        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                          <span className="text-sm font-semibold text-foreground">Total</span>
+                          <span className="text-lg font-bold text-primary">
+                            R{grandTotal.toLocaleString()}
+                          </span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </ChromeSurface>
           </motion.div>
