@@ -1,12 +1,13 @@
 import { ClientNav } from "@/components/client/ClientNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { StatusBadge } from "@/components/chrome/StatusBadge";
-import { CheckCircle, Clock, Circle, AlertCircle, Sparkles } from "lucide-react";
+import { CheckCircle, Clock, Circle, AlertCircle, Sparkles, Plus, XCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
 const fadeInUp = {
@@ -15,12 +16,27 @@ const fadeInUp = {
   transition: { duration: 0.4 }
 };
 
+interface AddonRequest {
+  id: string;
+  service_id: string;
+  requested_price: number;
+  status: string;
+  rejection_reason: string | null;
+  created_at: string;
+  services: {
+    id: string;
+    title: string;
+    color: string | null;
+  } | null;
+}
+
 const JobTracking = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [stages, setStages] = useState<any[]>([]);
   const [stageImages, setStageImages] = useState<Record<string, any[]>>({});
+  const [addonRequests, setAddonRequests] = useState<AddonRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +48,7 @@ const JobTracking = () => {
   useEffect(() => {
     if (selectedBooking) {
       fetchStages();
+      fetchAddonRequests();
       
       const stagesChannel = supabase
         .channel('booking-stages-changes')
@@ -133,10 +150,42 @@ const JobTracking = () => {
         )
         .subscribe();
 
+      // Subscribe to addon requests changes
+      const addonChannel = supabase
+        .channel(`addon-requests-${selectedBooking.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'addon_requests',
+            filter: `booking_id=eq.${selectedBooking.id}`
+          },
+          (payload) => {
+            fetchAddonRequests();
+            if (payload.eventType === 'UPDATE' && payload.new) {
+              const status = (payload.new as any).status;
+              if (status === 'approved') {
+                toast.success('Add-on Approved! ✅', {
+                  description: 'Your requested service has been added',
+                  duration: 5000,
+                });
+              } else if (status === 'rejected') {
+                toast.error('Add-on Declined', {
+                  description: 'Please rebook for a later time',
+                  duration: 5000,
+                });
+              }
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(stagesChannel);
         supabase.removeChannel(bookingChannel);
         supabase.removeChannel(imagesChannel);
+        supabase.removeChannel(addonChannel);
       };
     }
   }, [selectedBooking]);
@@ -196,6 +245,26 @@ const JobTracking = () => {
       }
     } catch (error) {
       console.error('Error fetching stages:', error);
+    }
+  };
+
+  const fetchAddonRequests = async () => {
+    if (!selectedBooking) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('addon_requests')
+        .select(`
+          *,
+          services:service_id (id, title, color)
+        `)
+        .eq('booking_id', selectedBooking.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAddonRequests(data || []);
+    } catch (error) {
+      console.error('Error fetching addon requests:', error);
     }
   };
 
@@ -379,6 +448,79 @@ const JobTracking = () => {
                 )}
               </div>
             </ChromeSurface>
+          </motion.div>
+        )}
+
+        {/* Pending Add-on Requests */}
+        {addonRequests.length > 0 && (
+          <motion.div 
+            className="mb-5"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <h2 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+              Requested Add-ons
+            </h2>
+            <div className="space-y-2">
+              {addonRequests.map((request) => (
+                <ChromeSurface 
+                  key={request.id}
+                  className={`p-3 sm:p-4 ${
+                    request.status === 'pending' 
+                      ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-800/50' 
+                      : request.status === 'approved'
+                      ? 'bg-green-50/50 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/50'
+                      : 'bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="h-3 w-3 rounded-full shrink-0" 
+                        style={{ backgroundColor: request.services?.color || '#6b7280' }}
+                      />
+                      <div>
+                        <span className="font-medium text-foreground">
+                          {request.services?.title}
+                        </span>
+                        <span className="text-muted-foreground ml-2">
+                          R{request.requested_price?.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      {request.status === 'pending' && (
+                        <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Awaiting Approval
+                        </Badge>
+                      )}
+                      {request.status === 'approved' && (
+                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Approved
+                        </Badge>
+                      )}
+                      {request.status === 'rejected' && (
+                        <Badge variant="secondary" className="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 gap-1">
+                          <XCircle className="h-3 w-3" />
+                          Declined
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {request.status === 'rejected' && request.rejection_reason && (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-2 pl-6">
+                      Reason: {request.rejection_reason}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1 pl-6">
+                    Requested {new Date(request.created_at).toLocaleDateString()}
+                  </p>
+                </ChromeSurface>
+              ))}
+            </div>
           </motion.div>
         )}
 
