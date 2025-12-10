@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText, Pencil } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText, Pencil, Send, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { generateBookingInvoice } from '@/lib/generateInvoice';
@@ -92,16 +92,27 @@ export default function StaffBookings() {
   const [selectedServiceToAdd, setSelectedServiceToAdd] = useState<string>('');
   const [customServicePrice, setCustomServicePrice] = useState<string>('');
   
+  // Addon request state
+  const [addonRequests, setAddonRequests] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
+  
   // Admin timestamp editing state
   const [editingTimestamp, setEditingTimestamp] = useState<string | null>(null);
   const [editStartedAt, setEditStartedAt] = useState<string>('');
   const [editStartedAtTime, setEditStartedAtTime] = useState<string>('');
 
   const isAdmin = userRole === 'admin';
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchBookings();
     fetchAllServices();
+    if (isAdmin) {
+      fetchPendingRequests();
+    }
 
     // Subscribe to bookings changes
     const bookingsChannel = supabase
@@ -137,11 +148,30 @@ export default function StaffBookings() {
       )
       .subscribe();
 
+    // Subscribe to addon requests changes (for admin)
+    const requestsChannel = supabase
+      .channel('addon-requests-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'addon_requests'
+        },
+        () => {
+          console.log('Addon requests changed, refreshing...');
+          if (isAdmin) fetchPendingRequests();
+          if (selectedBooking) fetchAddonRequests(selectedBooking.id);
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(bookingsChannel);
       supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(requestsChannel);
     };
-  }, []);
+  }, [isAdmin]);
 
   // Separate effect for stage-specific subscriptions
   useEffect(() => {
@@ -339,38 +369,205 @@ export default function StaffBookings() {
     }
   };
 
-  const handleAddService = async () => {
-    if (!selectedBooking || !selectedServiceToAdd) return;
+  // Submit addon request (staff) or directly add (admin)
+  const handleRequestAddon = async () => {
+    if (!selectedBooking || !selectedServiceToAdd || !user) return;
     
     const service = allServices.find(s => s.id === selectedServiceToAdd);
     if (!service) return;
     
     const price = parseFloat(customServicePrice) || service.price_from;
     
+    // If admin, directly add the service
+    if (isAdmin) {
+      try {
+        const { error } = await supabase
+          .from('booking_services')
+          .insert({
+            booking_id: selectedBooking.id,
+            service_id: selectedServiceToAdd,
+            price: price
+          });
+
+        if (error) throw error;
+        
+        toast({
+          title: 'Service Added',
+          description: `Added ${service.title} to booking (R${price.toLocaleString()})`,
+        });
+        
+        setSelectedServiceToAdd('');
+        setCustomServicePrice('');
+        fetchBookingServices(selectedBooking.id);
+      } catch (error) {
+        console.error('Error adding service:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to add service',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+    
+    // Staff: Submit as request for admin approval
+    setSubmittingRequest(true);
     try {
       const { error } = await supabase
-        .from('booking_services')
+        .from('addon_requests')
         .insert({
           booking_id: selectedBooking.id,
           service_id: selectedServiceToAdd,
-          price: price
+          requested_price: price,
+          requested_by: user.id
         });
 
       if (error) throw error;
       
       toast({
-        title: 'Success',
-        description: `Added ${service.title} to booking (R${price.toLocaleString()})`,
+        title: 'Request Submitted',
+        description: `Request for ${service.title} (R${price.toLocaleString()}) sent to admin for approval`,
       });
       
       setSelectedServiceToAdd('');
       setCustomServicePrice('');
-      fetchBookingServices(selectedBooking.id);
+      fetchAddonRequests(selectedBooking.id);
     } catch (error) {
-      console.error('Error adding service:', error);
+      console.error('Error submitting addon request:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add service',
+        description: 'Failed to submit request',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
+  // Fetch addon requests for a booking
+  const fetchAddonRequests = async (bookingId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('addon_requests')
+        .select(`
+          *,
+          services:service_id (id, title, color)
+        `)
+        .eq('booking_id', bookingId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAddonRequests(data || []);
+    } catch (error) {
+      console.error('Error fetching addon requests:', error);
+    }
+  };
+
+  // Fetch all pending requests (for admin view)
+  const fetchPendingRequests = async () => {
+    if (!isAdmin) return;
+    try {
+      const { data, error } = await supabase
+        .from('addon_requests')
+        .select(`
+          *,
+          services:service_id (id, title, color),
+          bookings:booking_id (
+            id,
+            vehicles (make, model)
+          )
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setPendingRequests(data || []);
+    } catch (error) {
+      console.error('Error fetching pending requests:', error);
+    }
+  };
+
+  // Admin: Approve addon request
+  const handleApproveRequest = async (request: any) => {
+    if (!isAdmin || !user) return;
+    
+    try {
+      // Add the service to booking
+      const { error: addError } = await supabase
+        .from('booking_services')
+        .insert({
+          booking_id: request.booking_id,
+          service_id: request.service_id,
+          price: request.requested_price
+        });
+
+      if (addError) throw addError;
+
+      // Update request status
+      const { error: updateError } = await supabase
+        .from('addon_requests')
+        .update({
+          status: 'approved',
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', request.id);
+
+      if (updateError) throw updateError;
+      
+      toast({
+        title: 'Request Approved',
+        description: `${request.services?.title} added to booking`,
+      });
+      
+      fetchPendingRequests();
+      if (selectedBooking) {
+        fetchBookingServices(selectedBooking.id);
+        fetchAddonRequests(selectedBooking.id);
+      }
+    } catch (error) {
+      console.error('Error approving request:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to approve request',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Admin: Reject addon request
+  const handleRejectRequest = async (requestId: string) => {
+    if (!isAdmin || !user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('addon_requests')
+        .update({
+          status: 'rejected',
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: rejectionReason || 'Time not available - please rebook for later'
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+      
+      toast({
+        title: 'Request Rejected',
+        description: 'Client will need to rebook for a later time',
+      });
+      
+      setRejectingRequestId(null);
+      setRejectionReason('');
+      fetchPendingRequests();
+      if (selectedBooking) {
+        fetchAddonRequests(selectedBooking.id);
+      }
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reject request',
         variant: 'destructive',
       });
     }
@@ -407,6 +604,7 @@ export default function StaffBookings() {
     setSelectedBooking(booking);
     fetchBookingStages(booking.id);
     fetchBookingServices(booking.id);
+    fetchAddonRequests(booking.id);
   };
 
   const handleDownloadInvoice = () => {
@@ -446,6 +644,9 @@ export default function StaffBookings() {
     setBookingServices([]);
     setSelectedServiceToAdd('');
     setCustomServicePrice('');
+    setAddonRequests([]);
+    setRejectingRequestId(null);
+    setRejectionReason('');
   };
 
   const handleDialogOpenChange = (open: boolean) => {
@@ -743,6 +944,71 @@ export default function StaffBookings() {
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Bookings Management</h1>
 
+        {/* Admin: Pending Add-on Requests Alert */}
+        {isAdmin && pendingRequests.length > 0 && (
+          <div className="mb-4 sm:mb-6 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl border-2 border-amber-200 dark:border-amber-800">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-200 dark:bg-amber-800">
+                  <AlertTriangle className="h-5 w-5 text-amber-700 dark:text-amber-200" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-amber-800 dark:text-amber-200">
+                    {pendingRequests.length} Pending Add-on Request{pendingRequests.length > 1 ? 's' : ''}
+                  </h3>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">Staff requested additional services - review and approve or reject</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {pendingRequests.slice(0, 5).map((request) => (
+                <div key={request.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="h-3 w-3 rounded-full shrink-0" 
+                      style={{ backgroundColor: request.services?.color || '#6b7280' }}
+                    />
+                    <div>
+                      <span className="font-medium">{request.services?.title}</span>
+                      <span className="text-muted-foreground ml-2">R{request.requested_price?.toLocaleString()}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      for {request.bookings?.vehicles?.make} {request.bookings?.vehicles?.model}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleApproveRequest(request)}
+                      size="sm"
+                      className="gap-1 bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Approve</span>
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setRejectingRequestId(request.id);
+                        handleRejectRequest(request.id);
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="gap-1 text-destructive border-destructive/50 hover:bg-destructive/10"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Reject</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {pendingRequests.length > 5 && (
+                <p className="text-xs text-center text-muted-foreground">
+                  +{pendingRequests.length - 5} more pending requests
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-3 sm:gap-4">
           {bookings.map((booking) => (
             <ChromeSurface key={booking.id} className="p-3 sm:p-4 md:p-6 relative overflow-hidden">
@@ -967,17 +1233,129 @@ export default function StaffBookings() {
                         </div>
                       )}
                       <Button
-                        onClick={handleAddService}
-                        disabled={!selectedServiceToAdd}
+                        onClick={handleRequestAddon}
+                        disabled={!selectedServiceToAdd || submittingRequest}
                         size="lg"
                         className="gap-2 h-11 px-6"
                       >
-                        <Plus className="h-5 w-5" />
-                        Add Service
+                        {submittingRequest ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : isAdmin ? (
+                          <Plus className="h-5 w-5" />
+                        ) : (
+                          <Send className="h-5 w-5" />
+                        )}
+                        {isAdmin ? 'Add Service' : 'Request Add-on'}
                       </Button>
                     </div>
                   </div>
                 </div>
+
+                {/* Pending Add-on Requests for this booking */}
+                {addonRequests.filter(r => r.status === 'pending').length > 0 && (
+                  <div className="space-y-3 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl border-2 border-amber-200 dark:border-amber-800">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-amber-600" />
+                      <h3 className="text-base font-bold text-amber-800 dark:text-amber-200">Pending Requests</h3>
+                    </div>
+                    <div className="space-y-2">
+                      {addonRequests.filter(r => r.status === 'pending').map((request) => (
+                        <div key={request.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="h-3 w-3 rounded-full shrink-0" 
+                              style={{ backgroundColor: request.services?.color || '#6b7280' }}
+                            />
+                            <span className="font-medium">{request.services?.title}</span>
+                            <span className="text-muted-foreground">R{request.requested_price?.toLocaleString()}</span>
+                          </div>
+                          {isAdmin && (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                onClick={() => handleApproveRequest(request)}
+                                size="sm"
+                                className="gap-1 bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                Approve
+                              </Button>
+                              {rejectingRequestId === request.id ? (
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    placeholder="Reason (optional)"
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                    className="h-8 w-40 text-sm"
+                                  />
+                                  <Button
+                                    onClick={() => handleRejectRequest(request.id)}
+                                    size="sm"
+                                    variant="destructive"
+                                    className="gap-1"
+                                  >
+                                    Confirm
+                                  </Button>
+                                  <Button
+                                    onClick={() => setRejectingRequestId(null)}
+                                    size="sm"
+                                    variant="ghost"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  onClick={() => setRejectingRequestId(request.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 text-destructive border-destructive/50 hover:bg-destructive/10"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                  Reject
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          {!isAdmin && (
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Awaiting Approval
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Approved/Rejected Requests History */}
+                {addonRequests.filter(r => r.status !== 'pending').length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Request History</span>
+                    <div className="flex flex-wrap gap-2">
+                      {addonRequests.filter(r => r.status !== 'pending').map((request) => (
+                        <Badge 
+                          key={request.id} 
+                          variant="outline"
+                          className={request.status === 'approved' 
+                            ? 'bg-green-50 text-green-700 border-green-200' 
+                            : 'bg-red-50 text-red-700 border-red-200'
+                          }
+                        >
+                          {request.status === 'approved' ? (
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                          ) : (
+                            <XCircle className="h-3 w-3 mr-1" />
+                          )}
+                          {request.services?.title} - {request.status === 'approved' ? 'Approved' : 'Rejected'}
+                          {request.rejection_reason && (
+                            <span className="ml-1 text-xs">({request.rejection_reason})</span>
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2 sm:space-y-3">
                   <h3 className="text-sm sm:text-base md:text-lg font-semibold">Process Stages</h3>
