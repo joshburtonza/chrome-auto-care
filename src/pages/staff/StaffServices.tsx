@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Palette } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PRESET_COLORS = [
   '#3b82f6', // Blue
@@ -39,8 +41,15 @@ export default function StaffServices() {
     color: '#3b82f6',
   });
   const { toast } = useToast();
+  const { userRole } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Redirect non-admin users
+    if (userRole && userRole !== 'admin') {
+      navigate('/staff/dashboard');
+      return;
+    }
     fetchServices();
 
     // Subscribe to services changes

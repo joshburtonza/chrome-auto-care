@@ -2,9 +2,11 @@ import { StaffNav } from "@/components/staff/StaffNav";
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, Package } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -40,10 +42,17 @@ const StaffMerchandise = () => {
     stock_quantity: '',
     is_active: true,
   });
+  const { userRole } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Redirect non-admin users
+    if (userRole && userRole !== 'admin') {
+      navigate('/staff/dashboard');
+      return;
+    }
     loadProducts();
-  }, []);
+  }, [userRole, navigate]);
 
   const loadProducts = async () => {
     try {

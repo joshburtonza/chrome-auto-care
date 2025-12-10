@@ -10,14 +10,15 @@ import { StaffBottomNav } from './StaffBottomNav';
 
 export const MobileStaffNav = () => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, userRole } = useAuth();
   const [open, setOpen] = useState(false);
+  const isAdmin = userRole === 'admin';
 
   // Secondary nav items (not in bottom nav)
   const moreItems = [
-    { path: '/staff/services', label: 'Services', icon: Package },
+    ...(isAdmin ? [{ path: '/staff/services', label: 'Services', icon: Package }] : []),
     { path: '/staff/inventory', label: 'Inventory', icon: Boxes },
-    { path: '/staff/merchandise', label: 'Merchandise', icon: Store },
+    ...(isAdmin ? [{ path: '/staff/merchandise', label: 'Merchandise', icon: Store }] : []),
     { path: '/staff/orders', label: 'Orders', icon: ShoppingBag },
   ];
 

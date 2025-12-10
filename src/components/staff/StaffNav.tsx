@@ -8,16 +8,17 @@ import { cn } from '@/lib/utils';
 
 export const StaffNav = () => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, userRole } = useAuth();
+  const isAdmin = userRole === 'admin';
 
   const navItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/staff/work-queue', label: 'Work Queue', icon: ListTodo },
     { path: '/staff/bookings', label: 'Bookings', icon: Calendar },
     { path: '/staff/customers', label: 'Customers', icon: Users },
-    { path: '/staff/services', label: 'Services', icon: Package },
+    ...(isAdmin ? [{ path: '/staff/services', label: 'Services', icon: Package }] : []),
     { path: '/staff/inventory', label: 'Inventory', icon: Boxes },
-    { path: '/staff/merchandise', label: 'Merchandise', icon: Store },
+    ...(isAdmin ? [{ path: '/staff/merchandise', label: 'Merchandise', icon: Store }] : []),
     { path: '/staff/orders', label: 'Orders', icon: ShoppingBag },
     { path: '/staff/team', label: 'Team', icon: UsersRound },
   ];
