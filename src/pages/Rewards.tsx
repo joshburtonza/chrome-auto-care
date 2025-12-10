@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Star, Gift, TrendingUp, History, Crown, Award, Shield } from 'lucide-react';
+import { Trophy, Star, Gift, TrendingUp, History, Crown, Award, Shield, Ticket, Loader2, CheckCircle } from 'lucide-react';
 import { ClientNav } from '@/components/client/ClientNav';
 import { BottomNav } from '@/components/client/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 interface LoyaltyPoints {
@@ -47,6 +50,8 @@ export default function Rewards() {
   const [loyaltyData, setLoyaltyData] = useState<LoyaltyPoints | null>(null);
   const [transactions, setTransactions] = useState<LoyaltyTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [promoCode, setPromoCode] = useState('');
+  const [redeemingPromo, setRedeemingPromo] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -86,6 +91,35 @@ export default function Rewards() {
       .limit(10);
 
     setTransactions(data || []);
+  };
+
+  const handleRedeemPromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast.error('Please enter a promo code');
+      return;
+    }
+
+    setRedeemingPromo(true);
+    try {
+      const { data, error } = await supabase.rpc('redeem_promo_code', { p_code: promoCode.trim() });
+      
+      if (error) throw error;
+      
+      const result = data as { success: boolean; points_awarded?: number; error?: string } | null;
+      
+      if (result?.success) {
+        toast.success(`Code redeemed! +${result.points_awarded} points`);
+        setPromoCode('');
+        loadLoyaltyData();
+        loadTransactions();
+      } else {
+        toast.error(result?.error || 'Failed to redeem code');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to redeem promo code');
+    } finally {
+      setRedeemingPromo(false);
+    }
   };
 
   const currentTier = tierConfig[loyaltyData?.tier as keyof typeof tierConfig] || tierConfig.bronze;
@@ -177,6 +211,43 @@ export default function Rewards() {
                 <div className="flex items-center gap-1 text-primary">
                   <TrendingUp className="w-4 h-4" />
                   <span>Earn 1 point per R10 spent</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Promo Code Redemption */}
+            <motion.div
+              className="mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+            >
+              <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-primary" />
+                Redeem Promo Code
+              </h2>
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Have a promo code? Enter it below to earn bonus points!
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    className="flex-1"
+                    onKeyDown={(e) => e.key === 'Enter' && handleRedeemPromoCode()}
+                  />
+                  <Button
+                    onClick={handleRedeemPromoCode}
+                    disabled={redeemingPromo || !promoCode.trim()}
+                  >
+                    {redeemingPromo ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Redeem'
+                    )}
+                  </Button>
                 </div>
               </div>
             </motion.div>
