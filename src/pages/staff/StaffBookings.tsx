@@ -10,8 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { generateBookingInvoice } from '@/lib/generateInvoice';
 import type { Database } from '@/integrations/supabase/types';
 
 interface Service {
@@ -33,18 +34,23 @@ type StageType = Database['public']['Enums']['stage_type'];
 
 interface Booking {
   id: string;
+  user_id: string;
   booking_date: string;
   booking_time: string | null;
   status: BookingStatus;
   notes: string | null;
   estimated_completion: string | null;
   priority: string | null;
+  payment_status: string | null;
+  payment_amount: number | null;
+  payment_date: string | null;
   services: {
     title: string;
   } | null;
   profiles: {
     full_name: string | null;
     phone: string | null;
+    address?: string | null;
   } | null;
   vehicles: {
     make: string;
@@ -390,6 +396,34 @@ export default function StaffBookings() {
     fetchBookingServices(booking.id);
   };
 
+  const handleDownloadInvoice = () => {
+    if (!selectedBooking) return;
+    
+    const services = bookingServices.map(bs => ({
+      title: bs.service?.title || '',
+      price: bs.price
+    }));
+    
+    // If no services in booking_services, use the primary service
+    if (services.length === 0 && selectedBooking.services) {
+      services.push({
+        title: selectedBooking.services.title,
+        price: selectedBooking.payment_amount || 0
+      });
+    }
+    
+    generateBookingInvoice(
+      selectedBooking,
+      selectedBooking.profiles || {},
+      services
+    );
+    
+    toast({
+      title: 'Success',
+      description: 'Invoice downloaded',
+    });
+  };
+
   const handleCloseDialog = () => {
     setSelectedBooking(null);
     setBookingStages([]);
@@ -722,13 +756,25 @@ export default function StaffBookings() {
         {/* Stage Management Dialog */}
         <Dialog open={!!selectedBooking} onOpenChange={handleDialogOpenChange}>
           <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto mx-2 sm:mx-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg md:text-xl">
-                Booking - {selectedBooking?.profiles?.full_name}
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm">
-                Manage stages, upload images, and update status
-              </DialogDescription>
+            <DialogHeader className="flex flex-row items-start justify-between gap-4">
+              <div>
+                <DialogTitle className="text-base sm:text-lg md:text-xl">
+                  Booking - {selectedBooking?.profiles?.full_name}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm">
+                  Manage stages, upload images, and update status
+                </DialogDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 shrink-0"
+                onClick={handleDownloadInvoice}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Download Invoice</span>
+                <span className="sm:hidden">Invoice</span>
+              </Button>
             </DialogHeader>
 
             {selectedBooking && (
