@@ -10,9 +10,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock, AlertTriangle } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { Database } from '@/integrations/supabase/types';
+
+interface Service {
+  id: string;
+  title: string;
+  price_from: number;
+  category: string;
+}
+
+interface BookingService {
+  id: string;
+  service_id: string;
+  price: number;
+  service: Service;
+}
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
 type StageType = Database['public']['Enums']['stage_type'];
@@ -59,9 +73,15 @@ export default function StaffBookings() {
   const [loading, setLoading] = useState(true);
   const [uploadingImages, setUploadingImages] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Service management state
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [bookingServices, setBookingServices] = useState<BookingService[]>([]);
+  const [selectedServiceToAdd, setSelectedServiceToAdd] = useState<string>('');
 
   useEffect(() => {
     fetchBookings();
+    fetchAllServices();
 
     // Subscribe to bookings changes
     const bookingsChannel = supabase
@@ -249,9 +269,113 @@ export default function StaffBookings() {
     }
   };
 
+  const fetchAllServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, title, price_from, category')
+        .eq('is_active', true)
+        .order('title');
+
+      if (error) throw error;
+      setAllServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
+
+  const fetchBookingServices = async (bookingId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('booking_services')
+        .select(`
+          id,
+          service_id,
+          price,
+          services:service_id(id, title, price_from, category)
+        `)
+        .eq('booking_id', bookingId);
+
+      if (error) throw error;
+      
+      const formattedServices = (data || []).map(bs => ({
+        id: bs.id,
+        service_id: bs.service_id,
+        price: bs.price,
+        service: bs.services as unknown as Service
+      }));
+      
+      setBookingServices(formattedServices);
+    } catch (error) {
+      console.error('Error fetching booking services:', error);
+    }
+  };
+
+  const handleAddService = async () => {
+    if (!selectedBooking || !selectedServiceToAdd) return;
+    
+    const service = allServices.find(s => s.id === selectedServiceToAdd);
+    if (!service) return;
+    
+    try {
+      const { error } = await supabase
+        .from('booking_services')
+        .insert({
+          booking_id: selectedBooking.id,
+          service_id: selectedServiceToAdd,
+          price: service.price_from
+        });
+
+      if (error) throw error;
+      
+      toast({
+        title: 'Success',
+        description: `Added ${service.title} to booking`,
+      });
+      
+      setSelectedServiceToAdd('');
+      fetchBookingServices(selectedBooking.id);
+    } catch (error) {
+      console.error('Error adding service:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add service',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveService = async (bookingServiceId: string, serviceName: string) => {
+    if (!selectedBooking) return;
+    
+    try {
+      const { error } = await supabase
+        .from('booking_services')
+        .delete()
+        .eq('id', bookingServiceId);
+
+      if (error) throw error;
+      
+      toast({
+        title: 'Success',
+        description: `Removed ${serviceName} from booking`,
+      });
+      
+      fetchBookingServices(selectedBooking.id);
+    } catch (error) {
+      console.error('Error removing service:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove service',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleViewBooking = (booking: Booking) => {
     setSelectedBooking(booking);
     fetchBookingStages(booking.id);
+    fetchBookingServices(booking.id);
   };
 
   const handleCloseDialog = () => {
@@ -260,6 +384,8 @@ export default function StaffBookings() {
     setStageNotes({});
     setStageImages({});
     setUploadingImages({});
+    setBookingServices([]);
+    setSelectedServiceToAdd('');
   };
 
   const handleDialogOpenChange = (open: boolean) => {
@@ -596,7 +722,7 @@ export default function StaffBookings() {
               <div className="space-y-4 sm:space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
                   <div>
-                    <span className="font-medium">Service:</span> {selectedBooking.services?.title}
+                    <span className="font-medium">Primary Service:</span> {selectedBooking.services?.title}
                   </div>
                   <div>
                     <span className="font-medium">Vehicle:</span>{' '}
@@ -609,6 +735,60 @@ export default function StaffBookings() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Status:</span>
                     <StatusBadge status={selectedBooking.status} />
+                  </div>
+                </div>
+
+                {/* Services Management Section */}
+                <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm sm:text-base font-semibold">Services</h3>
+                  </div>
+                  
+                  {/* Current Services */}
+                  <div className="flex flex-wrap gap-2">
+                    {bookingServices.length > 0 ? (
+                      bookingServices.map((bs) => (
+                        <Badge key={bs.id} variant="secondary" className="gap-1 py-1.5 px-3">
+                          {bs.service?.title} - R{bs.price.toLocaleString()}
+                          <button
+                            onClick={() => handleRemoveService(bs.id, bs.service?.title)}
+                            className="ml-1 hover:text-destructive transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-xs sm:text-sm text-muted-foreground">No additional services</span>
+                    )}
+                  </div>
+                  
+                  {/* Add Service */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Select value={selectedServiceToAdd} onValueChange={setSelectedServiceToAdd}>
+                      <SelectTrigger className="flex-1 h-9 text-xs sm:text-sm">
+                        <SelectValue placeholder="Select a service to add..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allServices
+                          .filter(s => !bookingServices.some(bs => bs.service_id === s.id))
+                          .map((service) => (
+                            <SelectItem key={service.id} value={service.id}>
+                              {service.title} - R{service.price_from.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={handleAddService}
+                      disabled={!selectedServiceToAdd}
+                      size="sm"
+                      className="gap-1 h-9"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
                   </div>
                 </div>
 
