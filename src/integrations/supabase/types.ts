@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      addon_requests: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          rejection_reason: string | null
+          requested_at: string
+          requested_by: string
+          requested_price: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          service_id: string
+          status: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          requested_at?: string
+          requested_by: string
+          requested_price: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_id: string
+          status?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          requested_at?: string
+          requested_by?: string
+          requested_price?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "addon_requests_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_audit_log: {
         Row: {
           action: string
