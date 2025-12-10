@@ -124,6 +124,25 @@ const JobTracking = () => {
     }
   };
 
+  const handleCancelAddonRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('addon_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast.success('Request cancelled');
+      fetchAddonRequests();
+    } catch (error: any) {
+      console.error('Error cancelling addon request:', error);
+      toast.error('Failed to cancel request', {
+        description: error.message
+      });
+    }
+  };
+
   useEffect(() => {
     if (selectedBooking) {
       fetchStages();
@@ -657,12 +676,22 @@ const JobTracking = () => {
                         </span>
                       </div>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-2">
                       {request.status === 'pending' && (
-                        <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 gap-1">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Awaiting Approval
-                        </Badge>
+                        <>
+                          <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Awaiting Approval
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCancelAddonRequest(request.id)}
+                            className="h-7 px-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
                       )}
                       {request.status === 'approved' && (
                         <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 gap-1">
