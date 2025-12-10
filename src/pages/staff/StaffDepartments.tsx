@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Users, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,10 +11,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from '@/components/ui/skeleton';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { useDepartments, Department } from '@/hooks/useDepartments';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const StaffDepartments = () => {
   const { departments, loading, createDepartment, updateDepartment, deleteDepartment } = useDepartments();
+  const { userRole } = useAuth();
+  const navigate = useNavigate();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
@@ -22,6 +26,13 @@ const StaffDepartments = () => {
     name: '',
     description: '',
   });
+
+  useEffect(() => {
+    // Redirect non-admin users
+    if (userRole && userRole !== 'admin') {
+      navigate('/staff/dashboard');
+    }
+  }, [userRole, navigate]);
 
   const handleCreate = async () => {
     if (!form.name.trim()) {

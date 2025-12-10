@@ -20,7 +20,7 @@ export const StaffNav = () => {
     { path: '/staff/inventory', label: 'Inventory', icon: Boxes },
     ...(isAdmin ? [{ path: '/staff/merchandise', label: 'Merchandise', icon: Store }] : []),
     { path: '/staff/orders', label: 'Orders', icon: ShoppingBag },
-    { path: '/staff/team', label: 'Team', icon: UsersRound },
+    ...(isAdmin ? [{ path: '/staff/team', label: 'Team', icon: UsersRound }] : []),
   ];
 
   return (

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ListTodo, Calendar, Users, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Haptic feedback utility
 const triggerHaptic = () => {
@@ -11,13 +12,15 @@ const triggerHaptic = () => {
 
 export const StaffBottomNav = () => {
   const location = useLocation();
+  const { userRole } = useAuth();
+  const isAdmin = userRole === 'admin';
 
   const navItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/staff/work-queue', label: 'Queue', icon: ListTodo },
     { path: '/staff/bookings', label: 'Bookings', icon: Calendar },
     { path: '/staff/customers', label: 'Customers', icon: Users },
-    { path: '/staff/team', label: 'Team', icon: User },
+    ...(isAdmin ? [{ path: '/staff/team', label: 'Team', icon: User }] : []),
   ];
 
   return (
