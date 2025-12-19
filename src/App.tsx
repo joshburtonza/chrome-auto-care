@@ -14,6 +14,10 @@ import Index from "./pages/Index";
 import ClientLogin from "./pages/auth/ClientLogin";
 import StaffLogin from "./pages/auth/StaffLogin";
 import Signup from "./pages/auth/Signup";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import StaffSignup from "./pages/auth/StaffSignup";
+import AuthCallback from "./pages/auth/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import Services from "./pages/Services";
 import Profile from "./pages/Profile";
@@ -60,6 +64,10 @@ const App = () => (
                   <Route path="/auth/client-login" element={<ClientLogin />} />
                   <Route path="/auth/staff-login" element={<StaffLogin />} />
                   <Route path="/auth/signup" element={<Signup />} />
+                  <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/auth/reset-password" element={<ResetPassword />} />
+                  <Route path="/auth/staff-signup" element={<StaffSignup />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/reviews" element={<Reviews />} />
                   

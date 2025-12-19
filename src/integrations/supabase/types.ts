@@ -1249,6 +1249,53 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_invitations: {
+        Row: {
+          created_at: string | null
+          department_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          job_title: string | null
+          staff_role: Database["public"]["Enums"]["staff_role"]
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department_id?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          job_title?: string | null
+          staff_role?: Database["public"]["Enums"]["staff_role"]
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          job_title?: string | null
+          staff_role?: Database["public"]["Enums"]["staff_role"]
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_invitations_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_profiles: {
         Row: {
           created_at: string
