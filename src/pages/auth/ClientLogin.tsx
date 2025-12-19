@@ -126,9 +126,17 @@ const ClientLogin = () => {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Password
+                </label>
+                <Link 
+                  to="/auth/forgot-password" 
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
                 <input

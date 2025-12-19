@@ -105,7 +105,15 @@ const StaffLogin = () => {
             </div>
 
             <div>
-              <div className="chrome-label mb-2">PASSWORD</div>
+              <div className="flex justify-between items-center mb-2">
+                <div className="chrome-label">PASSWORD</div>
+                <Link 
+                  to="/auth/forgot-password" 
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.4} />
                 <input

@@ -24,3 +24,6 @@ verify_jwt = false
 [functions.get-vapid-key]
 verify_jwt = false
 
+[functions.invite-staff-member]
+verify_jwt = true
+

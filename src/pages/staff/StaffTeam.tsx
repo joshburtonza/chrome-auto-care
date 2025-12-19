@@ -20,6 +20,9 @@ import {
   UserPlus,
   Loader2,
   UserMinus,
+  Send,
+  Copy,
+  Check,
   Shield,
   Crown
 } from 'lucide-react';
@@ -100,10 +103,16 @@ export default function StaffTeam() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [addingStaff, setAddingStaff] = useState(false);
+  const [invitingStaff, setInvitingStaff] = useState(false);
   const [removingStaff, setRemovingStaff] = useState(false);
   const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteJobTitle, setInviteJobTitle] = useState('');
+  const [inviteRole, setInviteRole] = useState<StaffRole>('technician');
+  const [invitationUrl, setInvitationUrl] = useState('');
   const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
   const [formData, setFormData] = useState({
     job_title: '',
@@ -391,6 +400,41 @@ export default function StaffTeam() {
     }
   };
 
+  const handleInviteStaff = async () => {
+    if (!inviteEmail.trim()) {
+      toast.error('Please enter an email address');
+      return;
+    }
+
+    setInvitingStaff(true);
+    setInvitationUrl('');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('invite-staff-member', {
+        body: { 
+          email: inviteEmail.trim(),
+          staff_role: inviteRole,
+          job_title: inviteJobTitle || null
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      setInvitationUrl(data.invitation.invitation_url);
+      toast.success('Invitation created! Share the link with the new staff member.');
+    } catch (error: any) {
+      console.error('Error inviting staff:', error);
+      toast.error(error.message || 'Failed to create invitation');
+    } finally {
+      setInvitingStaff(false);
+    }
+  };
+
   const filteredMembers = staffMembers.filter(member => {
     const matchesSearch = 
       member.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -439,13 +483,23 @@ export default function StaffTeam() {
                 Manage staff profiles, skills, and departments
               </p>
             </div>
-            <Button
-              onClick={() => setIsAddDialogOpen(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Staff Member
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsInviteDialogOpen(true)}
+                className="border-border text-foreground hover:bg-muted"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Invite New Staff
+              </Button>
+              <Button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Existing User
+              </Button>
+            </div>
           </div>
         </motion.div>
 
@@ -903,6 +957,134 @@ export default function StaffTeam() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Invite New Staff Dialog */}
+      <Dialog open={isInviteDialogOpen} onOpenChange={(open) => {
+        setIsInviteDialogOpen(open);
+        if (!open) {
+          setInviteEmail('');
+          setInviteJobTitle('');
+          setInviteRole('technician');
+          setInvitationUrl('');
+        }
+      }}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Invite New Staff Member
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            {!invitationUrl ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Send an invitation to someone who doesn't have an account yet.
+                </p>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Email Address</Label>
+                  <Input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="newstaff@example.com"
+                    className="bg-muted/50 border-border text-foreground"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Job Title (Optional)</Label>
+                  <Input
+                    value={inviteJobTitle}
+                    onChange={(e) => setInviteJobTitle(e.target.value)}
+                    placeholder="e.g. PPF Installer"
+                    className="bg-muted/50 border-border text-foreground"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Role Level</Label>
+                  <Select value={inviteRole} onValueChange={(val: StaffRole) => setInviteRole(val)}>
+                    <SelectTrigger className="bg-muted/50 border-border text-foreground">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {staffRoles.map(role => (
+                        <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsInviteDialogOpen(false)}
+                    className="flex-1 border-border"
+                    disabled={invitingStaff}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleInviteStaff}
+                    disabled={invitingStaff || !inviteEmail.trim()}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    {invitingStaff ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</>
+                    ) : (
+                      <><Send className="w-4 h-4 mr-2" />Send Invite</>
+                    )}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <div className="flex items-center gap-2 text-green-500 mb-2">
+                    <Check className="w-5 h-5" />
+                    <span className="font-medium">Invitation Created!</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Share this link with {inviteEmail}. It expires in 7 days.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Invitation Link</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={invitationUrl}
+                      readOnly
+                      className="bg-muted/50 border-border text-foreground text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(invitationUrl);
+                        toast.success('Link copied!');
+                      }}
+                      className="border-border flex-shrink-0"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setIsInviteDialogOpen(false)}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Done
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
