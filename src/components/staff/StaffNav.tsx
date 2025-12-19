@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo, UsersRound, Boxes, Ticket, Image } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo, UsersRound, Boxes, Ticket, Image, UserCircle } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { MobileStaffNav } from './MobileStaffNav';
@@ -69,6 +69,19 @@ export const StaffNav = () => {
             <div className="flex items-center gap-1">
               <ThemeToggle />
               <NotificationBell />
+              <Link to="/staff/profile">
+                <button 
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md",
+                    location.pathname === '/staff/profile'
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <UserCircle className="w-4 h-4" strokeWidth={1.5} />
+                  <span className="hidden lg:inline">Profile</span>
+                </button>
+              </Link>
               <button 
                 onClick={signOut} 
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors rounded-md"
