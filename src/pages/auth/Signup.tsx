@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { ChromeButton } from '@/components/chrome/ChromeButton';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Shield, Mail, Lock, User, AlertCircle, CheckCircle2, Gift } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Signup = () => {
   const [fullName, setFullName] = useState('');
@@ -15,6 +16,10 @@ const Signup = () => {
   const [error, setError] = useState('');
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Capture referral code from URL
+  const referralCode = searchParams.get('ref');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +52,7 @@ const Signup = () => {
     }
 
     try {
-      const { error: signUpError } = await signUp(email, password, fullName);
+      const { error: signUpError, data } = await signUp(email, password, fullName);
 
       if (signUpError) {
         if (signUpError.message.includes('already registered')) {
@@ -57,6 +62,28 @@ const Signup = () => {
         }
         setLoading(false);
         return;
+      }
+
+      // If we have a referral code and signup was successful, update the referral
+      if (referralCode && data?.user) {
+        try {
+          // Find and update the referral record
+          const { error: referralError } = await supabase
+            .from('referrals')
+            .update({
+              referred_user_id: data.user.id,
+              status: 'registered'
+            })
+            .eq('referral_code', referralCode)
+            .eq('status', 'pending');
+
+          if (!referralError) {
+            toast.success('Referral bonus will be credited when you complete your first booking!');
+          }
+        } catch (refErr) {
+          console.error('Error updating referral:', refErr);
+          // Don't fail signup if referral update fails
+        }
       }
 
       toast.success('Account created successfully!');
@@ -78,6 +105,16 @@ const Signup = () => {
           <h1 className="chrome-title text-3xl mb-2">RACE TECHNIK</h1>
           <p className="chrome-label text-text-tertiary">CREATE YOUR ACCOUNT</p>
         </div>
+
+        {/* Referral Banner */}
+        {referralCode && (
+          <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/30 flex items-center gap-2">
+            <Gift className="w-5 h-5 text-primary flex-shrink-0" strokeWidth={1.4} />
+            <p className="text-sm text-primary">
+              You were referred by a friend! Complete your first booking to earn rewards.
+            </p>
+          </div>
+        )}
 
         {/* Signup Form */}
         <ChromeSurface className="p-8" glow>

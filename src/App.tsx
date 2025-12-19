@@ -37,6 +37,8 @@ import StaffTeam from "./pages/staff/StaffTeam";
 import StaffInventory from "./pages/staff/StaffInventory";
 import StaffProcessTemplates from "./pages/staff/StaffProcessTemplates";
 import StaffDepartments from "./pages/staff/StaffDepartments";
+import StaffPromoCodes from "./pages/staff/StaffPromoCodes";
+import StaffGallery from "./pages/staff/StaffGallery";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -228,6 +230,22 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRoles={['admin']}>
                         <StaffDepartments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/promo-codes"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <StaffPromoCodes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/gallery"
+                    element={
+                      <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                        <StaffGallery />
                       </ProtectedRoute>
                     }
                   />
