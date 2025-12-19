@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Package, Store, ShoppingBag, LogOut, MoreHorizontal, Boxes } from 'lucide-react';
+import { Package, Store, ShoppingBag, LogOut, MoreHorizontal, Boxes, Ticket, Image } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -20,6 +20,8 @@ export const MobileStaffNav = () => {
     { path: '/staff/inventory', label: 'Inventory', icon: Boxes },
     ...(isAdmin ? [{ path: '/staff/merchandise', label: 'Merchandise', icon: Store }] : []),
     { path: '/staff/orders', label: 'Orders', icon: ShoppingBag },
+    { path: '/staff/gallery', label: 'Gallery', icon: Image },
+    ...(isAdmin ? [{ path: '/staff/promo-codes', label: 'Promo Codes', icon: Ticket }] : []),
   ];
 
   return (
