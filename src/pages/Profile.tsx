@@ -26,7 +26,11 @@ const Profile = () => {
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<{
+    full_name: string;
+    phone: string;
+    address: string;
+  }>({
     full_name: "",
     phone: "",
     address: "",
@@ -76,7 +80,11 @@ const Profile = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(profile)
+        .update({
+          full_name: profile.full_name,
+          phone: profile.phone,
+          address: profile.address,
+        })
         .eq('id', user?.id);
 
       if (error) throw error;
@@ -148,9 +156,10 @@ const Profile = () => {
 
             <div className="space-y-4">
               {[
+                { icon: User, label: "Full Name", value: profile.full_name, field: 'full_name', disabled: false },
                 { icon: Mail, label: "Email", value: user?.email || '', field: 'email', disabled: true },
-                { icon: Phone, label: "Phone", value: profile.phone, field: 'phone' },
-                { icon: MapPin, label: "Address", value: profile.address, field: 'address' },
+                { icon: Phone, label: "Phone", value: profile.phone, field: 'phone', disabled: false },
+                { icon: MapPin, label: "Address", value: profile.address, field: 'address', disabled: false },
               ].map((field) => (
                 <div key={field.label} className="flex items-start gap-3 pb-4 border-b border-border/30 last:border-0 last:pb-0">
                   <field.icon className="w-5 h-5 text-muted-foreground mt-0.5" strokeWidth={1.5} />

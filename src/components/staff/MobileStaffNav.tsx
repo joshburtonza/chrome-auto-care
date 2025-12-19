@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Package, Store, ShoppingBag, LogOut, MoreHorizontal, Boxes, Ticket, Image } from 'lucide-react';
+import { Package, Store, ShoppingBag, LogOut, MoreHorizontal, Boxes, Ticket, Image, UserCircle } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -16,6 +16,7 @@ export const MobileStaffNav = () => {
 
   // Secondary nav items (not in bottom nav)
   const moreItems = [
+    { path: '/staff/profile', label: 'My Profile', icon: UserCircle },
     ...(isAdmin ? [{ path: '/staff/services', label: 'Services', icon: Package }] : []),
     { path: '/staff/inventory', label: 'Inventory', icon: Boxes },
     ...(isAdmin ? [{ path: '/staff/merchandise', label: 'Merchandise', icon: Store }] : []),
