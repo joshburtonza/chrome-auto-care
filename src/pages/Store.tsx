@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { StoreSkeleton } from "@/components/skeletons/PageSkeletons";
+import { getProductImage } from "@/lib/productImages";
 
 interface Product {
   id: string;
@@ -139,36 +140,51 @@ const Store = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <ChromeSurface 
-                  className="p-4 sm:p-5 bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/70 hover:border-primary/20 transition-all duration-300 group"
+                  className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/70 hover:border-primary/20 transition-all duration-300 group"
                 >
-                  <div className="aspect-square rounded-xl bg-muted/20 mb-4 flex items-center justify-center">
-                    <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/20 group-hover:text-primary/30 transition-colors" strokeWidth={1.5} />
-                  </div>
-                  <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
-                    {product.category}
-                  </div>
-                  <h3 className="text-base font-medium text-foreground mb-1.5">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {product.description}
-                  </p>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-border/30">
-                    <div className="text-lg font-semibold text-primary">
-                      R{product.price.toFixed(2)}
+                  {(() => {
+                    const productImage = getProductImage(product.name, product.category);
+                    return productImage ? (
+                      <div className="aspect-square overflow-hidden">
+                        <img 
+                          src={productImage} 
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-square rounded-xl bg-muted/20 flex items-center justify-center">
+                        <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/20 group-hover:text-primary/30 transition-colors" strokeWidth={1.5} />
+                      </div>
+                    );
+                  })()}
+                  <div className="p-4 sm:p-5">
+                    <div className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
+                      {product.category}
                     </div>
-                    <ChromeButton 
-                      size="sm" 
-                      className="w-full sm:w-auto"
-                      onClick={() => handleAddToCart(product.id)}
-                      disabled={product.stock_quantity === 0}
-                    >
-                      {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
-                    </ChromeButton>
-                  </div>
-                  {product.stock_quantity > 0 && product.stock_quantity < 10 && (
-                    <div className="text-[10px] text-amber-500 mt-2 font-medium">
-                      Only {product.stock_quantity} left in stock
+                    <h3 className="text-base font-medium text-foreground mb-1.5">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {product.description}
+                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-border/30">
+                      <div className="text-lg font-semibold text-primary">
+                        R{product.price.toFixed(2)}
+                      </div>
+                      <ChromeButton 
+                        size="sm" 
+                        className="w-full sm:w-auto"
+                        onClick={() => handleAddToCart(product.id)}
+                        disabled={product.stock_quantity === 0}
+                      >
+                        {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                      </ChromeButton>
                     </div>
-                  )}
+                    {product.stock_quantity > 0 && product.stock_quantity < 10 && (
+                      <div className="text-[10px] text-amber-500 mt-2 font-medium">
+                        Only {product.stock_quantity} left in stock
+                      </div>
+                    )}
+                  </div>
                 </ChromeSurface>
               </motion.div>
             ))}

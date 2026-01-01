@@ -15,6 +15,7 @@ import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ServicesSkeleton } from "@/components/skeletons/PageSkeletons";
+import { getServiceImage } from "@/lib/serviceImages";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -454,50 +455,74 @@ const Services = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <ChromeSurface 
-                  className={`p-5 sm:p-6 cursor-pointer transition-all ${
+                  className={`overflow-hidden cursor-pointer transition-all ${
                     isSelected ? 'ring-2 ring-primary/50 bg-primary/5' : ''
                   }`} 
                   sheen
                   onClick={() => toggleServiceSelection(service)}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-2xl ${isSelected ? 'bg-primary/20' : 'bg-muted/50'}`}>
-                      {isSelected ? (
-                        <Check className="w-5 h-5 text-primary" strokeWidth={2} />
-                      ) : (
-                        <ServiceIcon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-muted-foreground mb-1">
-                        {service.category}
+                  {/* Service Image */}
+                  {(() => {
+                    const serviceImage = getServiceImage(service.title, service.category);
+                    return serviceImage ? (
+                      <div className="relative h-40 sm:h-48 w-full overflow-hidden">
+                        <img 
+                          src={serviceImage} 
+                          alt={service.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 p-2 rounded-full bg-primary text-primary-foreground">
+                            <Check className="w-4 h-4" strokeWidth={2} />
+                          </div>
+                        )}
                       </div>
-                      <h3 className="text-base font-semibold text-foreground mb-1">{service.title}</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">{service.description}</p>
-
-                      {service.features && service.features.length > 0 && (
-                        <div className="space-y-1.5 mb-4">
-                          {service.features.map((feature: string, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <div className="w-1 h-1 rounded-full bg-muted-foreground/50 flex-shrink-0" />
-                              {feature}
-                            </div>
-                          ))}
+                    ) : null;
+                  })()}
+                  
+                  <div className="p-5 sm:p-6">
+                    <div className="flex items-start gap-4">
+                      {!getServiceImage(service.title, service.category) && (
+                        <div className={`p-3 rounded-2xl ${isSelected ? 'bg-primary/20' : 'bg-muted/50'}`}>
+                          {isSelected ? (
+                            <Check className="w-5 h-5 text-primary" strokeWidth={2} />
+                          ) : (
+                            <ServiceIcon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
+                          )}
                         </div>
                       )}
-
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border/30">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1.5">
-                            <Clock className="w-4 h-4" strokeWidth={1.5} />
-                            {service.duration}
-                          </span>
-                          <span className="font-medium text-foreground">
-                            From R{service.price_from}
-                          </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-muted-foreground mb-1">
+                          {service.category}
                         </div>
-                        <div className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
-                          {isSelected ? '✓ Selected' : 'Tap to select'}
+                        <h3 className="text-base font-semibold text-foreground mb-1">{service.title}</h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-4">{service.description}</p>
+
+                        {service.features && service.features.length > 0 && (
+                          <div className="space-y-1.5 mb-4">
+                            {service.features.map((feature: string, idx: number) => (
+                              <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <div className="w-1 h-1 rounded-full bg-muted-foreground/50 flex-shrink-0" />
+                                {feature}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border/30">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="w-4 h-4" strokeWidth={1.5} />
+                              {service.duration}
+                            </span>
+                            <span className="font-medium text-foreground">
+                              From R{service.price_from}
+                            </span>
+                          </div>
+                          <div className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {isSelected ? '✓ Selected' : 'Tap to select'}
+                          </div>
                         </div>
                       </div>
                     </div>

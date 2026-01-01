@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { BookingsSkeleton } from "@/components/skeletons/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { generateBookingInvoice } from "@/lib/generateInvoice";
+import { getServiceImage, categoryImages } from "@/lib/serviceImages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -233,84 +234,103 @@ const Bookings = () => {
                 variants={fadeInUp}
                 transition={{ delay: index * 0.05 }}
               >
-                <ChromeSurface className="p-4 sm:p-5 bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/60 transition-colors">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <StatusBadge status={getStatusBadge(booking.status)}>
-                          {booking.status.replace('_', ' ')}
-                        </StatusBadge>
-                        {booking.payment_status && (
-                          <StatusBadge status={getPaymentStatusBadge(booking.payment_status)}>
-                            <CreditCard className="w-3 h-3 inline mr-1" strokeWidth={1.5} />
-                            {booking.payment_status}
-                          </StatusBadge>
-                        )}
-                        {booking.status === 'cancelled' && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" />
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Booking</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this cancelled booking? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => handleDeleteBooking(booking.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 px-2 text-primary hover:text-primary hover:bg-primary/10"
-                          onClick={() => handleDownloadInvoice(booking)}
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          Invoice
-                        </Button>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5">
-                        {booking.all_services?.length > 1 
-                          ? booking.all_services.join(' + ')
-                          : booking.all_services?.[0] || booking.services?.title}
-                      </h3>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                        {booking.vehicles && (
-                          <span className="flex items-center gap-2">
-                            <Car className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                            <span className="truncate">
-                              {booking.vehicles.year} {booking.vehicles.make} {booking.vehicles.model}
+                <ChromeSurface className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/60 transition-colors">
+                  <div className="flex">
+                    {/* Service Image */}
+                    {(() => {
+                      const serviceTitle = booking.all_services?.[0] || booking.services?.title || '';
+                      const bookingImage = getServiceImage(serviceTitle, '');
+                      return bookingImage ? (
+                        <div className="hidden sm:block w-32 h-full flex-shrink-0">
+                          <img 
+                            src={bookingImage} 
+                            alt={serviceTitle}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : null;
+                    })()}
+                    
+                    <div className="flex-1 p-4 sm:p-5">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <StatusBadge status={getStatusBadge(booking.status)}>
+                              {booking.status.replace('_', ' ')}
+                            </StatusBadge>
+                            {booking.payment_status && (
+                              <StatusBadge status={getPaymentStatusBadge(booking.payment_status)}>
+                                <CreditCard className="w-3 h-3 inline mr-1" strokeWidth={1.5} />
+                                {booking.payment_status}
+                              </StatusBadge>
+                            )}
+                            {booking.status === 'cancelled' && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="w-3 h-3 mr-1" />
+                                    Delete
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this cancelled booking? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDeleteBooking(booking.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 px-2 text-primary hover:text-primary hover:bg-primary/10"
+                              onClick={() => handleDownloadInvoice(booking)}
+                            >
+                              <FileText className="w-3 h-3 mr-1" />
+                              Invoice
+                            </Button>
+                          </div>
+                          <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5">
+                            {booking.all_services?.length > 1 
+                              ? booking.all_services.join(' + ')
+                              : booking.all_services?.[0] || booking.services?.title}
+                          </h3>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                            {booking.vehicles && (
+                              <span className="flex items-center gap-2">
+                                <Car className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                                <span className="truncate">
+                                  {booking.vehicles.year} {booking.vehicles.make} {booking.vehicles.model}
+                                </span>
+                              </span>
+                            )}
+                            <span className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                              {new Date(booking.booking_date).toLocaleDateString()} {booking.booking_time}
                             </span>
-                          </span>
-                        )}
-                        <span className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                          {new Date(booking.booking_date).toLocaleDateString()} {booking.booking_time}
-                        </span>
-                        {(booking.total_price > 0 || booking.payment_amount) && (
-                          <span className="flex items-center gap-2 text-primary font-medium">
-                            <CreditCard className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                            R{(booking.total_price || booking.payment_amount || 0).toLocaleString()}
-                          </span>
-                        )}
+                            {(booking.total_price > 0 || booking.payment_amount) && (
+                              <span className="flex items-center gap-2 text-primary font-medium">
+                                <CreditCard className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                                R{(booking.total_price || booking.payment_amount || 0).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
