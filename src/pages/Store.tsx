@@ -20,6 +20,7 @@ interface Product {
   description: string;
   stock_quantity: number;
   is_active: boolean;
+  image_url: string | null;
 }
 
 const fadeInUp = {
@@ -143,7 +144,7 @@ const Store = () => {
                   className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/70 hover:border-primary/20 transition-all duration-300 group"
                 >
                   {(() => {
-                    const productImage = getProductImage(product.name, product.category);
+                    const productImage = product.image_url || getProductImage(product.name, product.category);
                     return productImage ? (
                       <div className="aspect-square overflow-hidden">
                         <img 

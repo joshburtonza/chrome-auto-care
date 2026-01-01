@@ -40,6 +40,7 @@ interface Service {
   duration: string;
   features: string[] | null;
   color: string | null;
+  image_url: string | null;
 }
 
 interface ServiceAvailability {
@@ -463,7 +464,7 @@ const Services = () => {
                 >
                   {/* Service Image */}
                   {(() => {
-                    const serviceImage = getServiceImage(service.title, service.category);
+                    const serviceImage = service.image_url || getServiceImage(service.title, service.category);
                     return serviceImage ? (
                       <div className="relative h-40 sm:h-48 w-full overflow-hidden">
                         <img 
@@ -483,7 +484,7 @@ const Services = () => {
                   
                   <div className="p-5 sm:p-6">
                     <div className="flex items-start gap-4">
-                      {!getServiceImage(service.title, service.category) && (
+                      {!(service.image_url || getServiceImage(service.title, service.category)) && (
                         <div className={`p-3 rounded-2xl ${isSelected ? 'bg-primary/20' : 'bg-muted/50'}`}>
                           {isSelected ? (
                             <Check className="w-5 h-5 text-primary" strokeWidth={2} />
