@@ -11,6 +11,7 @@ import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { StoreSkeleton } from "@/components/skeletons/PageSkeletons";
 import { getProductImage } from "@/lib/productImages";
+import { resolveImageUrl } from "@/lib/resolveImageUrl";
 
 interface Product {
   id: string;
@@ -144,12 +145,17 @@ const Store = () => {
                   className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/40 hover:bg-card/70 hover:border-primary/20 transition-all duration-300 group"
                 >
                   {(() => {
-                    const productImage = product.image_url || getProductImage(product.name, product.category);
+                    const productImage = resolveImageUrl(
+                      product.image_url,
+                      getProductImage(product.name, product.category)
+                    );
                     return productImage ? (
                       <div className="aspect-square overflow-hidden">
-                        <img 
-                          src={productImage} 
+                        <img
+                          src={productImage}
                           alt={product.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
