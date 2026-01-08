@@ -16,6 +16,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ServicesSkeleton } from "@/components/skeletons/PageSkeletons";
 import { getServiceImage } from "@/lib/serviceImages";
+import { resolveImageUrl } from "@/lib/resolveImageUrl";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -464,12 +465,17 @@ const Services = () => {
                 >
                   {/* Service Image */}
                   {(() => {
-                    const serviceImage = service.image_url || getServiceImage(service.title, service.category);
+                    const serviceImage = resolveImageUrl(
+                      service.image_url,
+                      getServiceImage(service.title, service.category)
+                    );
                     return serviceImage ? (
                       <div className="relative h-40 sm:h-48 w-full overflow-hidden">
-                        <img 
-                          src={serviceImage} 
+                        <img
+                          src={serviceImage}
                           alt={service.title}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
@@ -484,7 +490,7 @@ const Services = () => {
                   
                   <div className="p-5 sm:p-6">
                     <div className="flex items-start gap-4">
-                      {!(service.image_url || getServiceImage(service.title, service.category)) && (
+                      {!resolveImageUrl(service.image_url, getServiceImage(service.title, service.category)) && (
                         <div className={`p-3 rounded-2xl ${isSelected ? 'bg-primary/20' : 'bg-muted/50'}`}>
                           {isSelected ? (
                             <Check className="w-5 h-5 text-primary" strokeWidth={2} />

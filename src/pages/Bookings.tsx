@@ -14,6 +14,7 @@ import { BookingsSkeleton } from "@/components/skeletons/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { generateBookingInvoice } from "@/lib/generateInvoice";
 import { getServiceImage, categoryImages } from "@/lib/serviceImages";
+import { resolveImageUrl } from "@/lib/resolveImageUrl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,7 +86,7 @@ const Bookings = () => {
         .from('bookings')
         .select(`
           *,
-          services (title),
+          services (id, title, image_url, category),
           vehicles (year, make, model)
         `)
         .eq('user_id', user?.id)
@@ -101,7 +102,7 @@ const Bookings = () => {
           .select(`
             booking_id,
             price,
-            services (id, title)
+            services (id, title, image_url, category)
           `)
           .in('booking_id', bookingIds);
 
@@ -113,8 +114,12 @@ const Bookings = () => {
           const totalPrice = bookingServicesList.length > 0 
             ? bookingServicesList.reduce((sum, s) => sum + (s.price || 0), 0)
             : booking.payment_amount || 0;
+
+          const primaryService = (bookingServicesList[0]?.services ?? booking.services) || null;
+
           return {
             ...booking,
+            primary_service: primaryService,
             all_services: bookingServicesList.length > 0 
               ? bookingServicesList.map(s => s.services?.title).filter(Boolean)
               : [booking.services?.title].filter(Boolean),
@@ -238,13 +243,19 @@ const Bookings = () => {
                   <div className="flex">
                     {/* Service Image */}
                     {(() => {
-                      const serviceTitle = booking.all_services?.[0] || booking.services?.title || '';
-                      const bookingImage = getServiceImage(serviceTitle, '');
+                      const primary = booking.primary_service;
+                      const serviceTitle = primary?.title || booking.all_services?.[0] || booking.services?.title || '';
+                      const bookingImage = resolveImageUrl(
+                        primary?.image_url,
+                        getServiceImage(serviceTitle, primary?.category || '')
+                      );
                       return bookingImage ? (
                         <div className="hidden sm:block w-32 h-full flex-shrink-0">
-                          <img 
-                            src={bookingImage} 
+                          <img
+                            src={bookingImage}
                             alt={serviceTitle}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover"
                           />
                         </div>
