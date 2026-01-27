@@ -1,7 +1,7 @@
 import { ChromeSurface } from "@/components/chrome/ChromeSurface";
 import { ChromeButton } from "@/components/chrome/ChromeButton";
-import { Shield, Sparkles, Car, Clock, Check, X } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { Clock, X, Search } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
 import { TimeSlotPicker } from "@/components/booking/TimeSlotPicker";
@@ -15,14 +15,11 @@ import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ServicesSkeleton } from "@/components/skeletons/PageSkeletons";
-import { getServiceImage } from "@/lib/serviceImages";
-import { resolveImageUrl } from "@/lib/resolveImageUrl";
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 }
-};
+import { Input } from "@/components/ui/input";
+import { CategoryFilter } from "@/components/services/CategoryFilter";
+import { ServiceCard } from "@/components/services/ServiceCard";
+import { ServiceDetailModal } from "@/components/services/ServiceDetailModal";
+import { useProcessTemplates, ProcessTemplateStage } from "@/hooks/useProcessTemplates";
 
 const staggerContainer = {
   animate: {
@@ -40,6 +37,8 @@ interface Service {
   price_from: number;
   duration: string;
   features: string[] | null;
+  notes: string[] | null;
+  add_ons: string[] | null;
   color: string | null;
   image_url: string | null;
 }
@@ -67,12 +66,25 @@ const Services = () => {
   const [bookingStep, setBookingStep] = useState<'calendar' | 'time' | 'details'>('calendar');
   const [serviceBookings, setServiceBookings] = useState<ServiceAvailability[]>([]);
   
-  // Slots per service category (PPF has limited capacity, washes have more)
+  // New state for filters and detail modal
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [detailService, setDetailService] = useState<Service | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // Process templates for stages
+  const { templates } = useProcessTemplates();
+  
+  // Slots per service category
   const SLOTS_PER_SERVICE: Record<string, number> = {
-    'Protection': 2,           // PPF jobs - limited capacity
-    'Full Body Paint Protection': 1, // Full PPF - very limited
-    'Enhancement': 3,          // Paint correction
-    'Detailing': 6,           // Washes and detailing - high capacity
+    'PPF': 2,
+    'PPS': 2,
+    'Paint Correction': 3,
+    'Ceramic': 3,
+    'Detailing': 6,
+    'Tint': 8,
+    'Restoration': 2,
+    'Accessories': 10,
   };
   const DEFAULT_SLOTS = 4;
   
@@ -87,6 +99,23 @@ const Services = () => {
     toast.success('Services refreshed');
   }, []);
 
+  // Filter services based on search and category
+  const filteredServices = useMemo(() => {
+    return services.filter(service => {
+      const matchesSearch = searchQuery === '' || 
+        service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [services, searchQuery, selectedCategory]);
+
+  // Get stages for a service from its template
+  const getServiceStages = useCallback((serviceId: string): ProcessTemplateStage[] => {
+    const template = templates.find(t => t.service_id === serviceId);
+    return template?.stages || [];
+  }, [templates]);
+
   // Generate availability per service based on existing bookings
   const generateAvailability = useCallback(() => {
     const availability: Record<string, any> = {};
@@ -97,7 +126,6 @@ const Services = () => {
       date.setDate(today.getDate() + i);
       const dateString = date.toISOString().split('T')[0];
 
-      // Check if all selected services have availability on this date
       let allAvailable = true;
       let lowestAvailableSlots = Infinity;
 
@@ -114,7 +142,6 @@ const Services = () => {
         lowestAvailableSlots = Math.min(lowestAvailableSlots, remainingSlots);
       });
 
-      // If no services selected yet, show all as available
       if (selectedServices.length === 0) {
         availability[dateString] = {
           date: dateString,
@@ -160,6 +187,7 @@ const Services = () => {
         .from('services')
         .select('*')
         .eq('is_active', true)
+        .order('category')
         .order('price_from', { ascending: true });
 
       if (error) throw error;
@@ -172,7 +200,6 @@ const Services = () => {
     }
   };
 
-  // Load existing bookings to calculate per-service availability
   const loadServiceBookings = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -184,7 +211,6 @@ const Services = () => {
 
       if (error) throw error;
       
-      // Count bookings per service per date
       const bookingCounts: ServiceAvailability[] = [];
       const countMap = new Map<string, number>();
       
@@ -194,13 +220,6 @@ const Services = () => {
       });
       
       countMap.forEach((count, key) => {
-        const [service_id, date] = key.split('-').reduce((acc, part, i, arr) => {
-          if (i === 0) return [part];
-          if (i === arr.length - 3) return [acc[0], arr.slice(i).join('-')];
-          return acc;
-        }, [] as string[]);
-        
-        // Simpler split approach
         const parts = key.split('-');
         const serviceId = parts[0];
         const bookingDate = parts.slice(1).join('-');
@@ -233,7 +252,6 @@ const Services = () => {
     }
   };
 
-  // Check if we're in development/test environment
   const isTestEnvironment = import.meta.env.DEV || window.location.hostname === 'localhost';
 
   const toggleServiceSelection = (service: Service) => {
@@ -285,7 +303,6 @@ const Services = () => {
     try {
       const totalAmount = getTotalPrice();
       
-      // Create booking with first service as primary (for backwards compatibility)
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
@@ -303,7 +320,6 @@ const Services = () => {
 
       if (bookingError) throw bookingError;
 
-      // Insert all services into booking_services junction table
       const bookingServicesData = selectedServices.map(service => ({
         booking_id: booking.id,
         service_id: service.id,
@@ -316,7 +332,6 @@ const Services = () => {
 
       if (servicesError) throw servicesError;
 
-      // Skip payment in test environment
       if (isTestEnvironment) {
         toast.success('Booking confirmed! (Test mode - payment skipped)');
         resetBookingModal();
@@ -359,15 +374,12 @@ const Services = () => {
     setBookingStep('calendar');
   };
 
-  const getServiceIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'protection':
-        return Shield;
-      case 'enhancement':
-        return Sparkles;
-      default:
-        return Car;
+  const handleRequestBooking = (service: Service) => {
+    setShowDetailModal(false);
+    if (!isServiceSelected(service.id)) {
+      toggleServiceSelection(service);
     }
+    setTimeout(() => openBookingModal(), 100);
   };
 
   if (loading) {
@@ -381,165 +393,127 @@ const Services = () => {
 
   const content = (
     <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10 max-w-4xl">
-        {/* Header */}
-        <motion.div 
-          className="mb-8"
+      {/* Header */}
+      <motion.div 
+        className="mb-6"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1">
+          Our Services
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Select one or more services for your vehicle
+        </p>
+      </motion.div>
+
+      {/* Search and Filter */}
+      <motion.div 
+        className="space-y-4 mb-6"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search services..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Category Filter */}
+        <CategoryFilter
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+      </motion.div>
+
+      {/* Selected Services Summary */}
+      {selectedServices.length > 0 && (
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          className="mb-6"
         >
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-1">
-            Our Services
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Select one or more services for your vehicle
-          </p>
-        </motion.div>
-
-        {/* Selected Services Summary */}
-        {selectedServices.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <ChromeSurface className="p-4" sheen>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                    Selected Services ({selectedServices.length})
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedServices.map(service => (
-                      <span
-                        key={service.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm"
-                      >
-                        {service.title}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleServiceSelection(service);
-                          }}
-                          className="hover:bg-primary/20 rounded-full p-0.5"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="text-sm text-foreground font-medium mt-2">
-                    Total: R{getTotalPrice().toLocaleString()}
-                  </div>
+          <ChromeSurface className="p-4" sheen>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Selected Services ({selectedServices.length})
                 </div>
-                <ChromeButton onClick={openBookingModal} className="w-full sm:w-auto">
-                  Book Selected Services
-                </ChromeButton>
+                <div className="flex flex-wrap gap-2">
+                  {selectedServices.map(service => (
+                    <span
+                      key={service.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm"
+                    >
+                      {service.title}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleServiceSelection(service);
+                        }}
+                        className="hover:bg-primary/20 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="text-sm text-foreground font-medium mt-2">
+                  Total: R{getTotalPrice().toLocaleString()}
+                </div>
               </div>
-            </ChromeSurface>
-          </motion.div>
-        )}
-
-        {/* Services Grid */}
-        <motion.div 
-          className="space-y-4"
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-        >
-          {services.map((service, index) => {
-            const ServiceIcon = getServiceIcon(service.category);
-            const isSelected = isServiceSelected(service.id);
-            return (
-              <motion.div
-                key={service.id}
-                variants={fadeInUp}
-                transition={{ delay: index * 0.05 }}
-              >
-                <ChromeSurface 
-                  className={`overflow-hidden cursor-pointer transition-all ${
-                    isSelected ? 'ring-2 ring-primary/50 bg-primary/5' : ''
-                  }`} 
-                  sheen
-                  onClick={() => toggleServiceSelection(service)}
-                >
-                  {/* Service Image */}
-                  {(() => {
-                    const serviceImage = resolveImageUrl(
-                      service.image_url,
-                      getServiceImage(service.title, service.category)
-                    );
-                    return serviceImage ? (
-                      <div className="relative h-40 sm:h-48 w-full overflow-hidden">
-                        <img
-                          src={serviceImage}
-                          alt={service.title}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                        {isSelected && (
-                          <div className="absolute top-3 right-3 p-2 rounded-full bg-primary text-primary-foreground">
-                            <Check className="w-4 h-4" strokeWidth={2} />
-                          </div>
-                        )}
-                      </div>
-                    ) : null;
-                  })()}
-                  
-                  <div className="p-5 sm:p-6">
-                    <div className="flex items-start gap-4">
-                      {!resolveImageUrl(service.image_url, getServiceImage(service.title, service.category)) && (
-                        <div className={`p-3 rounded-2xl ${isSelected ? 'bg-primary/20' : 'bg-muted/50'}`}>
-                          {isSelected ? (
-                            <Check className="w-5 h-5 text-primary" strokeWidth={2} />
-                          ) : (
-                            <ServiceIcon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-                          )}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs text-muted-foreground mb-1">
-                          {service.category}
-                        </div>
-                        <h3 className="text-base font-semibold text-foreground mb-1">{service.title}</h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed mb-4">{service.description}</p>
-
-                        {service.features && service.features.length > 0 && (
-                          <div className="space-y-1.5 mb-4">
-                            {service.features.map((feature: string, idx: number) => (
-                              <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <div className="w-1 h-1 rounded-full bg-muted-foreground/50 flex-shrink-0" />
-                                {feature}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border/30">
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="w-4 h-4" strokeWidth={1.5} />
-                              {service.duration}
-                            </span>
-                            <span className="font-medium text-foreground">
-                              From R{service.price_from}
-                            </span>
-                          </div>
-                          <div className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
-                            {isSelected ? '✓ Selected' : 'Tap to select'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </ChromeSurface>
-              </motion.div>
-            );
-          })}
+              <ChromeButton onClick={openBookingModal} className="w-full sm:w-auto">
+                Book Selected Services
+              </ChromeButton>
+            </div>
+          </ChromeSurface>
         </motion.div>
-      </div>
+      )}
+
+      {/* Services Grid */}
+      <motion.div 
+        className="space-y-4"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        {filteredServices.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No services found matching your criteria.</p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('all');
+              }}
+              className="text-primary text-sm mt-2 hover:underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          filteredServices.map((service, index) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              isSelected={isServiceSelected(service.id)}
+              onToggleSelect={() => toggleServiceSelection(service)}
+              onViewDetails={() => {
+                setDetailService(service);
+                setShowDetailModal(true);
+              }}
+              index={index}
+            />
+          ))
+        )}
+      </motion.div>
+    </div>
   );
 
   return (
@@ -552,6 +526,15 @@ const Services = () => {
       ) : (
         content
       )}
+
+      {/* Service Detail Modal */}
+      <ServiceDetailModal
+        service={detailService}
+        stages={detailService ? getServiceStages(detailService.id) : []}
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        onRequestBooking={handleRequestBooking}
+      />
 
       {/* Booking Modal */}
       <Dialog open={showBookingModal} onOpenChange={(open) => !open && resetBookingModal()}>
