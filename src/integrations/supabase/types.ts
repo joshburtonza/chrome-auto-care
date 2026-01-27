@@ -1212,6 +1212,7 @@ export type Database = {
       }
       services: {
         Row: {
+          add_ons: string[] | null
           category: string
           color: string | null
           created_at: string | null
@@ -1221,11 +1222,13 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          notes: string[] | null
           price_from: number
           title: string
           updated_at: string | null
         }
         Insert: {
+          add_ons?: string[] | null
           category: string
           color?: string | null
           created_at?: string | null
@@ -1235,11 +1238,13 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          notes?: string[] | null
           price_from: number
           title: string
           updated_at?: string | null
         }
         Update: {
+          add_ons?: string[] | null
           category?: string
           color?: string | null
           created_at?: string | null
@@ -1249,6 +1254,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          notes?: string[] | null
           price_from?: number
           title?: string
           updated_at?: string | null
