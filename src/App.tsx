@@ -44,6 +44,7 @@ import StaffDepartments from "./pages/staff/StaffDepartments";
 import StaffPromoCodes from "./pages/staff/StaffPromoCodes";
 import StaffGallery from "./pages/staff/StaffGallery";
 import StaffProfile from "./pages/staff/StaffProfile";
+import StaffLeads from "./pages/staff/StaffLeads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -159,6 +160,14 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRoles={['staff', 'admin']}>
                         <StaffDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/leads"
+                    element={
+                      <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                        <StaffLeads />
                       </ProtectedRoute>
                     }
                   />

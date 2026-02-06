@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ListTodo, Calendar, Users, User } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Calendar, Target, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,9 +17,9 @@ export const StaffBottomNav = () => {
 
   const navItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/staff/leads', label: 'Leads', icon: Target },
     { path: '/staff/work-queue', label: 'Queue', icon: ListTodo },
     { path: '/staff/bookings', label: 'Bookings', icon: Calendar },
-    { path: '/staff/customers', label: 'Customers', icon: Users },
     ...(isAdmin ? [{ path: '/staff/team', label: 'Team', icon: User }] : []),
   ];
 
