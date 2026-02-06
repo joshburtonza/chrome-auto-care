@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo, UsersRound, Boxes, Ticket, Image, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, LogOut, Package, Store, ShoppingBag, ListTodo, UsersRound, Boxes, Ticket, Image, UserCircle, Target, FileText } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { MobileStaffNav } from './MobileStaffNav';
@@ -13,10 +13,12 @@ export const StaffNav = () => {
 
   const navItems = [
     { path: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/staff/leads', label: 'Leads', icon: Target },
     { path: '/staff/work-queue', label: 'Work Queue', icon: ListTodo },
     { path: '/staff/bookings', label: 'Bookings', icon: Calendar },
     { path: '/staff/customers', label: 'Customers', icon: Users },
     ...(isAdmin ? [{ path: '/staff/services', label: 'Services', icon: Package }] : []),
+    ...(isAdmin ? [{ path: '/staff/process-templates', label: 'Templates', icon: FileText }] : []),
     { path: '/staff/inventory', label: 'Inventory', icon: Boxes },
     ...(isAdmin ? [{ path: '/staff/merchandise', label: 'Merchandise', icon: Store }] : []),
     { path: '/staff/orders', label: 'Orders', icon: ShoppingBag },

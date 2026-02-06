@@ -209,6 +209,7 @@ export type Database = {
           id: string
           notes: string | null
           stage: Database["public"]["Enums"]["stage_type"]
+          stage_name: string | null
           stage_order: number | null
           started_at: string | null
         }
@@ -221,6 +222,7 @@ export type Database = {
           id?: string
           notes?: string | null
           stage: Database["public"]["Enums"]["stage_type"]
+          stage_name?: string | null
           stage_order?: number | null
           started_at?: string | null
         }
@@ -233,6 +235,7 @@ export type Database = {
           id?: string
           notes?: string | null
           stage?: Database["public"]["Enums"]["stage_type"]
+          stage_name?: string | null
           stage_order?: number | null
           started_at?: string | null
         }
@@ -564,6 +567,130 @@ export type Database = {
             columns: ["inventory_id"]
             isOneToOne: false
             referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          converted_to_booking_id: string | null
+          created_at: string
+          created_by: string | null
+          deposit_amount: number | null
+          deposit_paid_at: string | null
+          email: string | null
+          id: string
+          last_contact_at: string | null
+          name: string
+          next_follow_up_at: string | null
+          notes: string | null
+          phone: string
+          priority: string
+          quoted_amount: number | null
+          service_interest: string[] | null
+          source: string
+          status: string
+          updated_at: string
+          vehicle_color: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_year: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          converted_to_booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deposit_amount?: number | null
+          deposit_paid_at?: string | null
+          email?: string | null
+          id?: string
+          last_contact_at?: string | null
+          name: string
+          next_follow_up_at?: string | null
+          notes?: string | null
+          phone: string
+          priority?: string
+          quoted_amount?: number | null
+          service_interest?: string[] | null
+          source?: string
+          status?: string
+          updated_at?: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          converted_to_booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deposit_amount?: number | null
+          deposit_paid_at?: string | null
+          email?: string | null
+          id?: string
+          last_contact_at?: string | null
+          name?: string
+          next_follow_up_at?: string | null
+          notes?: string | null
+          phone?: string
+          priority?: string
+          quoted_amount?: number | null
+          service_interest?: string[] | null
+          source?: string
+          status?: string
+          updated_at?: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_to_booking_id_fkey"
+            columns: ["converted_to_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -1310,14 +1437,19 @@ export type Database = {
       }
       staff_profiles: {
         Row: {
+          can_approve_pricing: boolean | null
+          can_collect_deposits: boolean | null
           created_at: string
           department: string | null
           department_id: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           id: string
+          is_primary_contact: boolean | null
           job_title: string | null
           notes: string | null
+          phone_number: string | null
+          responsibilities: string[] | null
           skills: string[] | null
           staff_role: Database["public"]["Enums"]["staff_role"] | null
           start_date: string | null
@@ -1325,14 +1457,19 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          can_approve_pricing?: boolean | null
+          can_collect_deposits?: boolean | null
           created_at?: string
           department?: string | null
           department_id?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
+          is_primary_contact?: boolean | null
           job_title?: string | null
           notes?: string | null
+          phone_number?: string | null
+          responsibilities?: string[] | null
           skills?: string[] | null
           staff_role?: Database["public"]["Enums"]["staff_role"] | null
           start_date?: string | null
@@ -1340,14 +1477,19 @@ export type Database = {
           user_id: string
         }
         Update: {
+          can_approve_pricing?: boolean | null
+          can_collect_deposits?: boolean | null
           created_at?: string
           department?: string | null
           department_id?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
+          is_primary_contact?: boolean | null
           job_title?: string | null
           notes?: string | null
+          phone_number?: string | null
+          responsibilities?: string[] | null
           skills?: string[] | null
           staff_role?: Database["public"]["Enums"]["staff_role"] | null
           start_date?: string | null
@@ -1499,6 +1641,10 @@ export type Database = {
         | "supervisor"
         | "manager"
         | "director"
+        | "lead_manager"
+        | "sales"
+        | "admin_support"
+        | "reception"
       stage_type:
         | "vehicle_checkin"
         | "stripping"
@@ -1663,6 +1809,10 @@ export const Constants = {
         "supervisor",
         "manager",
         "director",
+        "lead_manager",
+        "sales",
+        "admin_support",
+        "reception",
       ],
       stage_type: [
         "vehicle_checkin",
