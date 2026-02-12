@@ -34,6 +34,7 @@ interface StaffProfileData {
 
 const StaffProfile = () => {
   const { user, userRole, signOut } = useAuth();
+  const isAdmin = userRole === 'admin';
   const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -81,25 +82,23 @@ const StaffProfile = () => {
         });
       }
 
-      // Load staff profile
+      // Load staff profile using safe function that hides emergency contacts for non-admins
       const { data: staffData, error: staffError } = await supabase
-        .from('staff_profiles')
-        .select('*')
-        .eq('user_id', user?.id)
-        .maybeSingle();
+        .rpc('get_staff_profile_safe', { p_user_id: user?.id });
 
-      if (staffError && staffError.code !== 'PGRST116') throw staffError;
+      if (staffError) throw staffError;
 
-      if (staffData) {
+      if (staffData && staffData.length > 0) {
+        const row = staffData[0];
         setStaffProfile({
-          job_title: staffData.job_title,
-          department: staffData.department,
-          staff_role: staffData.staff_role,
-          start_date: staffData.start_date,
-          skills: staffData.skills,
-          notes: staffData.notes,
-          emergency_contact_name: staffData.emergency_contact_name,
-          emergency_contact_phone: staffData.emergency_contact_phone,
+          job_title: row.job_title,
+          department: row.department,
+          staff_role: row.staff_role,
+          start_date: row.start_date,
+          skills: row.skills,
+          notes: row.notes,
+          emergency_contact_name: row.emergency_contact_name,
+          emergency_contact_phone: row.emergency_contact_phone,
         });
       }
     } catch (error) {
@@ -125,16 +124,18 @@ const StaffProfile = () => {
 
       if (profileError) throw profileError;
 
-      // Update staff profile (emergency contacts only - other fields managed by admin)
-      const { error: staffError } = await supabase
-        .from('staff_profiles')
-        .update({
-          emergency_contact_name: staffProfile.emergency_contact_name,
-          emergency_contact_phone: staffProfile.emergency_contact_phone,
-        })
-        .eq('user_id', user?.id);
+      // Update staff profile (emergency contacts only for admins)
+      if (isAdmin) {
+        const { error: staffError } = await supabase
+          .from('staff_profiles')
+          .update({
+            emergency_contact_name: staffProfile.emergency_contact_name,
+            emergency_contact_phone: staffProfile.emergency_contact_phone,
+          })
+          .eq('user_id', user?.id);
 
-      if (staffError) throw staffError;
+        if (staffError) throw staffError;
+      }
 
       toast.success('Profile updated successfully');
       setIsEditing(false);
@@ -356,46 +357,48 @@ const StaffProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Emergency Contact */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Shield className="w-5 h-5" />
-                Emergency Contact
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="emergency_name">Contact Name</Label>
-                  {isEditing ? (
-                    <Input
-                      id="emergency_name"
-                      value={staffProfile.emergency_contact_name || ''}
-                      onChange={(e) => setStaffProfile({ ...staffProfile, emergency_contact_name: e.target.value })}
-                      placeholder="Emergency contact name"
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{staffProfile.emergency_contact_name || 'Not set'}</p>
-                  )}
-                </div>
+          {/* Emergency Contact - Only visible to admins */}
+          {isAdmin && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Shield className="w-5 h-5" />
+                  Emergency Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="emergency_name">Contact Name</Label>
+                    {isEditing ? (
+                      <Input
+                        id="emergency_name"
+                        value={staffProfile.emergency_contact_name || ''}
+                        onChange={(e) => setStaffProfile({ ...staffProfile, emergency_contact_name: e.target.value })}
+                        placeholder="Emergency contact name"
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{staffProfile.emergency_contact_name || 'Not set'}</p>
+                    )}
+                  </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="emergency_phone">Contact Phone</Label>
-                  {isEditing ? (
-                    <Input
-                      id="emergency_phone"
-                      value={staffProfile.emergency_contact_phone || ''}
-                      onChange={(e) => setStaffProfile({ ...staffProfile, emergency_contact_phone: e.target.value })}
-                      placeholder="Emergency contact phone"
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{staffProfile.emergency_contact_phone || 'Not set'}</p>
-                  )}
+                  <div className="grid gap-2">
+                    <Label htmlFor="emergency_phone">Contact Phone</Label>
+                    {isEditing ? (
+                      <Input
+                        id="emergency_phone"
+                        value={staffProfile.emergency_contact_phone || ''}
+                        onChange={(e) => setStaffProfile({ ...staffProfile, emergency_contact_phone: e.target.value })}
+                        placeholder="Emergency contact phone"
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{staffProfile.emergency_contact_phone || 'Not set'}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Sign Out */}
           <Card>
