@@ -236,27 +236,13 @@ export default function StaffDashboard() {
               className="relative grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8"
             >
               {[
-                { label: 'Pending', value: stats.pendingBookings, colorClass: 'bg-warning', link: true },
-                { label: 'In Progress', value: stats.activeBookings, colorClass: 'bg-blue-500', link: true },
-                { label: 'Completed', value: stats.completedBookings, colorClass: 'bg-success', link: false },
-                { label: 'Customers', value: stats.totalCustomers, colorClass: 'bg-purple-500', link: false },
-              ].map((stat, i) => (
+                { label: 'Pending', value: stats.pendingBookings, colorClass: 'bg-warning', link: '/staff/bookings', state: { statusFilter: 'pending' } },
+                { label: 'In Progress', value: stats.activeBookings, colorClass: 'bg-blue-500', link: '/staff/bookings', state: { statusFilter: 'in_progress' } },
+                { label: 'Completed', value: stats.completedBookings, colorClass: 'bg-success', link: '/staff/bookings', state: { statusFilter: 'completed' } },
+                { label: 'Customers', value: stats.totalCustomers, colorClass: 'bg-purple-500', link: '/staff/customers', state: undefined },
+              ].map((stat) => (
                 <motion.div key={stat.label} variants={fadeInUp}>
-                  {stat.link ? (
-                    <Link to="/staff/bookings" className="group block">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className={cn("w-1.5 h-1.5 rounded-full", stat.colorClass)} />
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            {stat.label}
-                          </span>
-                        </div>
-                        <div className="text-[32px] sm:text-[40px] font-bold text-foreground leading-none tracking-tight group-hover:text-primary transition-colors">
-                          {stat.value}
-                        </div>
-                      </div>
-                    </Link>
-                  ) : (
+                  <Link to={stat.link} state={stat.state} className="group block">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <div className={cn("w-1.5 h-1.5 rounded-full", stat.colorClass)} />
@@ -264,11 +250,11 @@ export default function StaffDashboard() {
                           {stat.label}
                         </span>
                       </div>
-                      <div className="text-[32px] sm:text-[40px] font-bold text-foreground leading-none tracking-tight">
+                      <div className="text-[32px] sm:text-[40px] font-bold text-foreground leading-none tracking-tight group-hover:text-primary transition-colors">
                         {stat.value}
                       </div>
                     </div>
-                  )}
+                  </Link>
                 </motion.div>
               ))}
             </motion.div>
@@ -283,28 +269,29 @@ export default function StaffDashboard() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
           {[
-            { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, iconClass: 'text-muted-foreground' },
-            { label: 'Pending', value: stats.pendingBookings, icon: Clock, iconClass: 'text-warning' },
-            { label: 'Active', value: stats.activeBookings, icon: Activity, iconClass: 'text-blue-500' },
-            { label: 'Customers', value: stats.totalCustomers, icon: Users, iconClass: 'text-success' },
+            { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, iconClass: 'text-muted-foreground', link: '/staff/bookings', state: undefined },
+            { label: 'Pending', value: stats.pendingBookings, icon: Clock, iconClass: 'text-warning', link: '/staff/bookings', state: { statusFilter: 'pending' } },
+            { label: 'Active', value: stats.activeBookings, icon: Activity, iconClass: 'text-blue-500', link: '/staff/bookings', state: { statusFilter: 'in_progress' } },
+            { label: 'Customers', value: stats.totalCustomers, icon: Users, iconClass: 'text-success', link: '/staff/customers', state: undefined },
           ].map((stat) => (
             <motion.div
               key={stat.label}
               variants={fadeInUp}
-              className="group relative overflow-hidden rounded-xl bg-card border border-border p-4 sm:p-5 shadow-lg shadow-foreground/5 hover:border-primary/20 transition-all hover:shadow-xl"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative flex items-center justify-between mb-4">
-                <span className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                  {stat.label}
-                </span>
-                <div className="p-1.5 rounded-lg bg-muted">
-                  <stat.icon className={cn("w-3.5 h-3.5", stat.iconClass)} strokeWidth={1.5} />
+              <Link to={stat.link} state={stat.state} className="group block relative overflow-hidden rounded-xl bg-card border border-border p-4 sm:p-5 shadow-lg shadow-foreground/5 hover:border-primary/20 transition-all hover:shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative flex items-center justify-between mb-4">
+                  <span className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    {stat.label}
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-muted">
+                    <stat.icon className={cn("w-3.5 h-3.5", stat.iconClass)} strokeWidth={1.5} />
+                  </div>
                 </div>
-              </div>
-              <div className="relative text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-                {stat.value}
-              </div>
+                <div className="relative text-2xl sm:text-3xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
+                  {stat.value}
+                </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>

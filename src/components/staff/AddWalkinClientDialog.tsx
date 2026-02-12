@@ -82,7 +82,7 @@ export function AddWalkinClientDialog({ open, onOpenChange, onSuccess }: AddWalk
         throw new Error(result.error || 'Failed to create customer');
       }
 
-      setCustomerId(result.user_id);
+      setCustomerId(result.customer_id);
       setCustomerName(fullName.trim());
       setStep('vehicle');
 
