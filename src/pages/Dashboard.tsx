@@ -180,7 +180,7 @@ const Dashboard = () => {
   };
 
   const getStageLabel = (stage: string) => {
-    const labels: Record<string, string> = {
+    const legacyLabels: Record<string, string> = {
       vehicle_checkin: 'Check-In',
       stripping: 'Stripping',
       surface_prep: 'Surface Prep',
@@ -192,7 +192,7 @@ const Dashboard = () => {
       qc2: 'QC #2',
       delivery_prep: 'Delivery Prep'
     };
-    return labels[stage] || stage;
+    return legacyLabels[stage] || stage;
   };
 
   const calculateProgress = () => {
