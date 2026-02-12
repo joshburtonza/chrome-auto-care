@@ -36,21 +36,17 @@ const StaffSignup = () => {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from('staff_invitations')
-        .select('*')
-        .eq('token', token)
-        .is('used_at', null)
-        .gt('expires_at', new Date().toISOString())
-        .single();
+        .rpc('validate_staff_invitation', { p_token: token });
 
-      if (fetchError || !data) {
+      if (fetchError || !data || data.length === 0) {
         setError('Invalid or expired invitation link');
         setValidating(false);
         return;
       }
 
-      setInvitation(data);
-      setEmail(data.email);
+      const inv = data[0];
+      setInvitation(inv);
+      setEmail(inv.email);
     } catch (err) {
       setError('Failed to validate invitation');
     } finally {
