@@ -208,7 +208,7 @@ export type Database = {
           created_at: string | null
           id: string
           notes: string | null
-          stage: Database["public"]["Enums"]["stage_type"]
+          stage: string
           stage_name: string | null
           stage_order: number | null
           started_at: string | null
@@ -221,7 +221,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
-          stage: Database["public"]["Enums"]["stage_type"]
+          stage: string
           stage_name?: string | null
           stage_order?: number | null
           started_at?: string | null
@@ -234,7 +234,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
-          stage?: Database["public"]["Enums"]["stage_type"]
+          stage?: string
           stage_name?: string | null
           stage_order?: number | null
           started_at?: string | null
@@ -254,7 +254,7 @@ export type Database = {
           booking_date: string
           booking_time: string | null
           created_at: string | null
-          current_stage: Database["public"]["Enums"]["stage_type"] | null
+          current_stage: string | null
           estimated_completion: string | null
           id: string
           notes: string | null
@@ -275,7 +275,7 @@ export type Database = {
           booking_date: string
           booking_time?: string | null
           created_at?: string | null
-          current_stage?: Database["public"]["Enums"]["stage_type"] | null
+          current_stage?: string | null
           estimated_completion?: string | null
           id?: string
           notes?: string | null
@@ -296,7 +296,7 @@ export type Database = {
           booking_date?: string
           booking_time?: string | null
           created_at?: string | null
-          current_stage?: Database["public"]["Enums"]["stage_type"] | null
+          current_stage?: string | null
           estimated_completion?: string | null
           id?: string
           notes?: string | null
@@ -1601,6 +1601,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_booking_stage: { Args: { p_booking_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -1645,17 +1646,6 @@ export type Database = {
         | "sales"
         | "admin_support"
         | "reception"
-      stage_type:
-        | "vehicle_checkin"
-        | "stripping"
-        | "surface_prep"
-        | "paint_correction"
-        | "ppf_installation"
-        | "reassembly"
-        | "qc1"
-        | "final_detail"
-        | "qc2"
-        | "delivery_prep"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1813,18 +1803,6 @@ export const Constants = {
         "sales",
         "admin_support",
         "reception",
-      ],
-      stage_type: [
-        "vehicle_checkin",
-        "stripping",
-        "surface_prep",
-        "paint_correction",
-        "ppf_installation",
-        "reassembly",
-        "qc1",
-        "final_detail",
-        "qc2",
-        "delivery_prep",
       ],
     },
   },

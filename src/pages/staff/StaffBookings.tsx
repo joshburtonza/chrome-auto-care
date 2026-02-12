@@ -33,7 +33,7 @@ interface BookingService {
 }
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
-type StageType = Database['public']['Enums']['stage_type'];
+
 
 interface Booking {
   id: string;
@@ -66,7 +66,7 @@ interface Booking {
 
 interface BookingStage {
   id: string;
-  stage: StageType;
+  stage: string;
   completed: boolean;
   started_at: string | null;
   completed_at: string | null;
@@ -874,7 +874,7 @@ export default function StaffBookings() {
 
 
   const getStageLabel = (stage: string): string => {
-    const labels: Record<string, string> = {
+    const legacyLabels: Record<string, string> = {
       vehicle_checkin: 'Vehicle Check-In',
       stripping: 'Stripping',
       surface_prep: 'Surface Preparation',
@@ -886,7 +886,7 @@ export default function StaffBookings() {
       qc2: 'Quality Check 2',
       delivery_prep: 'Delivery Preparation',
     };
-    return labels[stage] || stage;
+    return legacyLabels[stage] || stage;
   };
 
   const getPriorityBadge = (priority: string | null) => {

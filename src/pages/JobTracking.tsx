@@ -387,7 +387,7 @@ const JobTracking = () => {
   };
 
   const getStageLabel = (stage: string) => {
-    const labels: Record<string, string> = {
+    const legacyLabels: Record<string, string> = {
       vehicle_checkin: 'Vehicle Check-In & Photography',
       stripping: 'Stripping',
       surface_prep: 'Surface Prep & Inspection',
@@ -399,7 +399,7 @@ const JobTracking = () => {
       qc2: 'Quality Control #2',
       delivery_prep: 'Delivery Prep + Customer Pickup'
     };
-    return labels[stage] || stage;
+    return legacyLabels[stage] || stage;
   };
 
   const getStageStatus = (stage: any) => {
