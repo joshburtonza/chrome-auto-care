@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -6,17 +5,68 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req: Request): Promise<Response> => {
+Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify caller is authenticated and is an admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getUser(token);
+    if (claimsError || !claimsData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authorization" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const callerId = claimsData.user.id;
+
+    // Use service role client for admin check and data operations
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Verify caller is admin
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", callerId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
     const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
     const TWILIO_WHATSAPP_NUMBER = Deno.env.get("TWILIO_WHATSAPP_NUMBER");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP_NUMBER) {
       console.error("Missing Twilio credentials");
@@ -25,16 +75,6 @@ serve(async (req: Request): Promise<Response> => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("Missing Supabase credentials");
-      return new Response(
-        JSON.stringify({ error: "Database not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Get all active inventory items
     const { data: allItems, error: stockError } = await supabase
@@ -56,7 +96,6 @@ serve(async (req: Request): Promise<Response> => {
     );
 
     if (alertItems.length === 0) {
-      console.log("No low stock items found");
       return new Response(
         JSON.stringify({ success: true, message: "No low stock items", alerts_sent: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -78,7 +117,6 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (!managers || managers.length === 0) {
-      console.log("No managers found to notify");
       return new Response(
         JSON.stringify({ success: true, message: "No managers to notify", alerts_sent: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -100,7 +138,6 @@ serve(async (req: Request): Promise<Response> => {
     const managersWithPhones = (profiles || []).filter(p => p.phone);
 
     if (managersWithPhones.length === 0) {
-      console.log("No managers with phone numbers found");
       return new Response(
         JSON.stringify({ success: true, message: "No managers with phone numbers", alerts_sent: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -112,7 +149,7 @@ serve(async (req: Request): Promise<Response> => {
       .map(item => `• ${item.name}: ${item.quantity}/${item.min_stock_level} units`)
       .join("\n");
 
-    const message = `🚨 *Race Technik Low Stock Alert*\n\nThe following items are below minimum stock levels:\n\n${itemsList}\n\nPlease restock soon.`;
+    const message = `🚨 *Low Stock Alert*\n\nThe following items are below minimum stock levels:\n\n${itemsList}\n\nPlease restock soon.`;
 
     console.log(`Sending alerts to ${managersWithPhones.length} managers for ${alertItems.length} low stock items`);
 
@@ -123,8 +160,6 @@ serve(async (req: Request): Promise<Response> => {
     const sendPromises = managersWithPhones.map(async (manager) => {
       const formattedPhone = manager.phone.startsWith("+") ? manager.phone : `+${manager.phone}`;
       const whatsappTo = `whatsapp:${formattedPhone}`;
-
-      console.log(`Sending WhatsApp to ${manager.full_name} at ${whatsappTo}`);
 
       const formData = new URLSearchParams();
       formData.append("To", whatsappTo);
@@ -144,23 +179,20 @@ serve(async (req: Request): Promise<Response> => {
         const result = await twilioResponse.json();
 
         if (!twilioResponse.ok) {
-          console.error(`Failed to send to ${manager.full_name}:`, result);
-          return { success: false, phone: manager.phone, error: result.message };
+          console.error(`Failed to send to manager:`, result);
+          return { success: false, error: result.message };
         }
 
-        console.log(`Successfully sent to ${manager.full_name}:`, result.sid);
-        return { success: true, phone: manager.phone, sid: result.sid };
+        return { success: true, sid: result.sid };
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error(`Error sending to ${manager.full_name}:`, err);
-        return { success: false, phone: manager.phone, error: errorMessage };
+        console.error(`Error sending alert:`, err);
+        return { success: false, error: errorMessage };
       }
     });
 
     const results = await Promise.all(sendPromises);
     const successCount = results.filter(r => r.success).length;
-
-    console.log(`Sent ${successCount}/${results.length} WhatsApp alerts`);
 
     return new Response(
       JSON.stringify({
@@ -168,15 +200,14 @@ serve(async (req: Request): Promise<Response> => {
         alerts_sent: successCount,
         total_managers: results.length,
         low_stock_items: alertItems.length,
-        results
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error in send-inventory-alerts:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An unexpected error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
