@@ -99,12 +99,46 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify caller is authenticated and is staff/admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: caller }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authorization" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Only staff/admin or the system (via trigger) can send push notifications
+    const { data: callerRoles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", caller.id);
+    const roles = (callerRoles || []).map((r: any) => r.role);
+    const isStaffOrAdmin = roles.includes("staff") || roles.includes("admin");
+
     const { user_id, title, body, url, icon, badge, tag }: PushNotificationRequest = await req.json();
 
     if (!user_id || !title || !body) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: user_id, title, body" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Non-staff users can only send notifications to themselves
+    if (!isStaffOrAdmin && user_id !== caller.id) {
+      return new Response(
+        JSON.stringify({ error: "You can only send notifications to yourself" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

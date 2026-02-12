@@ -1639,6 +1639,18 @@ export type Database = {
         Returns: undefined
       }
       redeem_promo_code: { Args: { p_code: string }; Returns: Json }
+      validate_staff_invitation: {
+        Args: { p_token: string }
+        Returns: {
+          department_id: string
+          email: string
+          expires_at: string
+          id: string
+          job_title: string
+          staff_role: Database["public"]["Enums"]["staff_role"]
+          used_at: string
+        }[]
+      }
     }
     Enums: {
       app_role: "client" | "staff" | "admin"
