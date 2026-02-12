@@ -22,32 +22,112 @@ interface YocoWebhookPayload {
   };
 }
 
+// Validate webhook payload structure
+function validateWebhookPayload(data: unknown): data is YocoWebhookPayload {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  if (typeof d.type !== 'string' || !d.type) return false;
+  if (!d.payload || typeof d.payload !== 'object') return false;
+  const p = d.payload as Record<string, unknown>;
+  if (typeof p.id !== 'string' || !p.id) return false;
+  if (typeof p.status !== 'string') return false;
+  return true;
+}
+
+// Verify payment with Yoco API to prevent forged webhooks
+async function verifyPaymentWithYoco(paymentId: string, secretKey: string): Promise<{ verified: boolean; status?: string; amount?: number }> {
+  try {
+    const response = await fetch(`https://payments.yoco.com/api/checkouts/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${secretKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Yoco verification failed:', response.status);
+      return { verified: false };
+    }
+
+    const data = await response.json();
+    return {
+      verified: true,
+      status: data.status,
+      amount: data.amount,
+    };
+  } catch (error) {
+    console.error('Error verifying payment with Yoco:', error);
+    return { verified: false };
+  }
+}
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse webhook payload
-    const webhookData: YocoWebhookPayload = await req.json();
+    // Parse and validate webhook payload
+    const rawData = await req.json();
+    if (!validateWebhookPayload(rawData)) {
+      console.error('Invalid webhook payload structure');
+      return new Response(
+        JSON.stringify({ error: 'Invalid payload' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const webhookData = rawData as YocoWebhookPayload;
     console.log('Received Yoco webhook:', webhookData.type, webhookData.payload.id);
 
-    // Handle payment notification events
+    // Handle payment success events
     if (webhookData.type === 'payment.succeeded' || webhookData.type === 'checkout.succeeded') {
       const { payload } = webhookData;
+
+      // Verify payment with Yoco API to prevent forged webhooks
+      const yocoSecretKey = Deno.env.get('YOCO_SECRET_KEY');
+      const yocoTestSecretKey = Deno.env.get('YOCO_TEST_SECRET_KEY');
+
+      let verification = { verified: false, status: undefined as string | undefined, amount: undefined as number | undefined };
+      
+      // Try live key first, then test key
+      if (yocoSecretKey) {
+        verification = await verifyPaymentWithYoco(payload.id, yocoSecretKey);
+      }
+      if (!verification.verified && yocoTestSecretKey) {
+        verification = await verifyPaymentWithYoco(payload.id, yocoTestSecretKey);
+      }
+
+      if (!verification.verified) {
+        console.error('Payment verification failed - possible forged webhook for:', payload.id);
+        return new Response(
+          JSON.stringify({ error: 'Payment verification failed' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify the payment status is actually successful
+      if (verification.status !== 'completed' && verification.status !== 'succeeded') {
+        console.error('Payment not actually completed. Status:', verification.status);
+        return new Response(
+          JSON.stringify({ error: 'Payment not completed' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('Payment verified with Yoco API. Status:', verification.status);
+
       const bookingId = payload.metadata?.bookingId;
       const orderId = payload.metadata?.orderId;
       const orderType = payload.metadata?.orderType;
 
       // Handle merchandise orders
       if (orderType === 'merchandise' && orderId) {
-        console.log('Processing successful payment for order:', orderId);
+        console.log('Processing verified payment for order:', orderId);
 
         const { data: order, error: updateError } = await supabase
           .from('orders')
@@ -69,7 +149,6 @@ serve(async (req) => {
           );
         }
 
-        // Notify customer
         await supabase.from('notifications').insert({
           recipient_uid: order.user_id,
           type: 'order_confirmed',
@@ -77,8 +156,6 @@ serve(async (req) => {
           message: `Your order has been confirmed! Payment received: R${(payload.amount! / 100).toFixed(2)}`,
           priority: 'high',
         });
-
-        console.log('Order updated successfully:', orderId);
 
         return new Response(
           JSON.stringify({ success: true, orderId }),
@@ -95,16 +172,15 @@ serve(async (req) => {
         );
       }
 
-      console.log('Processing successful payment for booking:', bookingId);
+      console.log('Processing verified payment for booking:', bookingId);
 
-      // Update booking with payment success
       const { data: booking, error: updateError } = await supabase
         .from('bookings')
         .update({
           payment_status: 'paid',
           yoco_payment_id: payload.id,
           payment_date: payload.createdDate || new Date().toISOString(),
-          status: 'confirmed', // Automatically confirm booking on payment
+          status: 'confirmed',
         })
         .eq('id', bookingId)
         .select('*, vehicles(make, model)')
@@ -118,9 +194,6 @@ serve(async (req) => {
         );
       }
 
-      console.log('Booking updated successfully:', bookingId);
-
-      // Create notification for customer
       const vehicleInfo = `${booking.vehicles?.make || ''} ${booking.vehicles?.model || ''}`.trim();
       await supabase.from('notifications').insert({
         recipient_uid: booking.user_id,
@@ -132,7 +205,6 @@ serve(async (req) => {
         priority: 'high',
       });
 
-      // Create notification for staff
       const { data: staffUsers } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -168,12 +240,9 @@ serve(async (req) => {
 
         await supabase
           .from('bookings')
-          .update({
-            payment_status: 'failed',
-          })
+          .update({ payment_status: 'failed' })
           .eq('id', bookingId);
 
-        // Notify customer
         const { data: booking } = await supabase
           .from('bookings')
           .select('user_id, vehicle_id')
@@ -200,7 +269,6 @@ serve(async (req) => {
       );
     }
 
-    // Acknowledge other webhook types
     console.log('Webhook type not handled:', webhookData.type);
     return new Response(
       JSON.stringify({ success: true, message: 'Webhook received' }),
@@ -210,11 +278,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in yoco-webhook:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

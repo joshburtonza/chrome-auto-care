@@ -252,7 +252,7 @@ const Services = () => {
     }
   };
 
-  const isTestEnvironment = import.meta.env.DEV || window.location.hostname === 'localhost';
+  
 
   const toggleServiceSelection = (service: Service) => {
     setSelectedServices(prev => {
@@ -311,8 +311,8 @@ const Services = () => {
           vehicle_id: selectedVehicle,
           booking_date: selectedDate,
           booking_time: selectedTime,
-          status: isTestEnvironment ? 'confirmed' : 'pending',
-          payment_status: isTestEnvironment ? 'paid' : 'pending',
+          status: 'pending',
+          payment_status: 'pending',
           payment_amount: totalAmount,
         })
         .select()
@@ -332,12 +332,6 @@ const Services = () => {
 
       if (servicesError) throw servicesError;
 
-      if (isTestEnvironment) {
-        toast.success('Booking confirmed! (Test mode - payment skipped)');
-        resetBookingModal();
-        navigate('/bookings');
-        return;
-      }
 
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
         'create-yoco-checkout',
@@ -657,7 +651,7 @@ const Services = () => {
                     onClick={handleBooking}
                     disabled={!selectedVehicle || processingPayment}
                   >
-                    {processingPayment ? 'Processing...' : isTestEnvironment ? 'Confirm Booking' : 'Proceed to Payment'}
+                    {processingPayment ? 'Processing...' : 'Proceed to Payment'}
                   </ChromeButton>
                 </div>
               </>

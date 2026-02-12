@@ -6,11 +6,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CheckoutRequest {
-  orderId: string;
-  amount: number;
-  currency?: string;
-  testMode?: boolean;
+// Input validation
+function validateStoreCheckoutRequest(data: unknown): { valid: boolean; error?: string; parsed?: { orderId: string; amount: number; currency: string; testMode: boolean } } {
+  if (!data || typeof data !== 'object') return { valid: false, error: 'Invalid request body' };
+  const d = data as Record<string, unknown>;
+  
+  if (typeof d.orderId !== 'string' || !d.orderId || d.orderId.length > 100) {
+    return { valid: false, error: 'Invalid orderId' };
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(d.orderId)) {
+    return { valid: false, error: 'orderId must be a valid UUID' };
+  }
+  if (typeof d.amount !== 'number' || d.amount <= 0 || d.amount > 1000000 || !isFinite(d.amount)) {
+    return { valid: false, error: 'Invalid amount' };
+  }
+  const currency = typeof d.currency === 'string' ? d.currency : 'ZAR';
+  if (currency !== 'ZAR') {
+    return { valid: false, error: 'Only ZAR currency supported' };
+  }
+  const testMode = typeof d.testMode === 'boolean' ? d.testMode : false;
+
+  return { valid: true, parsed: { orderId: d.orderId, amount: d.amount, currency, testMode } };
 }
 
 serve(async (req) => {
@@ -19,7 +35,17 @@ serve(async (req) => {
   }
 
   try {
-    const { orderId, amount, currency = 'ZAR', testMode = false }: CheckoutRequest = await req.json();
+    const rawBody = await req.json();
+    const validation = validateStoreCheckoutRequest(rawBody);
+    
+    if (!validation.valid || !validation.parsed) {
+      return new Response(
+        JSON.stringify({ error: validation.error || 'Invalid request' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { orderId, amount, currency, testMode } = validation.parsed;
     
     const yocoSecretKey = testMode 
       ? Deno.env.get('YOCO_TEST_SECRET_KEY')
@@ -39,7 +65,6 @@ serve(async (req) => {
 
     console.log(`Creating Yoco checkout in ${testMode ? 'TEST' : 'LIVE'} mode for order:`, orderId);
 
-    // Verify order exists
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
@@ -54,7 +79,6 @@ serve(async (req) => {
       );
     }
 
-    // Create checkout session with Yoco
     const yocoResponse = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
       headers: {
@@ -62,7 +86,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(amount * 100),
         currency: currency,
         cancelUrl: `${req.headers.get('origin')}/store`,
         successUrl: `${req.headers.get('origin')}/store?payment=success`,
@@ -78,7 +102,7 @@ serve(async (req) => {
       const errorData = await yocoResponse.text();
       console.error('Yoco API error:', errorData);
       return new Response(
-        JSON.stringify({ error: 'Failed to create checkout session', details: errorData }),
+        JSON.stringify({ error: 'Failed to create checkout session' }),
         { status: yocoResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -86,7 +110,6 @@ serve(async (req) => {
     const checkoutData = await yocoResponse.json();
     console.log('Yoco checkout created:', checkoutData.id);
 
-    // Update order with checkout ID
     const { error: updateError } = await supabase
       .from('orders')
       .update({
@@ -104,19 +127,13 @@ serve(async (req) => {
         checkoutId: checkoutData.id,
         redirectUrl: checkoutData.redirectUrl,
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in create-store-checkout:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
