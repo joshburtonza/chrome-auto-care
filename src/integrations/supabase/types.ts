@@ -75,7 +75,7 @@ export type Database = {
         Row: {
           action: string
           booking_id: string
-          changed_by: string
+          changed_by: string | null
           id: string
           new_values: Json | null
           notes: string | null
@@ -86,7 +86,7 @@ export type Database = {
         Insert: {
           action: string
           booking_id: string
-          changed_by: string
+          changed_by?: string | null
           id?: string
           new_values?: Json | null
           notes?: string | null
@@ -97,7 +97,7 @@ export type Database = {
         Update: {
           action?: string
           booking_id?: string
-          changed_by?: string
+          changed_by?: string | null
           id?: string
           new_values?: Json | null
           notes?: string | null
@@ -856,7 +856,7 @@ export type Database = {
           message: string
           priority: string | null
           read_at: string | null
-          recipient_uid: string
+          recipient_uid: string | null
           sender_uid: string | null
           title: string
           type: string
@@ -870,7 +870,7 @@ export type Database = {
           message: string
           priority?: string | null
           read_at?: string | null
-          recipient_uid: string
+          recipient_uid?: string | null
           sender_uid?: string | null
           title: string
           type: string
@@ -884,7 +884,7 @@ export type Database = {
           message?: string
           priority?: string | null
           read_at?: string | null
-          recipient_uid?: string
+          recipient_uid?: string | null
           sender_uid?: string | null
           title?: string
           type?: string
@@ -1603,6 +1603,29 @@ export type Database = {
     Functions: {
       advance_booking_stage: { Args: { p_booking_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_staff_profile_safe: {
+        Args: { p_user_id: string }
+        Returns: {
+          can_approve_pricing: boolean
+          can_collect_deposits: boolean
+          created_at: string
+          department: string
+          department_id: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          id: string
+          is_primary_contact: boolean
+          job_title: string
+          notes: string
+          phone_number: string
+          responsibilities: string[]
+          skills: string[]
+          staff_role: Database["public"]["Enums"]["staff_role"]
+          start_date: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
