@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react';
 import { StaffNav } from '@/components/staff/StaffNav';
 import { ChromeSurface } from '@/components/chrome/ChromeSurface';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/chrome/StatusBadge';
-import { Eye, Car, Search, Users, Calendar, Package } from 'lucide-react';
+import { Eye, Car, Search, Users, Calendar, Package, UserPlus } from 'lucide-react';
+import { AddWalkinClientDialog } from '@/components/staff/AddWalkinClientDialog';
 
 export default function StaffCustomers() {
+  const { user, userRole } = useAuth();
   const [customers, setCustomers] = useState<any[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -17,6 +20,9 @@ export default function StaffCustomers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalCustomers: 0, totalVehicles: 0, activeBookings: 0 });
+  const [walkinOpen, setWalkinOpen] = useState(false);
+
+  const canAddWalkin = userRole === 'admin' || user?.email === 'farhaan.surtie@gmail.com';
 
   useEffect(() => {
     fetchCustomers();
@@ -189,7 +195,16 @@ export default function StaffCustomers() {
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-7xl">
-        <h1 className="chrome-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 sm:mb-6 md:mb-8">CUSTOMER MANAGEMENT</h1>
+        <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
+          <h1 className="chrome-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl">CUSTOMER MANAGEMENT</h1>
+          {canAddWalkin && (
+            <Button onClick={() => setWalkinOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Walk-In Client</span>
+              <span className="sm:hidden">Walk-In</span>
+            </Button>
+          )}
+        </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
@@ -376,6 +391,14 @@ export default function StaffCustomers() {
             )}
           </DialogContent>
         </Dialog>
+        {/* Walk-In Client Dialog */}
+        {canAddWalkin && (
+          <AddWalkinClientDialog
+            open={walkinOpen}
+            onOpenChange={setWalkinOpen}
+            onSuccess={fetchCustomers}
+          />
+        )}
       </div>
     </div>
   );

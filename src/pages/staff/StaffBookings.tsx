@@ -11,10 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText, Pencil, Send, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Play, Check, Calendar, Upload, Clock, AlertTriangle, Plus, X, Wrench, FileText, Pencil, Send, CheckCircle, XCircle, Loader2, CalendarPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { generateBookingInvoice } from '@/lib/generateInvoice';
+import { CreateBookingDialog } from '@/components/staff/CreateBookingDialog';
 import type { Database } from '@/integrations/supabase/types';
 
 interface Service {
@@ -103,9 +104,11 @@ export default function StaffBookings() {
   const [editingTimestamp, setEditingTimestamp] = useState<string | null>(null);
   const [editStartedAt, setEditStartedAt] = useState<string>('');
   const [editStartedAtTime, setEditStartedAtTime] = useState<string>('');
+  const [createBookingOpen, setCreateBookingOpen] = useState(false);
 
   const isAdmin = userRole === 'admin';
   const { user } = useAuth();
+  const canCreateBooking = isAdmin || user?.email === 'farhaan.surtie@gmail.com';
 
   useEffect(() => {
     fetchBookings();
@@ -942,7 +945,16 @@ export default function StaffBookings() {
     <div className="min-h-screen bg-background staff-theme">
       <StaffNav />
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Bookings Management</h1>
+        <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">Bookings Management</h1>
+          {canCreateBooking && (
+            <Button onClick={() => setCreateBookingOpen(true)} className="gap-2">
+              <CalendarPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Booking</span>
+              <span className="sm:hidden">New</span>
+            </Button>
+          )}
+        </div>
 
         {/* Admin: Pending Add-on Requests Alert */}
         {isAdmin && pendingRequests.length > 0 && (
@@ -1529,6 +1541,14 @@ export default function StaffBookings() {
             )}
           </DialogContent>
         </Dialog>
+        {/* Create Booking Dialog */}
+        {canCreateBooking && (
+          <CreateBookingDialog
+            open={createBookingOpen}
+            onOpenChange={setCreateBookingOpen}
+            onSuccess={fetchBookings}
+          />
+        )}
       </div>
     </div>
   );
