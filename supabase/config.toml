@@ -27,3 +27,6 @@ verify_jwt = false
 [functions.invite-staff-member]
 verify_jwt = true
 
+[functions.create-walkin-customer]
+verify_jwt = false
+
