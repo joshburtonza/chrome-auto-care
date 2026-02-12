@@ -11,18 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
-
-    if (!userId || typeof userId !== 'string') {
-      console.error('Invalid userId provided');
-      return new Response(
-        JSON.stringify({ error: 'User ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Removing staff role for user:', userId);
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -34,6 +22,56 @@ Deno.serve(async (req) => {
       }
     );
 
+    // Verify caller is an admin
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authorization' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', caller.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: 'Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { userId } = await req.json();
+
+    if (!userId || typeof userId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'User ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid user ID format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if user has admin role - don't allow removing admin's staff role
     const { data: adminRole } = await supabaseAdmin
       .from('user_roles')
@@ -43,7 +81,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (adminRole) {
-      console.log('Cannot remove staff role from admin user');
       return new Response(
         JSON.stringify({ error: 'Cannot remove staff role from an admin user' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -70,8 +107,6 @@ Deno.serve(async (req) => {
       .from('staff_profiles')
       .delete()
       .eq('user_id', userId);
-
-    console.log('Successfully removed staff role for user:', userId);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Staff member removed successfully' }),
