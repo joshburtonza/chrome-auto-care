@@ -80,6 +80,7 @@ export default function StaffBookings() {
   const { userRole } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [bookingStages, setBookingStages] = useState<BookingStage[]>([]);
   const [stageImages, setStageImages] = useState<Record<string, any[]>>({});
   const [stageNotes, setStageNotes] = useState<Record<string, string>>({});
@@ -221,13 +222,18 @@ export default function StaffBookings() {
     };
   }, [selectedBooking]);
 
-  // Handle booking selection from dashboard
+  // Handle booking selection and status filter from dashboard
   useEffect(() => {
+    if (location.state?.statusFilter) {
+      setStatusFilter(location.state.statusFilter);
+    }
     if (location.state?.selectedBookingId && bookings.length > 0) {
       const booking = bookings.find(b => b.id === location.state.selectedBookingId);
       if (booking) {
         setSelectedBooking(booking);
         fetchBookingStages(booking.id);
+        fetchBookingServices(booking.id);
+        fetchAddonRequests(booking.id);
       }
     }
   }, [location.state, bookings]);
@@ -1021,8 +1027,39 @@ export default function StaffBookings() {
           </div>
         )}
 
+        {/* Status Filter Tabs */}
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          {[
+            { label: 'All', value: null, count: bookings.length },
+            { label: 'Pending', value: 'pending', count: bookings.filter(b => b.status === 'pending').length },
+            { label: 'Confirmed', value: 'confirmed', count: bookings.filter(b => b.status === 'confirmed').length },
+            { label: 'In Progress', value: 'in_progress', count: bookings.filter(b => b.status === 'in_progress').length },
+            { label: 'Completed', value: 'completed', count: bookings.filter(b => b.status === 'completed').length },
+            { label: 'Cancelled', value: 'cancelled', count: bookings.filter(b => b.status === 'cancelled').length },
+          ].filter(tab => tab.value === null || tab.count > 0).map((tab) => (
+            <button
+              key={tab.label}
+              onClick={() => setStatusFilter(tab.value)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap ${
+                statusFilter === tab.value
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted hover:bg-muted/80 border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab.label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                statusFilter === tab.value
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-background text-muted-foreground'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
         <div className="grid gap-3 sm:gap-4">
-          {bookings.map((booking) => (
+          {bookings.filter(b => !statusFilter || b.status === statusFilter).map((booking) => (
             <ChromeSurface key={booking.id} className="p-3 sm:p-4 md:p-6 relative overflow-hidden">
               {/* Service color indicator bar */}
               <div 
