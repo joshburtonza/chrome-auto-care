@@ -90,6 +90,13 @@ serve(async (req) => {
       );
     }
 
+    // Determine origin for redirect URLs - fallback to published URL if origin header missing
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://chrome-auto-care.lovable.app';
+
+    // Convert amount to cents (smallest currency unit) for Yoco API
+    const amountInCents = Math.round(amount * 100);
+    console.log(`Amount: R${amount} -> ${amountInCents} cents, origin: ${origin}`);
+
     const yocoResponse = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
       headers: {
@@ -97,11 +104,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: Math.round(amount * 100),
+        amount: amountInCents,
         currency: currency,
-        cancelUrl: `${req.headers.get('origin')}/bookings`,
-        successUrl: `${req.headers.get('origin')}/bookings?payment=success`,
-        failureUrl: `${req.headers.get('origin')}/bookings?payment=failed`,
+        cancelUrl: `${origin}/bookings`,
+        successUrl: `${origin}/bookings?payment=success`,
+        failureUrl: `${origin}/bookings?payment=failed`,
         metadata: {
           bookingId: bookingId,
           serviceName: booking.services?.title || 'Service',
