@@ -7,18 +7,18 @@ const corsHeaders = {
 };
 
 // Input validation
-function validateCheckoutRequest(data: unknown): { valid: boolean; error?: string; parsed?: { bookingId: string; amount: number; currency: string; customerEmail?: string; metadata?: Record<string, string>; testMode: boolean } } {
+function validateCheckoutRequest(data: unknown): { valid: boolean; error?: string; parsed?: { bookingId: string; amount?: number; currency: string; customerEmail?: string; metadata?: Record<string, string>; testMode: boolean } } {
   if (!data || typeof data !== 'object') return { valid: false, error: 'Invalid request body' };
   const d = data as Record<string, unknown>;
   
   if (typeof d.bookingId !== 'string' || !d.bookingId || d.bookingId.length > 100) {
     return { valid: false, error: 'Invalid bookingId' };
   }
-  // Basic UUID format check
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(d.bookingId)) {
     return { valid: false, error: 'bookingId must be a valid UUID' };
   }
-  if (typeof d.amount !== 'number' || d.amount <= 0 || d.amount > 1000000 || !isFinite(d.amount)) {
+  // Amount is now optional - will be read from booking if not provided
+  if (d.amount !== undefined && (typeof d.amount !== 'number' || d.amount <= 0 || d.amount > 1000000 || !isFinite(d.amount))) {
     return { valid: false, error: 'Invalid amount' };
   }
   const currency = typeof d.currency === 'string' ? d.currency : 'ZAR';
@@ -31,7 +31,7 @@ function validateCheckoutRequest(data: unknown): { valid: boolean; error?: strin
     valid: true,
     parsed: {
       bookingId: d.bookingId,
-      amount: d.amount,
+      amount: typeof d.amount === 'number' ? d.amount : undefined,
       currency,
       customerEmail: typeof d.customerEmail === 'string' ? d.customerEmail : undefined,
       metadata: d.metadata && typeof d.metadata === 'object' ? d.metadata as Record<string, string> : undefined,
@@ -56,7 +56,7 @@ serve(async (req) => {
       );
     }
 
-    const { bookingId, amount, currency, metadata, testMode } = validation.parsed;
+    const { bookingId, amount: requestAmount, currency, metadata, testMode } = validation.parsed;
     
     const yocoSecretKey = testMode 
       ? Deno.env.get('YOCO_TEST_SECRET_KEY')
@@ -78,7 +78,7 @@ serve(async (req) => {
 
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .select(`*, services(title, category), vehicles(make, model, year)`)
+      .select(`*, services(title, category, price_from), vehicles(make, model, year)`)
       .eq('id', bookingId)
       .single();
 
@@ -90,10 +90,16 @@ serve(async (req) => {
       );
     }
 
-    // Determine origin for redirect URLs - fallback to published URL if origin header missing
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://chrome-auto-care.lovable.app';
+    // Use request amount if provided, otherwise read from booking's payment_amount, then fall back to service price
+    const amount = requestAmount ?? booking.payment_amount ?? booking.services?.price_from;
+    if (!amount || amount <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'No payment amount found on booking or request' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Convert amount to cents (smallest currency unit) for Yoco API
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://chrome-auto-care.lovable.app';
     const amountInCents = Math.round(amount * 100);
     console.log(`Amount: R${amount} -> ${amountInCents} cents, origin: ${origin}`);
 
