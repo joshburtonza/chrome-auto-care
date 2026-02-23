@@ -1,6 +1,10 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const COMPANY_NAME = 'RACE TECHNIK';
+const COMPANY_TAGLINE = 'Premium Motorsport Vehicle Protection';
+const COMPANY_SUPPORT_EMAIL = 'support@racetechnik.co.za';
+
 interface InvoiceBooking {
   id: string;
   booking_date: string;
@@ -47,11 +51,11 @@ export const generateBookingInvoice = (
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
-  doc.text('RACE TECHNIK', 20, 25);
-  
+  doc.text(COMPANY_NAME, 20, 25);
+
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('Premium Motorsport Vehicle Protection', 20, 35);
+  doc.text(COMPANY_TAGLINE, 20, 35);
   
   // Invoice title
   doc.setTextColor(...primaryColor);
@@ -229,8 +233,8 @@ export const generateBookingInvoice = (
   doc.setTextColor(...mutedColor);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Thank you for choosing Race Technik for your vehicle protection needs.', pageWidth / 2, footerY, { align: 'center' });
-  doc.text('For queries, please contact us at support@racetechnik.co.za', pageWidth / 2, footerY + 5, { align: 'center' });
+  doc.text(`Thank you for choosing ${COMPANY_NAME} for your vehicle protection needs.`, pageWidth / 2, footerY, { align: 'center' });
+  doc.text(`For queries, please contact us at ${COMPANY_SUPPORT_EMAIL}`, pageWidth / 2, footerY + 5, { align: 'center' });
   
   // Save the PDF
   const fileName = `RaceTechnik_Invoice_${booking.id.slice(0, 8)}.pdf`;

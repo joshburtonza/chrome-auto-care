@@ -61,7 +61,6 @@ export const usePushNotifications = () => {
     
     // iOS requires PWA to be installed for push to work
     if (isIOS() && !isInstalledPWA()) {
-      console.log('[Push] iOS detected but not installed as PWA');
       return false;
     }
     
@@ -74,7 +73,6 @@ export const usePushNotifications = () => {
       // First check if there's an existing service worker
       const existingReg = await navigator.serviceWorker.getRegistration();
       if (existingReg) {
-        console.log('[Push] Using existing service worker');
         return existingReg;
       }
       
@@ -83,7 +81,6 @@ export const usePushNotifications = () => {
         scope: '/'
       });
       
-      console.log('[Push] Service worker registered:', registration);
       return registration;
     } catch (error) {
       console.error('[Push] Service worker registration failed:', error);

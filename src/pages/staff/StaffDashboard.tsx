@@ -43,7 +43,6 @@ export default function StaffDashboard() {
           table: 'bookings'
         },
         () => {
-          console.log('Bookings changed, refreshing dashboard...');
           fetchDashboardData();
         }
       )
@@ -60,7 +59,6 @@ export default function StaffDashboard() {
           table: 'booking_stages'
         },
         () => {
-          console.log('Booking stages changed, refreshing dashboard...');
           fetchDashboardData();
         }
       )
@@ -77,7 +75,6 @@ export default function StaffDashboard() {
           table: 'profiles'
         },
         () => {
-          console.log('Profiles changed, refreshing dashboard...');
           fetchDashboardData();
         }
       )
@@ -94,7 +91,6 @@ export default function StaffDashboard() {
           table: 'vehicles'
         },
         () => {
-          console.log('Vehicles changed, refreshing dashboard...');
           fetchDashboardData();
         }
       )

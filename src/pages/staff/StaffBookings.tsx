@@ -108,8 +108,9 @@ export default function StaffBookings() {
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
 
   const isAdmin = userRole === 'admin';
+  const isStaff = userRole === 'staff';
   const { user } = useAuth();
-  const canCreateBooking = isAdmin || user?.email === 'farhaan.surtie@gmail.com';
+  const canCreateBooking = isAdmin || isStaff;
 
   useEffect(() => {
     fetchBookings();
@@ -129,7 +130,6 @@ export default function StaffBookings() {
           table: 'bookings'
         },
         () => {
-          console.log('Bookings changed, refreshing list...');
           fetchBookings();
         }
       )
@@ -146,7 +146,6 @@ export default function StaffBookings() {
           table: 'profiles'
         },
         () => {
-          console.log('Profiles changed, refreshing bookings...');
           fetchBookings();
         }
       )
@@ -163,7 +162,6 @@ export default function StaffBookings() {
           table: 'addon_requests'
         },
         () => {
-          console.log('Addon requests changed, refreshing...');
           if (isAdmin) fetchPendingRequests();
           if (selectedBooking) fetchAddonRequests(selectedBooking.id);
         }
@@ -193,7 +191,6 @@ export default function StaffBookings() {
           filter: `booking_id=eq.${selectedBooking.id}`
         },
         () => {
-          console.log('Booking stages changed, refreshing...');
           fetchBookingStages(selectedBooking.id);
         }
       )
@@ -210,7 +207,6 @@ export default function StaffBookings() {
           table: 'booking_stage_images'
         },
         () => {
-          console.log('Stage images changed, refreshing...');
           fetchBookingStages(selectedBooking.id);
         }
       )

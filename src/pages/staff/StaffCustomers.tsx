@@ -38,7 +38,6 @@ export default function StaffCustomers() {
           table: 'profiles'
         },
         () => {
-          console.log('Profiles changed, refreshing customers...');
           fetchCustomers();
         }
       )
@@ -55,7 +54,6 @@ export default function StaffCustomers() {
           table: 'vehicles'
         },
         () => {
-          console.log('Vehicles changed, refreshing customers...');
           fetchCustomers();
         }
       )
@@ -72,7 +70,6 @@ export default function StaffCustomers() {
           table: 'bookings'
         },
         () => {
-          console.log('Bookings changed, refreshing customers...');
           fetchCustomers();
         }
       )

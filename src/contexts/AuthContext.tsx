@@ -56,11 +56,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Fetch user role if user is logged in
         if (currentSession?.user) {
-          setTimeout(async () => {
-            const role = await fetchUserRole(currentSession.user.id);
-            setUserRole(role);
-            setLoading(false);
-          }, 0);
+          const role = await fetchUserRole(currentSession.user.id);
+          setUserRole(role);
+          setLoading(false);
         } else {
           setUserRole(null);
           setLoading(false);

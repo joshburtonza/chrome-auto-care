@@ -162,7 +162,7 @@ const Services = () => {
     return availability;
   }, [selectedServices, serviceBookings]);
 
-  const availability = generateAvailability();
+  const availability = useMemo(() => generateAvailability(), [generateAvailability]);
 
   useEffect(() => {
     loadServices();
@@ -270,7 +270,7 @@ const Services = () => {
   };
 
   const getTotalPrice = () => {
-    return selectedServices.reduce((sum, s) => sum + s.price_from, 0);
+    return selectedServices.reduce((sum, s) => sum + (s.price_from || 0), 0);
   };
 
   const openBookingModal = () => {
