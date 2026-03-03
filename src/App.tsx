@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import BillingGate from './components/BillingGate';
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
 import Index from "./pages/Index";
@@ -50,6 +51,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <BillingGate slug="race_technik">
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
@@ -288,6 +290,7 @@ const App = () => (
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
+  </BillingGate>
 );
 
 export default App;
