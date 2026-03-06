@@ -1,16 +1,69 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, UserPlus, Car } from 'lucide-react';
+import { Loader2, UserPlus, Car, ChevronsUpDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { VEHICLE_MAKES, getModelsForMake, VEHICLE_YEARS, VEHICLE_COLOURS } from '@/data/vehicleData';
 
 interface AddWalkinClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+}
+
+
+function WalkinCombobox({ options, value, onSelect, placeholder, searchPlaceholder }: {
+  options: string[];
+  value: string;
+  onSelect: (value: string) => void;
+  placeholder: string;
+  searchPlaceholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filtered = search
+    ? options.filter(opt => opt.toLowerCase().includes(search.toLowerCase())).slice(0, 50)
+    : options.slice(0, 50);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal">
+          {value || <span className="text-muted-foreground">{placeholder}</span>}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput placeholder={searchPlaceholder} value={search} onValueChange={setSearch} />
+          <CommandList>
+            <CommandEmpty>
+              {search ? (
+                <button className="w-full px-2 py-1.5 text-sm text-left hover:bg-accent rounded cursor-pointer" onClick={() => { onSelect(search); setSearch(''); setOpen(false); }}>
+                  Use "{search}"
+                </button>
+              ) : 'No results found.'}
+            </CommandEmpty>
+            <CommandGroup>
+              {filtered.map((option) => (
+                <CommandItem key={option} value={option} onSelect={() => { onSelect(option); setSearch(''); setOpen(false); }}>
+                  <Check className={cn("mr-2 h-4 w-4", value === option ? "opacity-100" : "opacity-0")} />
+                  {option}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function AddWalkinClientDialog({ open, onOpenChange, onSuccess }: AddWalkinClientDialogProps) {
@@ -184,25 +237,52 @@ export function AddWalkinClientDialog({ open, onOpenChange, onSuccess }: AddWalk
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="v-make">Make *</Label>
-                <Input id="v-make" value={vehicleMake} onChange={(e) => setVehicleMake(e.target.value)} placeholder="BMW" />
-              </div>
-              <div>
-                <Label htmlFor="v-model">Model *</Label>
-                <Input id="v-model" value={vehicleModel} onChange={(e) => setVehicleModel(e.target.value)} placeholder="M3" />
-              </div>
+            <div>
+              <Label>Year *</Label>
+              <WalkinCombobox
+                options={VEHICLE_YEARS}
+                value={vehicleYear}
+                onSelect={setVehicleYear}
+                placeholder="Select year"
+                searchPlaceholder="Search year..."
+              />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="v-year">Year *</Label>
-                <Input id="v-year" value={vehicleYear} onChange={(e) => setVehicleYear(e.target.value)} placeholder="2024" />
-              </div>
-              <div>
-                <Label htmlFor="v-color">Color</Label>
-                <Input id="v-color" value={vehicleColor} onChange={(e) => setVehicleColor(e.target.value)} placeholder="Black" />
-              </div>
+            <div>
+              <Label>Make *</Label>
+              <WalkinCombobox
+                options={VEHICLE_MAKES}
+                value={vehicleMake}
+                onSelect={(val) => { setVehicleMake(val); setVehicleModel(''); }}
+                placeholder="Select make"
+                searchPlaceholder="Search make..."
+              />
+            </div>
+            <div>
+              <Label>Model *</Label>
+              {vehicleMake ? (
+                <WalkinCombobox
+                  options={getModelsForMake(vehicleMake)}
+                  value={vehicleModel}
+                  onSelect={setVehicleModel}
+                  placeholder="Select model"
+                  searchPlaceholder="Search model..."
+                />
+              ) : (
+                <Button variant="outline" className="w-full justify-between font-normal text-muted-foreground" disabled type="button">
+                  Select make first
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              )}
+            </div>
+            <div>
+              <Label>Color</Label>
+              <WalkinCombobox
+                options={VEHICLE_COLOURS}
+                value={vehicleColor}
+                onSelect={setVehicleColor}
+                placeholder="Select color"
+                searchPlaceholder="Search color..."
+              />
             </div>
             <div>
               <Label htmlFor="v-vin">VIN (optional)</Label>

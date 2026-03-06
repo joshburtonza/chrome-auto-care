@@ -1,12 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { X, Image as ImageIcon, Trash2, ChevronsUpDown, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { VEHICLE_MAKES, getModelsForMake, VEHICLE_YEARS, VEHICLE_COLOURS } from '@/data/vehicleData';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +39,86 @@ interface EditVehicleDialogProps {
   onVehicleUpdated: () => void;
 }
 
+interface ComboboxProps {
+  options: string[];
+  value: string;
+  onSelect: (value: string) => void;
+  placeholder: string;
+  searchPlaceholder: string;
+  emptyText?: string;
+  allowCustom?: boolean;
+}
+
+const Combobox = ({ options, value, onSelect, placeholder, searchPlaceholder, emptyText = 'No results found.', allowCustom = true }: ComboboxProps) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filteredOptions = useMemo(() => {
+    if (!search) return options.slice(0, 50);
+    const lower = search.toLowerCase();
+    return options.filter(opt => opt.toLowerCase().includes(lower)).slice(0, 50);
+  }, [options, search]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+        >
+          {value || <span className="text-muted-foreground">{placeholder}</span>}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={searchPlaceholder}
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>
+              {allowCustom && search ? (
+                <button
+                  className="w-full px-2 py-1.5 text-sm text-left hover:bg-accent rounded cursor-pointer"
+                  onClick={() => {
+                    onSelect(search);
+                    setSearch('');
+                    setOpen(false);
+                  }}
+                >
+                  Use "{search}"
+                </button>
+              ) : (
+                emptyText
+              )}
+            </CommandEmpty>
+            <CommandGroup>
+              {filteredOptions.map((option) => (
+                <CommandItem
+                  key={option}
+                  value={option}
+                  onSelect={() => {
+                    onSelect(option);
+                    setSearch('');
+                    setOpen(false);
+                  }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === option ? "opacity-100" : "opacity-0")} />
+                  {option}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdated }: EditVehicleDialogProps) => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -49,6 +133,12 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
   const [loading, setLoading] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Get models based on selected make
+  const availableModels = useMemo(() => {
+    if (!formData.make) return [];
+    return getModelsForMake(formData.make);
+  }, [formData.make]);
 
   useEffect(() => {
     if (vehicle) {
@@ -113,7 +203,7 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!vehicle || !formData.year || !formData.make || !formData.model) {
       toast.error('Please fill in all required fields');
       return;
@@ -183,6 +273,13 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
     }
   };
 
+  const handleMakeChange = (make: string) => {
+    // Reset model when make changes (only if make actually changed)
+    if (make !== formData.make) {
+      setFormData({ ...formData, make, model: '' });
+    }
+  };
+
   if (!vehicle) return null;
 
   return (
@@ -199,9 +296,9 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
               <div className="flex flex-col items-center gap-3">
                 {imagePreview ? (
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
-                    <img 
-                      src={imagePreview} 
-                      alt="Vehicle preview" 
+                    <img
+                      src={imagePreview}
+                      alt="Vehicle preview"
                       className="w-full h-full object-cover"
                     />
                     <button
@@ -229,45 +326,71 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
               </div>
             </div>
 
+            {/* Year Dropdown */}
             <div className="space-y-2">
-              <Label htmlFor="edit-year">Year *</Label>
-              <Input
-                id="edit-year"
-                placeholder="2024"
+              <Label>Year *</Label>
+              <Combobox
+                options={VEHICLE_YEARS}
                 value={formData.year}
-                onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                required
+                onSelect={(val) => setFormData({ ...formData, year: val })}
+                placeholder="Select year"
+                searchPlaceholder="Search year..."
+                allowCustom={true}
               />
             </div>
+
+            {/* Make Dropdown */}
             <div className="space-y-2">
-              <Label htmlFor="edit-make">Make *</Label>
-              <Input
-                id="edit-make"
-                placeholder="Porsche"
+              <Label>Make *</Label>
+              <Combobox
+                options={VEHICLE_MAKES}
                 value={formData.make}
-                onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                required
+                onSelect={handleMakeChange}
+                placeholder="Select make"
+                searchPlaceholder="Search make..."
+                allowCustom={true}
               />
             </div>
+
+            {/* Model Dropdown (dependent on Make) */}
             <div className="space-y-2">
-              <Label htmlFor="edit-model">Model *</Label>
-              <Input
-                id="edit-model"
-                placeholder="911 GT3"
-                value={formData.model}
-                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                required
-              />
+              <Label>Model *</Label>
+              {formData.make ? (
+                <Combobox
+                  options={availableModels}
+                  value={formData.model}
+                  onSelect={(val) => setFormData({ ...formData, model: val })}
+                  placeholder="Select model"
+                  searchPlaceholder="Search model..."
+                  allowCustom={true}
+                />
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full justify-between font-normal text-muted-foreground"
+                  disabled
+                  type="button"
+                >
+                  Select make first
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              )}
             </div>
+
+            {/* Color Dropdown */}
             <div className="space-y-2">
-              <Label htmlFor="edit-color">Color</Label>
-              <Input
-                id="edit-color"
-                placeholder="Black"
+              <Label>Color</Label>
+              <Combobox
+                options={VEHICLE_COLOURS}
                 value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                onSelect={(val) => setFormData({ ...formData, color: val })}
+                placeholder="Select color"
+                searchPlaceholder="Search color..."
+                allowCustom={true}
               />
             </div>
+
+            {/* VIN stays as text input */}
             <div className="space-y-2">
               <Label htmlFor="edit-vin">VIN</Label>
               <Input
@@ -277,11 +400,11 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
                 onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
               />
             </div>
-            
+
             <div className="flex gap-2 justify-between pt-2">
-              <Button 
-                type="button" 
-                variant="destructive" 
+              <Button
+                type="button"
+                variant="destructive"
                 onClick={() => setShowDeleteAlert(true)}
                 disabled={loading}
               >
@@ -306,7 +429,7 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Vehicle</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete your {vehicle.year} {vehicle.make} {vehicle.model}? 
+              Are you sure you want to delete your {vehicle.year} {vehicle.make} {vehicle.model}?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
