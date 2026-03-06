@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, UserPlus, Car, ChevronsUpDown, Check } from 'lucide-react';
+import { Loader2, UserPlus, Car, ChevronsUpDown, Check, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VEHICLE_MAKES, getModelsForMake, VEHICLE_YEARS, VEHICLE_COLOURS } from '@/data/vehicleData';
 
@@ -83,6 +83,8 @@ export function AddWalkinClientDialog({ open, onOpenChange, onSuccess }: AddWalk
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleYear, setVehicleYear] = useState('');
   const [vehicleColor, setVehicleColor] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const scanInputRef = useRef<HTMLInputElement>(null);
   const [vehicleVin, setVehicleVin] = useState('');
 
   const resetForm = () => {
@@ -150,6 +152,49 @@ export function AddWalkinClientDialog({ open, onOpenChange, onSuccess }: AddWalk
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleScanLicenceDisc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (scanInputRef.current) scanInputRef.current.value = '';
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'Error', description: 'Image must be less than 10MB', variant: 'destructive' });
+      return;
+    }
+    setScanning(true);
+    toast({ title: 'Scanning', description: 'Reading licence disc...' });
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke('scan-licence-disc', {
+        body: { image: base64 },
+      });
+      if (error || !data?.success || !data?.data) {
+        toast({ title: 'Scan Failed', description: 'Could not read disc. Fill in manually.', variant: 'destructive' });
+        return;
+      }
+      const result = data.data;
+      let n = 0;
+      if (result.year) { setVehicleYear(result.year); n++; }
+      if (result.make) { setVehicleMake(result.make); n++; }
+      if (result.model) { setVehicleModel(result.model); n++; }
+      if (result.color) { setVehicleColor(result.color); n++; }
+      if (n > 0) {
+        toast({ title: 'Success', description: `Scanned ${n} field${n > 1 ? 's' : ''} from licence disc` });
+      } else {
+        toast({ title: 'No Data', description: 'Could not extract details. Fill in manually.', variant: 'destructive' });
+      }
+    } catch (err) {
+      console.error('Scan error:', err);
+      toast({ title: 'Error', description: 'Failed to scan licence disc', variant: 'destructive' });
+    } finally {
+      setScanning(false);
     }
   };
 
@@ -237,6 +282,38 @@ export function AddWalkinClientDialog({ open, onOpenChange, onSuccess }: AddWalk
           </div>
         ) : (
           <div className="space-y-4">
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-dashed border-2 h-auto py-3"
+                onClick={() => scanInputRef.current?.click()}
+                disabled={scanning}
+              >
+                {scanning ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Scanning licence disc...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="mr-2 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-medium">Scan Licence Disc</div>
+                      <div className="text-xs text-muted-foreground font-normal">Take a photo to auto-fill details</div>
+                    </div>
+                  </>
+                )}
+              </Button>
+              <input
+                ref={scanInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleScanLicenceDisc}
+                className="hidden"
+              />
+            </div>
             <div>
               <Label>Year *</Label>
               <WalkinCombobox

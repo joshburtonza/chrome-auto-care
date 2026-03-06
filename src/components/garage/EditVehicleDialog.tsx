@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { X, Image as ImageIcon, Trash2, ChevronsUpDown, Check } from 'lucide-react';
+import { X, Image as ImageIcon, Trash2, ChevronsUpDown, Check, Camera, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -131,8 +131,10 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scanInputRef = useRef<HTMLInputElement>(null);
 
   // Get models based on selected make
   const availableModels = useMemo(() => {
@@ -175,6 +177,74 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
     setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleScanLicenceDisc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (scanInputRef.current) {
+      scanInputRef.current.value = '';
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setScanning(true);
+    toast.info('Scanning licence disc...');
+
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke('scan-licence-disc', {
+        body: { image: base64 },
+      });
+
+      if (error) {
+        console.error('Scan error:', error);
+        toast.error('Failed to scan licence disc. Please update details manually.');
+        return;
+      }
+
+      if (!data?.success || !data?.data) {
+        toast.error(data?.error || 'Could not read licence disc. Please update details manually.');
+        return;
+      }
+
+      const result = data.data;
+      let fieldsFound = 0;
+      const newFormData = { ...formData };
+
+      if (result.year) { newFormData.year = result.year; fieldsFound++; }
+      if (result.make) { newFormData.make = result.make; fieldsFound++; }
+      if (result.model) { newFormData.model = result.model; fieldsFound++; }
+      if (result.color) { newFormData.color = result.color; fieldsFound++; }
+      if (result.vin) { newFormData.vin = result.vin; fieldsFound++; }
+
+      setFormData(newFormData);
+
+      if (fieldsFound > 0) {
+        toast.success(`Scanned ${fieldsFound} field${fieldsFound > 1 ? 's' : ''} from licence disc`);
+      } else {
+        toast.warning('Could not extract any details. Please update manually.');
+      }
+
+      if (result.raw_text) {
+        console.log('Licence disc raw text:', result.raw_text);
+      }
+    } catch (err) {
+      console.error('Scan error:', err);
+      toast.error('Failed to scan licence disc');
+    } finally {
+      setScanning(false);
     }
   };
 
@@ -290,6 +360,40 @@ export const EditVehicleDialog = ({ vehicle, open, onOpenChange, onVehicleUpdate
             <DialogTitle className="chrome-heading">EDIT VEHICLE</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Scan Licence Disc Button */}
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-dashed border-2 h-auto py-3"
+                onClick={() => scanInputRef.current?.click()}
+                disabled={scanning}
+              >
+                {scanning ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Scanning licence disc...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="mr-2 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-medium">Scan Licence Disc</div>
+                      <div className="text-xs text-muted-foreground font-normal">Take a photo or upload to auto-fill details</div>
+                    </div>
+                  </>
+                )}
+              </Button>
+              <input
+                ref={scanInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleScanLicenceDisc}
+                className="hidden"
+              />
+            </div>
+
             {/* Image Upload */}
             <div className="space-y-2">
               <Label>Vehicle Photo</Label>
