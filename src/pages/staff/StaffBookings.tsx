@@ -738,7 +738,43 @@ export default function StaffBookings() {
         description: `Completed: ${getStageLabel(stageName)}`,
       });
       
+      // Auto-progress booking status based on stage completion
       if (selectedBooking) {
+        const completedStage = bookingStages.find(s => s.id === stageId);
+        const isFirstStage = completedStage?.stage_order === 1;
+        const allOtherStagesCompleted = bookingStages.every(s => s.id === stageId || s.completed);
+
+        // First stage done -> move to in_progress (from pending or confirmed)
+        if (isFirstStage && (selectedBooking.status === 'pending' || selectedBooking.status === 'confirmed')) {
+          const { error: statusError } = await supabase
+            .from('bookings')
+            .update({ status: 'in_progress' as BookingStatus })
+            .eq('id', selectedBooking.id);
+
+          if (!statusError) {
+            toast({
+              title: 'Status Updated',
+              description: 'Booking moved to In Progress',
+            });
+            await fetchBookings();
+          }
+        }
+        // All stages completed -> move to completed
+        else if (allOtherStagesCompleted && selectedBooking.status !== 'completed') {
+          const { error: statusError } = await supabase
+            .from('bookings')
+            .update({ status: 'completed' as BookingStatus })
+            .eq('id', selectedBooking.id);
+
+          if (!statusError) {
+            toast({
+              title: 'Status Updated',
+              description: 'All stages complete. Booking marked as Completed.',
+            });
+            await fetchBookings();
+          }
+        }
+
         await fetchBookingStages(selectedBooking.id);
       }
     } catch (error) {

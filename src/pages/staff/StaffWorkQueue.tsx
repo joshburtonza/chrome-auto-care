@@ -237,8 +237,28 @@ export default function StaffWorkQueue() {
 
     if (error) {
       toast.error('Failed to start stage');
-    } else {
-      toast.success('Stage started');
+      return;
+    }
+
+    toast.success('Stage started');
+
+    // Auto-progress: if first stage started, move booking to in_progress
+    const item = workItems.find(w => w.id === stageId);
+    if (item && item.stage_order === 1) {
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('status')
+        .eq('id', item.booking_id)
+        .single();
+
+      if (booking && (booking.status === 'pending' || booking.status === 'confirmed')) {
+        await supabase
+          .from('bookings')
+          .update({ status: 'in_progress' })
+          .eq('id', item.booking_id);
+
+        toast.success('Booking moved to In Progress');
+      }
     }
   };
 

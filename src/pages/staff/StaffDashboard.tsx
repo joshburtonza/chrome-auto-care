@@ -141,7 +141,7 @@ export default function StaffDashboard() {
 
       setStats({
         totalBookings: bookings.length,
-        pendingBookings: bookings.filter((b) => b.status === 'pending').length,
+        pendingBookings: bookings.filter((b) => b.status === 'pending' || b.status === 'confirmed').length,
         activeBookings: bookings.filter((b) => b.status === 'in_progress').length,
         completedBookings: bookings.filter((b) => b.status === 'completed').length,
         totalCustomers: userIds.length,
