@@ -1527,6 +1527,36 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_catalog: {
+        Row: {
+          body_type: string | null
+          created_at: string | null
+          id: string
+          make: string
+          model: string
+          source: string
+          year: number
+        }
+        Insert: {
+          body_type?: string | null
+          created_at?: string | null
+          id?: string
+          make: string
+          model: string
+          source?: string
+          year: number
+        }
+        Update: {
+          body_type?: string | null
+          created_at?: string | null
+          id?: string
+          make?: string
+          model?: string
+          source?: string
+          year?: number
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           color: string | null
