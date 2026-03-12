@@ -232,7 +232,15 @@ export const generateBookingInvoice = (
   doc.text('Thank you for choosing Race Technik for your vehicle protection needs.', pageWidth / 2, footerY, { align: 'center' });
   doc.text('For queries, please contact us at support@racetechnik.co.za', pageWidth / 2, footerY + 5, { align: 'center' });
   
-  // Save the PDF
+  // Save the PDF using blob + anchor pattern for reliable .pdf extension
   const fileName = `RaceTechnik_Invoice_${booking.id.slice(0, 8)}.pdf`;
-  doc.save(fileName);
+  const pdfBlob = doc.output('blob');
+  const blobUrl = URL.createObjectURL(new Blob([pdfBlob], { type: 'application/pdf' }));
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 500);
 };
