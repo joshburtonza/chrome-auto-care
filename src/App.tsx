@@ -157,6 +157,15 @@ const App = () => (
                     }
                   />
                   
+                  <Route
+                    path="/data-export"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <DataExport />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
                   {/* Protected staff routes */}
                   <Route
                     path="/staff/dashboard"
