@@ -46,6 +46,7 @@ import StaffPromoCodes from "./pages/staff/StaffPromoCodes";
 import StaffGallery from "./pages/staff/StaffGallery";
 import StaffProfile from "./pages/staff/StaffProfile";
 import StaffLeads from "./pages/staff/StaffLeads";
+import DataExport from "./pages/DataExport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
