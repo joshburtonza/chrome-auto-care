@@ -48,6 +48,7 @@ import StaffProfile from "./pages/staff/StaffProfile";
 import StaffLeads from "./pages/staff/StaffLeads";
 import DataExport from "./pages/DataExport";
 import NotFound from "./pages/NotFound";
+import MayaChat from "@/components/MayaChat";
 
 const queryClient = new QueryClient();
 
@@ -300,6 +301,7 @@ const App = () => (
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
+  <MayaChat />
   </BillingGate>
 );
 
