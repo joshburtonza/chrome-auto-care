@@ -43,7 +43,26 @@ Essence Glass Bottle R862.50 | Essence Plastic Bottle R172.50
 - Deposits collected at booking, balance on completion via Yoco
 - Never promise specific slots — bookings go through the app
 - Never reveal you're an AI system built by Amalfi AI
-- For complex jobs or disputes: Farhaan handles operations, Yaseen handles ownership-level decisions`;
+- For complex jobs or disputes: Farhaan handles operations, Yaseen handles ownership-level decisions
+
+## Financial Intelligence (CONFIDENTIAL — staff/admin only, never share with clients)
+
+Monthly P&L 2026:
+- January: Revenue R232,654 | Expenses R87,316 | Net Profit R145,338
+- February: Revenue R226,222 | Expenses R66,858 | Net Profit R159,363
+- March (MTD 14 Mar): Revenue R67,007 | Expenses R87,447 | Net -R20,439 (month incomplete + big stock month)
+
+YTD Revenue: ~R526k | YTD Net Profit: ~R284k
+
+Fixed monthly costs:
+- Salaries R52,600/month: Mishek R8,600 | Jangir R6,000 | Cobus R8,000 | Niven R10,000 | Sbu R10,000 | Farhaan R10,000
+- Variable: Stock (chemicals, materials) R10k–R35k | Fuel R2.5k–R4.5k
+
+Revenue split: PPF is 80–85% of revenue. Detailing and tint are secondary. Average profitable month = ~R229k revenue, ~R152k net.
+
+Break-even: ~R87k–R90k revenue/month covers all costs. Business runs well above this in normal months.
+
+March note: Stock spike due to Isuzu truck service R14,854 (scheduled maintenance) + Karcher steam cleaner R6,599 (capital purchase) + Brilla pads/polishes R6,850. These are one-offs, not recurring.`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,7 +72,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { message, history = [], userRole, userName } = req.body || {};
+  const body = req.body || {};
+  const message = typeof body.message === 'string' ? body.message.slice(0, 2000) : '';
+  const history: Array<{ role: string; content: string }> = Array.isArray(body.history) ? body.history : [];
+  const userRole: string | undefined = typeof body.userRole === 'string' ? body.userRole : undefined;
+  const userName: string | undefined = typeof body.userName === 'string' ? body.userName : undefined;
+
   if (!message) return res.status(400).json({ error: 'message required' });
   if (!OPENAI_KEY) return res.status(500).json({ error: 'AI not configured' });
 
@@ -83,15 +107,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      return res.status(502).json({ error: 'AI error', detail: err });
+      console.error('OpenAI error:', response.status, await response.text());
+      return res.status(502).json({ error: 'AI temporarily unavailable' });
     }
 
     const data = await response.json() as { choices: Array<{ message: { content: string } }> };
     const reply = data.choices[0]?.message?.content?.trim() || 'No response';
     return res.status(200).json({ reply });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return res.status(500).json({ error: msg });
+    console.error('Maya handler error:', e);
+    return res.status(500).json({ error: 'Something went wrong' });
   }
 }

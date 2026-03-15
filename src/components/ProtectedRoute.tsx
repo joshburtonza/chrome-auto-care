@@ -42,7 +42,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     );
   }
 
-  if (!user || (allowedRoles && userRole && !allowedRoles.includes(userRole))) {
+  if (!user || (allowedRoles && (!userRole || !allowedRoles.includes(userRole)))) {
     return null;
   }
 
